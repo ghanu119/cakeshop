@@ -1,0 +1,11 @@
+{
+    "name": "cakeshop/lumiere",
+    "description": "Lumiere (Elegant) – beige, olive & gold artisan bakery style",
+    "version": "1.0.0",
+    "type": "project",
+    "extra": {
+        "theme": {
+            "parent": null
+        }
+    }
+}

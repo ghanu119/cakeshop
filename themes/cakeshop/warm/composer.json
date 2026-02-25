@@ -1,0 +1,11 @@
+{
+    "name": "cakeshop/warm",
+    "description": "Warm (Amber) theme – default cake shop style",
+    "version": "1.0.0",
+    "type": "project",
+    "extra": {
+        "theme": {
+            "parent": null
+        }
+    }
+}

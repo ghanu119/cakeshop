@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Warm theme only - no overlap with other themes */
+:root {
+    --theme-body-bg: linear-gradient(180deg, #fffbeb 0%, #fff7ed 15%, #ffffff 40%, #fff8f3 70%, #fffbeb 100%);
+    --theme-section-warm: linear-gradient(180deg, #fff8f3 0%, #ffedd5 100%);
+    --theme-section-light: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
+    --theme-section-mesh: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(254, 243, 199, 0.6) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(255, 237, 213, 0.4) 0%, transparent 50%),
+        #ffffff;
+    --theme-card-border: rgba(251, 191, 36, 0.8);
+    --theme-card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 4px 12px -4px rgb(245 158 11 / 0.12);
+    --theme-card-shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 20px -8px rgb(245 158 11 / 0.2);
+    --theme-card-border-hover: rgb(253 230 138);
+    --theme-btn-gradient: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+    --theme-btn-shadow-hover: 0 10px 25px -5px rgb(217 119 6 / 0.4);
+    --theme-badge-bg: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+    --theme-badge-color: #b45309;
+    --theme-input-border: rgba(253, 230, 138, 0.9);
+    --theme-focus-ring: rgba(245, 158, 11, 0.25);
+    --theme-focus-border: rgb(245 158 11);
+    --theme-accent: 245 158 11;
+    --theme-accent-hex: #d97706;
+}
+
+@layer base {
+    html, body { width: 100%; overflow-x: hidden; }
+    body {
+        @apply text-stone-800 antialiased;
+        background: var(--theme-body-bg);
+        background-attachment: fixed;
+    }
+}
+
+@layer components {
+    .section-warm { background: var(--theme-section-warm); }
+    .section-light { background: var(--theme-section-light); }
+    .section-mesh { background: var(--theme-section-mesh); }
+    .card-modern {
+        @apply rounded-2xl bg-white transition-all duration-300;
+        border: 1px solid var(--theme-card-border);
+        box-shadow: var(--theme-card-shadow);
+    }
+    .card-modern:hover {
+        box-shadow: var(--theme-card-shadow-hover);
+        border-color: var(--theme-card-border-hover);
+        @apply -translate-y-0.5;
+    }
+    .btn-primary-modern {
+        @apply inline-flex items-center justify-center px-6 py-3 font-semibold rounded-xl shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2;
+        background: var(--theme-btn-gradient);
+        color: #fff;
+    }
+    .btn-primary-modern:hover {
+        box-shadow: var(--theme-btn-shadow-hover);
+        transform: scale(1.02);
+    }
+    .heading-display {
+        @apply font-display font-bold tracking-tight text-stone-900;
+    }
+    .badge-warm {
+        @apply inline-block px-4 py-2 rounded-full text-sm font-semibold tracking-wide;
+        background: var(--theme-badge-bg);
+        color: var(--theme-badge-color);
+    }
+    .input-modern {
+        @apply block w-full rounded-xl bg-white px-4 py-3 text-stone-900 placeholder:text-stone-400 transition duration-200;
+        border: 2px solid var(--theme-input-border);
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    }
+    .input-modern:focus {
+        border-color: var(--theme-focus-border);
+        box-shadow: 0 0 0 2px var(--theme-focus-ring);
+        @apply outline-none;
+    }
+    .textarea-modern {
+        @apply block w-full rounded-xl bg-white px-4 py-3 text-stone-900 placeholder:text-stone-400 transition duration-200;
+        border: 2px solid var(--theme-input-border);
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    }
+    .textarea-modern:focus {
+        border-color: var(--theme-focus-border);
+        box-shadow: 0 0 0 2px var(--theme-focus-ring);
+        @apply outline-none;
+    }
+}
+
+.slick-dots li button:before { color: var(--theme-accent-hex); }
+.slick-dots li.slick-active button:before { color: #b45309; opacity: 1; }
+.slick-prev, .slick-next { z-index: 10; }
+.slick-prev:before, .slick-next:before { color: #92400e; }
+.slick-prev:hover:before, .slick-next:hover:before { color: #b45309; }
+.slick-slider, .slick-list { overflow: hidden; }

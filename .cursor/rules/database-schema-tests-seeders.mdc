@@ -1,0 +1,15 @@
+---
+description: On schema/field changes - update model, seeders, and tests together; keep in sync
+globs: "database/migrations/**,database/seeders/**,app/Models/**,tests/**,database/factories/**"
+alwaysApply: true
+---
+
+# Database schema and test/seeder sync (Cake Shop)
+
+Whenever a **table or model gains new columns/fields** (migration change):
+
+1. **Update the Model:** Add the attribute (and `$fillable` if used; prefer explicit assignment in services), add any new scopes or accessors.
+2. **Update seeders:** Every seeder that creates or updates that table must include the new field(s) with sensible values so `php artisan db:seed` runs without error.
+3. **Update tests:** Any Feature or Unit test that creates or asserts on that model must be updated: factories must set the new field(s); assertions must reflect the new schema.
+
+Do **not** leave seeders or tests out of date when the schema changes; treat migration + model + seeder + tests as one atomic change. When adding a **deletable** entity, add `deleted_at` (nullable) and use Eloquent `SoftDeletes` on the model; update seeders and tests accordingly.

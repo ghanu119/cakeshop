@@ -1,0 +1,20 @@
+---
+description: Laravel conventions for Cake Shop - scopes, services, FormRequest, routes, security
+globs: "**/*.php,**/*.blade.php,app/**,routes/**,database/**"
+alwaysApply: false
+---
+
+# Laravel standards (Cake Shop)
+
+- Use **model scope functions** for reusable query logic (e.g. `scopeActive($query)`); use **instance methods** for status checks (e.g. `isActive()`). Use **soft deletes** on users, categories, products, orders: `deleted_at` (nullable), `SoftDeletes` trait; listing excludes soft-deleted by default.
+- **Listing pages:** Always put **main column-based filters at the top** (status, search, date range, role); apply filters in Service/scope from request params.
+- Put all business logic in **Service classes**; keep controllers thin (call services only).
+- Use **FormRequest** classes for validation and authorization; do not validate in controllers.
+- **Avoid mass assignment:** set attributes explicitly then `$model->save();`.
+- Use a **shared form blade** for create and edit; in Services use a single **createOrUpdateModel**-style method for both create and update.
+- **Blade and layouts:** One base layout for frontend (`layouts/app`) and one for admin (`layouts/admin`). Use **reusable Blade components** (Card, Button, Input, Badge, Alert, table partial) for all repeated UI. In admin layout, use `@can` for nav and content.
+- Define **Eloquent relationships** and use `with()` to avoid N+1.
+- Use **Livewire** only when the page must update without full reload.
+- Check **permissions** in blade (`@can`), in FormRequest `authorize()`, and via middleware.
+- **Routes:** Never put core or business logic in route files. Always use **controller and method**. **Always use named routes** and reference via `route('...')` in blades and redirects.
+- **Security:** Never compromise on auth, CSRF, validation, access control. **Strong passwords always:** `Password::min(8)->mixedCase()->numbers()->symbols()` on profile change, admin user create/update, and forgot-password reset. Seeders use password **Str0n9@123** (hashed). Provide forgot-password flow for admin/auth users.

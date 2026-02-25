@@ -1,0 +1,190 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Multi-theme: variables are set per [data-theme="..."].
+ * Add a new theme in config/themes.php and define its variables below.
+ */
+:root,
+[data-theme="warm"] {
+    /* Body */
+    --theme-body-bg: linear-gradient(180deg, #fffbeb 0%, #fff7ed 15%, #ffffff 40%, #fff8f3 70%, #fffbeb 100%);
+    /* Sections */
+    --theme-section-warm: linear-gradient(180deg, #fff8f3 0%, #ffedd5 100%);
+    --theme-section-light: linear-gradient(180deg, #ffffff 0%, #fffbeb 100%);
+    --theme-section-mesh: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(254, 243, 199, 0.6) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(255, 237, 213, 0.4) 0%, transparent 50%),
+        #ffffff;
+    /* Card */
+    --theme-card-border: rgba(251, 191, 36, 0.8);
+    --theme-card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 4px 12px -4px rgb(245 158 11 / 0.12);
+    --theme-card-shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 20px -8px rgb(245 158 11 / 0.2);
+    --theme-card-border-hover: rgb(253 230 138);
+    /* Button primary */
+    --theme-btn-gradient: linear-gradient(135deg, #d97706 0%, #ea580c 100%);
+    --theme-btn-shadow-hover: 0 10px 25px -5px rgb(217 119 6 / 0.4);
+    /* Badge */
+    --theme-badge-bg: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+    --theme-badge-color: #b45309;
+    /* Input / focus */
+    --theme-input-border: rgba(253, 230, 138, 0.9);
+    --theme-focus-ring: rgba(245, 158, 11, 0.25);
+    --theme-focus-border: rgb(245 158 11);
+    /* Accent (nav, footer, links) */
+    --theme-accent: 245 158 11; /* amber-500 for Tailwind rgb */
+    --theme-accent-hex: #d97706;
+}
+
+/* Lumiere – brand cream #f5f5f0, olive #5A5A40, gold #C5A059 (Cormorant + Inter) */
+[data-theme="lumiere"] {
+    --theme-body-bg: #f5f5f0;
+    --theme-section-warm: linear-gradient(180deg, #f5f5f0 0%, #ebe8e0 100%);
+    --theme-section-light: linear-gradient(180deg, #ffffff 0%, #f5f5f0 100%);
+    --theme-section-mesh: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(90, 90, 64, 0.06) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(197, 160, 89, 0.1) 0%, transparent 50%),
+        #f5f5f0;
+    --theme-card-border: rgba(90, 90, 64, 0.12);
+    --theme-card-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 4px 12px -4px rgb(90 90 64 / 0.08);
+    --theme-card-shadow-hover: 0 20px 25px -5px rgb(0 0 0 / 0.08), 0 8px 20px -8px rgb(90 90 64 / 0.12);
+    --theme-card-border-hover: rgba(90, 90, 64, 0.2);
+    --theme-btn-gradient: linear-gradient(135deg, #5A5A40 0%, #4a4a35 100%);
+    --theme-btn-shadow-hover: 0 10px 25px -5px rgb(90 90 64 / 0.3);
+    --theme-badge-bg: linear-gradient(135deg, #e8e6e0 0%, #ddd9d0 100%);
+    --theme-badge-color: #5A5A40;
+    --theme-input-border: rgba(90, 90, 64, 0.2);
+    --theme-focus-ring: rgba(90, 90, 64, 0.2);
+    --theme-focus-border: #5A5A40;
+    --theme-accent: 90 90 64;
+    --theme-accent-hex: #5A5A40;
+    --theme-gold: #C5A059;
+    --theme-hero-bg: #f5f5f0;
+    --theme-cta-bg: #5A5A40;
+}
+
+@layer base {
+    html, body {
+        width: 100%;
+        overflow-x: hidden;
+    }
+    body {
+        @apply text-stone-800 antialiased;
+        background: var(--theme-body-bg);
+        background-attachment: fixed;
+    }
+}
+
+@layer components {
+    .section-warm {
+        background: var(--theme-section-warm);
+    }
+    .section-light {
+        background: var(--theme-section-light);
+    }
+    .section-mesh {
+        background: var(--theme-section-mesh);
+    }
+    .card-modern {
+        @apply rounded-2xl bg-white transition-all duration-300;
+        border: 1px solid var(--theme-card-border);
+        box-shadow: var(--theme-card-shadow);
+    }
+    .card-modern:hover {
+        box-shadow: var(--theme-card-shadow-hover);
+        border-color: var(--theme-card-border-hover);
+        @apply -translate-y-0.5;
+    }
+    .btn-primary-modern {
+        @apply inline-flex items-center justify-center px-6 py-3 font-semibold rounded-xl shadow-lg transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2;
+        background: var(--theme-btn-gradient);
+        color: #fff;
+    }
+    .btn-primary-modern:hover {
+        box-shadow: var(--theme-btn-shadow-hover);
+        transform: scale(1.02);
+    }
+    .heading-display {
+        @apply font-display font-bold tracking-tight text-stone-900;
+    }
+    [data-theme="lumiere"] .heading-display {
+        font-family: 'Cormorant Garamond', Georgia, serif;
+    }
+    [data-theme="lumiere"] body {
+        font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    }
+    .badge-warm {
+        @apply inline-block px-4 py-2 rounded-full text-sm font-semibold tracking-wide;
+        background: var(--theme-badge-bg);
+        color: var(--theme-badge-color);
+    }
+    .input-modern {
+        @apply block w-full rounded-xl bg-white px-4 py-3 text-stone-900 placeholder:text-stone-400 transition duration-200;
+        border: 2px solid var(--theme-input-border);
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    }
+    .input-modern:focus {
+        border-color: var(--theme-focus-border);
+        box-shadow: 0 0 0 2px var(--theme-focus-ring);
+        @apply outline-none;
+    }
+    .textarea-modern {
+        @apply block w-full rounded-xl bg-white px-4 py-3 text-stone-900 placeholder:text-stone-400 transition duration-200;
+        border: 2px solid var(--theme-input-border);
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04);
+    }
+    .textarea-modern:focus {
+        border-color: var(--theme-focus-border);
+        box-shadow: 0 0 0 2px var(--theme-focus-ring);
+        @apply outline-none;
+    }
+}
+
+/* Slick overrides – use theme accent */
+.slick-dots li button:before { color: var(--theme-accent-hex, #d97706); }
+.slick-dots li.slick-active button:before { color: #b45309; opacity: 1; }
+.slick-prev, .slick-next { z-index: 10; }
+.slick-prev:before, .slick-next:before { color: #92400e; }
+.slick-prev:hover:before, .slick-next:hover:before { color: #b45309; }
+.slick-slider, .slick-list { overflow: hidden; }
+
+/* Lumiere theme: hero (beige, no gradient overlay) */
+[data-theme="lumiere"] .hero-lumiere {
+    background: var(--theme-hero-bg);
+    min-height: 85vh;
+}
+[data-theme="lumiere"] .hero-lumiere .hero-overlay { display: none; }
+[data-theme="lumiere"] .hero-lumiere .hero-content { color: #1c1917; text-align: left; max-width: none; }
+[data-theme="lumiere"] .hero-lumiere .hero-label { font-size: 0.75rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--theme-accent-hex); margin-bottom: 0.5rem; }
+[data-theme="lumiere"] .hero-lumiere .hero-title-part1 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 700; color: #1c1917; }
+[data-theme="lumiere"] .hero-lumiere .hero-title-part2 { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; color: var(--theme-gold); font-style: italic; }
+[data-theme="lumiere"] .hero-lumiere .hero-desc { color: #57534e; }
+[data-theme="lumiere"] .hero-lumiere .btn-hero-primary { background: var(--theme-cta-bg); color: #fff; border: none; }
+[data-theme="lumiere"] .hero-lumiere .btn-hero-primary:hover { filter: brightness(1.1); }
+[data-theme="lumiere"] .hero-lumiere .btn-hero-outline { background: transparent; color: var(--theme-accent-hex); border: 2px solid var(--theme-accent-hex); }
+[data-theme="lumiere"] .hero-lumiere .btn-hero-outline:hover { background: var(--theme-accent-hex); color: #fff; }
+
+/* Lumiere theme: mid-page CTA strip */
+.theme-cta-strip {
+    background: var(--theme-cta-bg);
+    color: #fff;
+    border-radius: 1.5rem;
+    padding: 4rem 2rem;
+}
+.theme-cta-strip .theme-cta-title { font-family: 'Cormorant Garamond', Georgia, serif; font-weight: 400; }
+.theme-cta-strip .btn-cta-gold { background: var(--theme-gold); color: #fff; border: none; }
+.theme-cta-strip .btn-cta-gold:hover { filter: brightness(1.15); }
+.theme-cta-strip .btn-cta-outline { background: transparent; color: #fff; border: 2px solid #fff; }
+.theme-cta-strip .btn-cta-outline:hover { background: #fff; color: var(--theme-cta-bg); }
+
+/* Lumiere: header & footer use olive accent */
+[data-theme="lumiere"] .header-nav a:hover,
+[data-theme="lumiere"] .header-nav a.nav-link-active { color: var(--theme-accent-hex) !important; background-color: rgba(61, 79, 61, 0.08) !important; }
+[data-theme="lumiere"] header { border-color: rgba(61, 79, 61, 0.15); }
+[data-theme="lumiere"] .logo-accent { background: var(--theme-btn-gradient) !important; }
+[data-theme="lumiere"] footer { background: linear-gradient(180deg, #5A5A40 0%, #4a4a35 100%); border-color: rgba(197, 160, 89, 0.25); }
+[data-theme="lumiere"] footer a:hover { color: #C5A059 !important; }
+[data-theme="lumiere"] footer .footer-accent { color: #C5A059; }
+
+/* Admin area: force neutral gray background (no frontend theme/pink) */
+html.admin-area,
+html.admin-area body { background: #f9fafb !important; background-image: none !important; }

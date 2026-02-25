@@ -1,0 +1,15 @@
+---
+description: Design system - spacing, typography, animation, reusable Blade components (Card, Button, Input, Badge, Alert)
+globs: "**/*.blade.php,resources/css/**,resources/js/**,public/**"
+alwaysApply: false
+---
+
+# UI/UX and modern CSS (Cake Shop)
+
+- Use **Tailwind CSS** for all styling. **Design system:** Spacing scale (Tailwind tokens: p-4, gap-6, space-y-4); standard container `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`. Typography: one scale (text-xs through text-5xl), clear h1–h3 and body hierarchy. Animation: short transitions (duration-150/200) on interactive elements; hover/focus states; animate-spin for loaders.
+- **UI patterns:** Card, Button (primary/secondary/danger), Input, Badge, Alert/Toast, Tables—each implemented as a **reusable Blade component** and used everywhere. Do not duplicate markup.
+- Prefer modern CSS: subtle shadows, consistent border-radius (e.g. rounded-xl), clear focus states (ring-2 ring-offset-2), smooth transitions.
+- Responsive: mobile-first (sm:, md:, lg:); touch-friendly targets; accessible contrast.
+- Use Select2 for dropdowns, Flatpickr for dates, datepicker.io for ranges when needed; style to match design system.
+- Loading and feedback: spinner on submit; success/error toast; validation errors inline. Navigation: indicate active link.
+- Apply the design system and these standards so the app looks consistent with a modern cake-shop aesthetic.
