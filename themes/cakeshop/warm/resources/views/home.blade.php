@@ -212,7 +212,7 @@
                     <p class="text-stone-600 mb-8 leading-relaxed relative z-10">"{{ $testimonial->review }}"</p>
                     
                     <div class="flex items-center mt-auto">
-                        <div class="w-12 h-12 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center text-white font-bold text-lg shadow-md">
+                        <div class="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-600 font-bold text-lg shadow-sm">
                             {{ $testimonial->initials }}
                         </div>
                         <div class="ml-4">
