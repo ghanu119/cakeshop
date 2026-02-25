@@ -8,7 +8,8 @@ use Illuminate\Database\Seeder;
 
 class ProductSeeder extends Seeder
 {
-    private const PICSUM_BASE = 'https://picsum.photos/seed/%s/800/800';
+    /** Cake/dessert placeholder images (800x800) for the online cake shop. */
+    private const CAKE_IMAGE_BASE = 'https://loremflickr.com/800/800/cake,dessert';
 
     public function run(): void
     {
@@ -206,20 +207,21 @@ class ProductSeeder extends Seeder
             );
 
             if ($product->getMedia('product_images')->isEmpty()) {
-                $this->addPicsumImage($product, $item['slug']);
+                $this->addCakeImage($product, $item['slug']);
             }
         }
     }
 
-    private function addPicsumImage(Product $product, string $seed): void
+    private function addCakeImage(Product $product, string $slug): void
     {
-        $url = sprintf(self::PICSUM_BASE, preg_replace('/[^a-z0-9-]/', '-', $seed));
+        $lock = abs(crc32($slug));
+        $url = self::CAKE_IMAGE_BASE . '?lock=' . $lock;
 
         try {
             $product->addMediaFromUrl($url)
                 ->toMediaCollection('product_images');
         } catch (\Throwable $e) {
-            $this->command->warn("Could not add Picsum image for product [{$product->slug}]: {$e->getMessage()}");
+            $this->command->warn("Could not add cake image for product [{$product->slug}]: {$e->getMessage()}");
         }
     }
 }
