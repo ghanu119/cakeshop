@@ -4,12 +4,21 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
 
 class Setting extends Model
 {
     protected $fillable = ['key', 'value'];
 
     public const CACHE_KEY = 'app_settings';
+
+    /**
+     * Whether the settings table exists (e.g. false during migrate:fresh before migrations run).
+     */
+    public static function tableExists(): bool
+    {
+        return Schema::hasTable('settings');
+    }
 
     public const DEFAULTS = [
         'site_name' => 'Cake Shop',
@@ -43,6 +52,10 @@ class Setting extends Model
      */
     public static function allCached(): array
     {
+        if (! static::tableExists()) {
+            return self::DEFAULTS;
+        }
+
         return Cache::remember(self::CACHE_KEY, 3600, function () {
             $rows = static::query()->pluck('value', 'key');
             return array_merge(self::DEFAULTS, $rows->toArray());
@@ -51,6 +64,9 @@ class Setting extends Model
 
     public static function set(string $key, $value): void
     {
+        if (! static::tableExists()) {
+            return;
+        }
         static::updateOrCreate(
             ['key' => $key],
             ['value' => $value === null ? null : (string) $value]
