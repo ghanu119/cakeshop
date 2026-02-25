@@ -22,11 +22,11 @@
             <p class="text-lg text-stone-600 max-w-2xl mx-auto">{{ __('Please provide your details below to finalize your order for the delicious') }} <span class="font-bold text-amber-700">{{ $product->name_en }}</span></p>
         </div>
 
-        <form method="post" action="{{ route('order.store', $product) }}" class="lg:grid lg:grid-cols-12 lg:gap-10 xl:gap-12 items-start">
+        <form method="post" action="{{ route('order.store', $product) }}" class="order-place-layout lg:grid lg:grid-cols-12 lg:gap-10 xl:gap-12 items-start">
             @csrf
             
             {{-- Left Column: Form Fields --}}
-            <div class="lg:col-span-7 xl:col-span-8 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-amber-100/50 p-6 sm:p-10 mb-10 lg:mb-0">
+            <div class="order-place-main lg:col-span-7 xl:col-span-8 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-amber-100/50 p-6 sm:p-10 mb-10 lg:mb-0">
                 
                 {{-- Contact Info Section --}}
                 <div class="mb-10">
@@ -90,7 +90,7 @@
             </div>
 
             {{-- Right Column: Order Summary --}}
-            <div class="lg:col-span-5 xl:col-span-4 sticky top-8">
+            <div class="order-place-sidebar lg:col-span-5 xl:col-span-4 sticky top-8">
                 <div class="bg-white rounded-3xl shadow-[0_20px_40px_rgb(217,119,6,0.1)] border border-amber-100/80 overflow-hidden flex flex-col">
                     {{-- Summary Header with Thumbnail --}}
                     <div class="p-6 sm:p-8 bg-amber-50/50 border-b border-amber-100/80">
@@ -157,3 +157,22 @@
     </div>
 </div>
 @endsection
+
+@push('styles')
+<style>
+    /* Fallback layout for desktop when missing lg:grid-cols-12 utilities */
+    @media (min-width: 1024px) {
+        .order-place-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+            gap: 2.5rem;
+            align-items: start;
+        }
+
+        .order-place-main,
+        .order-place-sidebar {
+            min-width: 0;
+        }
+    }
+</style>
+@endpush
