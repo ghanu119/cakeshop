@@ -6,6 +6,9 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>@yield('title', settings('site_name') ?: config('app.name'))</title>
+        @if(header_icon_url())
+        <link rel="icon" href="{{ header_icon_url() }}">
+        @endif
         @stack('meta')
 
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -94,9 +97,13 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
                     <div class="lg:col-span-1">
                         <div class="flex items-center space-x-2 mb-4">
-                            <div class="logo-accent flex h-10 w-10 items-center justify-center rounded-full text-white">
-                                <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22c4-4 8-8.5 8-14a8 8 0 0 0-16 0c0 5.5 4 10 8 14z"/><path d="M12 8v6"/><path d="M9 11h6"/></svg>
-                            </div>
+                            @if(header_icon_url())
+                                <img src="{{ header_icon_url() }}" alt="" class="h-10 w-10 rounded-full object-contain" />
+                            @else
+                                <div class="logo-accent flex h-10 w-10 items-center justify-center rounded-full text-white">
+                                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22c4-4 8-8.5 8-14a8 8 0 0 0-16 0c0 5.5 4 10 8 14z"/><path d="M12 8v6"/><path d="M9 11h6"/></svg>
+                                </div>
+                            @endif
                             <span class="text-xl heading-display text-white">{{ settings('site_name') ?: config('app.name') }}</span>
                         </div>
                         <p class="text-stone-400 mb-4 leading-relaxed text-sm">{{ __('Fresh cakes for every occasion') }}</p>

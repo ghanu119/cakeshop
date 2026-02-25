@@ -4,8 +4,7 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite",
-        "build:themes": "npx tailwindcss -i resources/css/themes/warm.css -o themes/cakeshop/warm/public/css/app.css --minify && npx tailwindcss -i resources/css/themes/lumiere.css -o themes/cakeshop/lumiere/public/css/app.css --minify"
+        "dev": "vite"
     },
     "devDependencies": {
         "@tailwindcss/forms": "^0.5.2",

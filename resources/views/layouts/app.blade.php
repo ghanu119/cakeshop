@@ -6,6 +6,9 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>@yield('title', settings('site_name') ?: config('app.name'))</title>
+        @if(header_icon_url())
+        <link rel="icon" href="{{ header_icon_url() }}">
+        @endif
         @stack('meta')
 
         <link rel="preconnect" href="https://fonts.bunny.net">
