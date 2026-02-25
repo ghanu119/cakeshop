@@ -1,0 +1,11 @@
+{
+    "name": "cakeshop/better-buns",
+    "description": "Better Buns theme - modern warm style based on Warm theme",
+    "version": "1.0.0",
+    "type": "project",
+    "extra": {
+        "theme": {
+            "parent": "cakeshop/warm"
+        }
+    }
+}

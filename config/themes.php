@@ -15,7 +15,8 @@ return [
     | Available themes
     |--------------------------------------------------------------------------
     | Keys are used in Admin → Settings and map to hexadog themes:
-    | warm → cakeshop/warm, lumiere → cakeshop/lumiere. Each theme has its own
+    | warm → cakeshop/warm, lumiere → cakeshop/lumiere,
+    | better-buns → cakeshop/better-buns. Each theme has its own
     | layout, CSS, and assets under themes/cakeshop/{key}/ (no overlap).
     */
     'available' => [
@@ -26,6 +27,10 @@ return [
         'lumiere' => [
             'name' => 'Lumiere (Elegant)',
             'description' => 'Elegant beige, olive & gold – artisan bakery style',
+        ],
+        'better-buns' => [
+            'name' => 'Better Buns (Modern Warm)',
+            'description' => 'Warm modern style inspired by the Better Buns brand colors',
         ],
     ],
 

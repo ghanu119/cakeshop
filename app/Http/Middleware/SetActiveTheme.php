@@ -7,7 +7,7 @@ use Hexadog\ThemesManager\Http\Middleware\ThemeLoader as BaseThemeLoader;
 class SetActiveTheme extends BaseThemeLoader
 {
     /**
-     * Set the active theme from Admin → Settings (warm / lumiere)
+     * Set the active theme from Admin → Settings
      * so each theme uses its own layout, CSS, and assets without overlap.
      */
     public function handle($request, \Closure $next, ?string $theme = null)
@@ -21,7 +21,12 @@ class SetActiveTheme extends BaseThemeLoader
         }
 
         $fromSetting = settings('theme');
-        $theme = $fromSetting === 'lumiere' ? 'cakeshop/lumiere' : 'cakeshop/warm';
+        $themeMap = [
+            'lumiere' => 'cakeshop/lumiere',
+            'better-buns' => 'cakeshop/better-buns',
+            'warm' => 'cakeshop/warm',
+        ];
+        $theme = $themeMap[$fromSetting] ?? 'cakeshop/warm';
         return parent::handle($request, $next, $theme);
     }
 }
