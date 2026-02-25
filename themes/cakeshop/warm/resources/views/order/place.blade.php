@@ -1,0 +1,159 @@
+@extends('layouts.app')
+
+@section('content')
+@php
+    $currency = settings('currency') ?? 'INR';
+    $symbol = $currency === 'INR' ? '₹' : $currency . ' ';
+    $imgUrl = $product->getFirstMediaUrl('product_images', 'medium') ?: $product->getFirstMediaUrl('product_images', 'large');
+@endphp
+
+<div class="min-h-screen bg-stone-50 py-12 lg:py-20 relative overflow-hidden">
+    <!-- Soft background glow effect -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-amber-200/30 to-transparent rounded-full blur-3xl opacity-60 pointer-events-none"></div>
+
+    <div class="relative z-10 mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+        {{-- Header Section --}}
+        <div class="text-center mb-12">
+            <span class="inline-flex items-center px-4 py-1.5 rounded-full bg-amber-100 text-amber-800 text-sm font-bold uppercase tracking-wider mb-4 shadow-sm">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                {{ __('Secure Checkout') }}
+            </span>
+            <h1 class="font-display text-4xl sm:text-5xl font-extrabold text-stone-900 mb-4">{{ __('Complete Your Order') }}</h1>
+            <p class="text-lg text-stone-600 max-w-2xl mx-auto">{{ __('Please provide your details below to finalize your order for the delicious') }} <span class="font-bold text-amber-700">{{ $product->name_en }}</span></p>
+        </div>
+
+        <form method="post" action="{{ route('order.store', $product) }}" class="lg:grid lg:grid-cols-12 lg:gap-10 xl:gap-12 items-start">
+            @csrf
+            
+            {{-- Left Column: Form Fields --}}
+            <div class="lg:col-span-7 xl:col-span-8 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-amber-100/50 p-6 sm:p-10 mb-10 lg:mb-0">
+                
+                {{-- Contact Info Section --}}
+                <div class="mb-10">
+                    <h3 class="text-xl font-bold text-stone-900 mb-6 flex items-center gap-3 border-b border-stone-100 pb-4">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold shadow-sm">1</span>
+                        {{ __('Contact Information') }}
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="guest_name" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Your Name') }} <span class="text-red-500">*</span></label>
+                            <input type="text" name="guest_name" id="guest_name" value="{{ old('guest_name') }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" required />
+                            @error('guest_name')<p class="mt-2 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="guest_phone" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Phone Number') }} <span class="text-red-500">*</span></label>
+                            <input type="tel" name="guest_phone" id="guest_phone" value="{{ old('guest_phone') }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" required />
+                            @error('guest_phone')<p class="mt-2 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="guest_email" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Email Address') }} <span class="text-stone-400 font-medium">({{ __('Optional') }})</span></label>
+                            <input type="email" name="guest_email" id="guest_email" value="{{ old('guest_email') }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" />
+                            @error('guest_email')<p class="mt-2 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Order Details Section --}}
+                <div class="mb-2">
+                    <h3 class="text-xl font-bold text-stone-900 mb-6 flex items-center gap-3 border-b border-stone-100 pb-4">
+                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold shadow-sm">2</span>
+                        {{ __('Order Details') }}
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="quantity" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Quantity') }} <span class="text-red-500">*</span></label>
+                            <input type="number" name="quantity" id="quantity" value="{{ old('quantity', request('quantity', 1)) }}" min="1" max="10" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm font-semibold text-lg" required />
+                            @error('quantity')<p class="mt-2 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
+                        </div>
+                        <div>
+                            <label for="delivery_at" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Delivery Date & Time') }} <span class="text-red-500">*</span></label>
+                            @php
+                                $minDt = $deliveryRules['after']->setTimezone($deliveryRules['timezone'])->format('Y-m-d\TH:i');
+                                $maxDt = $deliveryRules['before']->setTimezone($deliveryRules['timezone'])->format('Y-m-d\TH:i');
+                            @endphp
+                            <input type="datetime-local" name="delivery_at" id="delivery_at" value="{{ old('delivery_at') }}" min="{{ $minDt }}" max="{{ $maxDt }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" required />
+                            <p class="mt-2 text-xs text-stone-500">{{ __('Timezone') }}: {{ $deliveryRules['timezone'] }}</p>
+                            @error('delivery_at')<p class="mt-1 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="message_on_cake" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Message on Cake') }} <span class="text-stone-400 font-medium">({{ __('Optional') }})</span></label>
+                            <input type="text" name="message_on_cake" id="message_on_cake" value="{{ old('message_on_cake') }}" placeholder="{{ __('e.g. Happy Birthday John!') }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" />
+                            @error('message_on_cake')<p class="mt-2 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="instructions" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Special Instructions') }} <span class="text-stone-400 font-medium">({{ __('Optional') }})</span></label>
+                            <textarea name="instructions" id="instructions" rows="3" placeholder="{{ __('Any allergies, delivery details, etc.') }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm resize-none">{{ old('instructions') }}</textarea>
+                            @error('instructions')<p class="mt-2 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Right Column: Order Summary --}}
+            <div class="lg:col-span-5 xl:col-span-4 sticky top-8">
+                <div class="bg-white rounded-3xl shadow-[0_20px_40px_rgb(217,119,6,0.1)] border border-amber-100/80 overflow-hidden flex flex-col">
+                    {{-- Summary Header with Thumbnail --}}
+                    <div class="p-6 sm:p-8 bg-amber-50/50 border-b border-amber-100/80">
+                        <h3 class="text-xl font-bold text-stone-900 mb-6">{{ __('Order Summary') }}</h3>
+                        <div class="flex items-center gap-5">
+                            {{-- Thumbnail Image --}}
+                            <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-2xl overflow-hidden shadow-sm shrink-0 bg-white border border-stone-100">
+                                @if($imgUrl)
+                                    <img src="{{ $imgUrl }}" alt="{{ $product->name_en }}" class="w-full h-full object-cover" />
+                                @else
+                                    <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50">
+                                        <svg class="h-10 w-10 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </div>
+                                @endif
+                            </div>
+                            {{-- Product Info --}}
+                            <div class="flex-1">
+                                @if($product->category)
+                                    <span class="inline-block text-[10px] sm:text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">{{ $product->category->name_en }}</span>
+                                @endif
+                                <h4 class="text-lg sm:text-xl font-bold font-display text-stone-900 leading-tight line-clamp-3">{{ $product->name_en }}</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Summary Details --}}
+                    <div class="p-6 sm:p-8 bg-white">
+                        <div class="flex items-center justify-between border-b border-stone-100 pb-6 mb-6">
+                            <span class="text-stone-500 font-medium">{{ __('Price per piece') }}</span>
+                            <span class="text-xl font-bold text-stone-900">{{ $symbol }}{{ number_format($product->price, 2) }}</span>
+                        </div>
+
+                        <div class="space-y-4 mb-8">
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <p class="text-sm text-stone-600 leading-relaxed">{{ __('100% Freshly baked to order') }}</p>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0 mt-0.5">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <p class="text-sm text-stone-600 leading-relaxed">{{ __('Premium quality ingredients') }}</p>
+                            </div>
+                        </div>
+
+                        {{-- Action Buttons --}}
+                        <div class="flex flex-col gap-4">
+                            <button type="submit" class="w-full px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-lg shadow-[0_8px_20px_rgb(217,119,6,0.25)] hover:shadow-[0_12px_25px_rgb(217,119,6,0.35)] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                                {{ __('Place Order') }}
+                                <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                            </button>
+                            <a href="{{ route('products.show', $product->slug) }}" class="w-full px-8 py-3.5 rounded-full border-2 border-stone-200 text-stone-600 font-bold hover:border-stone-300 hover:text-stone-900 transition-colors text-center">
+                                {{ __('Cancel') }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+@endsection

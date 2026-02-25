@@ -103,7 +103,7 @@
         </div>
 
         @if($products->hasPages())
-        <div class="mt-12 flex justify-center">{{ $products->links() }}</div>
+        <div class="mt-12">{{ $products->links('pagination.tailwind') }}</div>
         @endif
     </div>
 </section>
