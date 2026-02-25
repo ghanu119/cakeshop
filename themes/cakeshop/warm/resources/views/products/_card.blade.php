@@ -44,12 +44,18 @@
             <div class="mb-6 flex-grow"></div>
         @endif
         
-        <div class="flex items-center justify-between pt-5 border-t border-stone-100 mt-auto">
-            <div>
-                <p class="text-2xl font-black text-stone-900 tracking-tight">{{ $symbol }}{{ number_format($product->price, 2) }}</p>
+        <div class="mt-auto flex items-end justify-between border-t border-stone-100 pt-5">
+            @php
+                $formattedPrice = number_format($product->price, 2);
+                [$wholePrice, $decimalPrice] = explode('.', $formattedPrice);
+            @endphp
+            <div class="leading-none">
+                <p class="inline-flex items-end whitespace-nowrap text-2xl font-extrabold tracking-tight text-stone-900">
+                    {{ $symbol }}{{ $wholePrice }}<span class="mb-[2px] text-sm font-semibold text-stone-600">.{{ $decimalPrice }}</span>
+                </p>
             </div>
             
-            <div class="flex items-center text-amber-600 font-bold group-hover:text-amber-700 transition-colors">
+            <div class="flex items-center self-end text-amber-600 font-bold transition-colors group-hover:text-amber-700">
                 {{ __('View') }}
                 <svg class="ml-1 h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />

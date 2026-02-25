@@ -81,7 +81,7 @@
         </div>
 
         {{-- Products Grid --}}
-        <div class="grid gap-8 sm:gap-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div class="product-list-grid grid gap-8 sm:gap-10 sm:grid-cols-2 lg:grid-cols-4">
             @forelse($products as $product)
                 @include('products._card', ['product' => $product])
             @empty
@@ -113,3 +113,15 @@
     </div>
 </section>
 @endsection
+
+@push('styles')
+<style>
+    /* Keep desktop at 4 columns even when lg utility classes are missing. */
+    @media (min-width: 1024px) {
+        .product-list-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+    }
+</style>
+@endpush
