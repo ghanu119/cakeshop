@@ -46,12 +46,12 @@ class OrderController extends Controller
         $this->authorize('update', $order);
 
         if (! $order->isPaymentVerified()) {
-            return redirect()->route('kitchen.orders.show', $order)
+            return redirect()->route('admin.kitchen.orders.show', $order)
                 ->with('error', __('Payment must be verified before you can change the order status.'));
         }
 
         $this->orderService->updateOrderStatus($order, $request->validated('order_status'));
 
-        return redirect()->route('kitchen.orders.show', $order)->with('status', __('Order status updated.'));
+        return redirect()->route('admin.kitchen.orders.show', $order)->with('status', __('Order status updated.'));
     }
 }

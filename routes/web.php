@@ -53,17 +53,16 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth', 'verified', 'role:Admin|Kitchen'])->group(function () {
-    Route::middleware(['permission:orders.view'])->group(function () {
-        Route::get('kitchen/orders', [KitchenOrderController::class, 'index'])->name('kitchen.orders.index');
-        Route::get('kitchen/orders/{order}', [KitchenOrderController::class, 'show'])->name('kitchen.orders.show');
-    });
-    Route::middleware(['permission:orders.update'])->group(function () {
-        Route::post('kitchen/orders/{order}/update-status', [KitchenOrderController::class, 'updateStatus'])->name('kitchen.orders.update-status');
-    });
-
-    // Admin area: all routes under /admin prefix (separate from store/frontend)
+    // Admin area: all backend routes under /admin prefix
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::middleware(['permission:orders.view'])->group(function () {
+            Route::get('kitchen/orders', [KitchenOrderController::class, 'index'])->name('kitchen.orders.index');
+            Route::get('kitchen/orders/{order}', [KitchenOrderController::class, 'show'])->name('kitchen.orders.show');
+        });
+        Route::middleware(['permission:orders.update'])->group(function () {
+            Route::post('kitchen/orders/{order}/update-status', [KitchenOrderController::class, 'updateStatus'])->name('kitchen.orders.update-status');
+        });
         Route::resource('categories', CategoryController::class)->except(['show']);
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class)->except(['show']);
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');

@@ -13,7 +13,7 @@
     <div class="mx-auto max-w-6xl">
         {{-- Page Header --}}
         <div class="mb-6">
-            <a href="{{ route('kitchen.orders.index') }}" class="mb-4 inline-flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-gray-700">
+            <a href="{{ route('admin.kitchen.orders.index') }}" class="mb-4 inline-flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-gray-700">
                 <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
                 {{ __("Back to Today's Orders") }}
             </a>
@@ -36,7 +36,7 @@
                         </span>
                         
                         @role('Admin|Kitchen')
-                            <form method="post" action="{{ route('kitchen.orders.update-status', $order) }}" class="flex items-center gap-2">
+                            <form method="post" action="{{ route('admin.kitchen.orders.update-status', $order) }}" class="flex items-center gap-2">
                                 @csrf
                                 <select name="order_status" class="block w-40 cursor-pointer rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                     <option value="pending" @selected($order->order_status === 'pending')>{{ __('Pending') }}</option>

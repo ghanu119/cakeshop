@@ -59,7 +59,7 @@ class OrderController extends Controller
         }
 
         $redirect = request()->query('from') === 'kitchen'
-            ? route('kitchen.orders.index')
+            ? route('admin.kitchen.orders.index')
             : route('admin.orders.show', $order);
 
         return redirect()->to($redirect)->with('status', __('Order status updated.'));

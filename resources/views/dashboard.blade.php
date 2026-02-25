@@ -52,7 +52,7 @@
             </div>
         </a>
         @endif
-        <a href="{{ route('kitchen.orders.index') }}" class="group rounded-xl border-2 border-indigo-200 bg-indigo-50/50 p-6 shadow-sm transition duration-200 hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md">
+        <a href="{{ route('admin.kitchen.orders.index') }}" class="group rounded-xl border-2 border-indigo-200 bg-indigo-50/50 p-6 shadow-sm transition duration-200 hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md">
             <div class="flex items-start justify-between">
                 <div>
                     <p class="text-sm font-medium text-indigo-700">{{ __("Today's orders") }}</p>
@@ -91,14 +91,14 @@
 
     @can('orders.view')
     <div class="mt-8">
-        <a href="{{ route('kitchen.orders.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition duration-200 hover:bg-indigo-700">{{ __("Today's orders") }}</a>
+        <a href="{{ route('admin.kitchen.orders.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition duration-200 hover:bg-indigo-700">{{ __("Today's orders") }}</a>
     </div>
     @endcan
 
     @if(!auth()->user()->can('orders.view') && !auth()->user()->can('contact_enquiries.view'))
     <div class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
         <p class="text-gray-900">{{ __("You're logged in!") }}</p>
-        <a href="{{ route('kitchen.orders.index') }}" class="mt-2 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-700">{{ __("Today's orders") }}</a>
+        <a href="{{ route('admin.kitchen.orders.index') }}" class="mt-2 inline-flex items-center text-sm font-medium text-indigo-600 hover:text-indigo-700">{{ __("Today's orders") }}</a>
     </div>
     @endif
 @endsection
