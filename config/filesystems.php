@@ -77,6 +77,7 @@ return [
         public_path('storage') => storage_path('app/public'),
         public_path('themes/cakeshop/warm') => base_path('themes/cakeshop/warm/public'),
         public_path('themes/cakeshop/lumiere') => base_path('themes/cakeshop/lumiere/public'),
+        public_path('themes/cakeshop/better-buns') => base_path('themes/cakeshop/better-buns/public'),
     ],
 
 ];
