@@ -1,0 +1,130 @@
+@import url("/themes/cakeshop/warm/css/app.css");
+
+:root {
+    --theme-body-bg: linear-gradient(180deg, #fff8f3 0%, #fff3e8 18%, #fff 42%, #fff5ed 72%, #fff8f3 100%);
+    --theme-section-warm: linear-gradient(180deg, #fff6ef 0%, #ffe6cf 100%);
+    --theme-section-light: linear-gradient(180deg, #fff 0%, #fff7f1 100%);
+    --theme-section-mesh:
+        radial-gradient(ellipse 80% 50% at 50% 0%, rgba(241, 140, 22, 0.23) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 100% 100%, rgba(91, 29, 23, 0.1) 0%, transparent 50%),
+        #fff;
+    --theme-card-border: rgba(241, 140, 22, 0.45);
+    --theme-card-shadow: 0 2px 10px rgba(91, 29, 23, 0.06), 0 8px 24px rgba(241, 140, 22, 0.12);
+    --theme-card-shadow-hover: 0 20px 42px -12px rgba(91, 29, 23, 0.22), 0 10px 24px rgba(241, 140, 22, 0.24);
+    --theme-card-border-hover: rgba(241, 140, 22, 0.75);
+    --theme-btn-gradient: linear-gradient(135deg, #f18c16 0%, #e57e0c 60%, #c96400 100%);
+    --theme-btn-shadow-hover: 0 14px 30px -8px rgba(91, 29, 23, 0.48);
+    --theme-badge-bg: linear-gradient(135deg, #fff1df 0%, #ffd39f 100%);
+    --theme-badge-color: #5b1d17;
+    --theme-input-border: rgba(241, 140, 22, 0.55);
+    --theme-focus-ring: rgba(241, 140, 22, 0.28);
+    --theme-focus-border: #f18c16;
+    --theme-accent: 241 140 22;
+    --theme-accent-hex: #f18c16;
+}
+
+/* Small, modern polish while staying close to Warm layout/structure. */
+header {
+    border-bottom-color: rgba(241, 140, 22, 0.26);
+    backdrop-filter: blur(10px);
+}
+
+.nav-link-active {
+    box-shadow: inset 0 -2px 0 rgba(91, 29, 23, 0.52);
+}
+
+.card-modern {
+    border-radius: 1.1rem;
+}
+
+.btn-primary-modern {
+    letter-spacing: 0.01em;
+}
+
+footer {
+    background: linear-gradient(180deg, #5b1d17 0%, #45140f 100%);
+}
+
+/* Force Tailwind warm utility colors to logo palette in this theme. */
+.bg-amber-50 { background-color: #fff7ef !important; }
+.bg-amber-100 { background-color: #ffe7cf !important; }
+.bg-amber-200 { background-color: #ffd3a3 !important; }
+.bg-amber-500, .hover\:bg-amber-500:hover { background-color: #f18c16 !important; }
+.bg-amber-600, .hover\:bg-amber-600:hover { background-color: #de7a10 !important; }
+.bg-orange-50 { background-color: #fff4ea !important; }
+.bg-orange-100 { background-color: #ffe3cc !important; }
+.bg-orange-200 { background-color: #ffc890 !important; }
+.bg-orange-500, .hover\:bg-orange-500:hover { background-color: #de7a10 !important; }
+.bg-orange-600, .hover\:bg-orange-600:hover { background-color: #c96500 !important; }
+
+.text-amber-400, .hover\:text-amber-400:hover { color: #f3a542 !important; }
+.text-amber-500, .hover\:text-amber-500:hover { color: #f18c16 !important; }
+.text-amber-600, .hover\:text-amber-600:hover { color: #de7a10 !important; }
+.text-amber-700, .hover\:text-amber-700:hover { color: #b95b00 !important; }
+.text-amber-800 { color: #7a2b1f !important; }
+.text-orange-600, .hover\:text-orange-600:hover { color: #de7a10 !important; }
+.text-orange-700, .hover\:text-orange-700:hover { color: #c96500 !important; }
+.text-orange-800 { color: #7a2b1f !important; }
+
+.border-amber-100, .border-amber-100\/80 { border-color: #ffe7cf !important; }
+.border-amber-200, .border-amber-200\/60 { border-color: #ffd3a3 !important; }
+.border-amber-500, .hover\:border-amber-500:hover { border-color: #f18c16 !important; }
+.focus\:border-amber-500:focus { border-color: #f18c16 !important; }
+
+.from-amber-500 {
+    --tw-gradient-from: #f18c16 var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgba(241, 140, 22, 0) var(--tw-gradient-to-position) !important;
+}
+.to-orange-500 {
+    --tw-gradient-to: #de7a10 var(--tw-gradient-to-position) !important;
+}
+.hover\:from-amber-600:hover {
+    --tw-gradient-from: #de7a10 var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgba(222, 122, 16, 0) var(--tw-gradient-to-position) !important;
+}
+.hover\:to-orange-600:hover {
+    --tw-gradient-to: #c96500 var(--tw-gradient-to-position) !important;
+}
+
+.focus\:ring-amber-500:focus,
+.focus-visible\:ring-amber-500:focus-visible {
+    --tw-ring-color: #f18c16 !important;
+}
+
+/* Warm-neutral remap so pages don't feel default "warm" gray. */
+.bg-stone-50, .bg-gray-50 { background-color: #fff9f4 !important; }
+.bg-stone-100, .bg-gray-100 { background-color: #f8ede4 !important; }
+.bg-stone-200, .bg-gray-200 { background-color: #efdfd2 !important; }
+.bg-stone-900, .bg-gray-900 { background-color: #5b1d17 !important; }
+.bg-stone-950 { background-color: #45140f !important; }
+
+.text-stone-500, .text-gray-500 { color: #8c6b5b !important; }
+.text-stone-600, .text-gray-600 { color: #735244 !important; }
+.text-stone-700, .text-gray-700 { color: #5b3e33 !important; }
+.text-stone-800, .text-gray-800 { color: #4a2e25 !important; }
+.text-stone-900, .text-gray-900 { color: #3c2019 !important; }
+
+.border-stone-100, .border-gray-100 { border-color: #f3e5d8 !important; }
+.border-stone-200, .border-gray-200 { border-color: #e8d6c7 !important; }
+.border-stone-300, .border-gray-300 { border-color: #d6c0ae !important; }
+
+/* Replace non-brand highlight gradients used by badges/chips. */
+.from-red-500 {
+    --tw-gradient-from: #f18c16 var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgba(241, 140, 22, 0) var(--tw-gradient-to-position) !important;
+}
+.to-pink-500 { --tw-gradient-to: #de7a10 var(--tw-gradient-to-position) !important; }
+.from-blue-500 {
+    --tw-gradient-from: #7a2b1f var(--tw-gradient-from-position) !important;
+    --tw-gradient-to: rgba(122, 43, 31, 0) var(--tw-gradient-to-position) !important;
+}
+.to-purple-500 { --tw-gradient-to: #5b1d17 var(--tw-gradient-to-position) !important; }
+
+/* Default dark buttons/blocks should use logo brown. */
+.bg-gray-800, .hover\:bg-gray-800:hover { background-color: #5b1d17 !important; }
+.bg-neutral-700 { background-color: #5b1d17 !important; }
+.hover\:bg-gray-700:hover,
+.bg-gray-700,
+.bg-neutral-600 {
+    background-color: #6d2a20 !important;
+}
