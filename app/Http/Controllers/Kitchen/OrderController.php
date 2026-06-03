@@ -33,7 +33,9 @@ class OrderController extends Controller
             ->visibleToKitchen()
             ->firstOrFail();
 
-        return view('kitchen.orders.show', compact('order'));
+        $preparationRules = $this->orderService->preparationAtRules($order);
+
+        return view('kitchen.orders.show', compact('order', 'preparationRules'));
     }
 
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order): RedirectResponse
@@ -50,7 +52,11 @@ class OrderController extends Controller
                 ->with('error', __('Payment must be verified before you can change the order status.'));
         }
 
-        $this->orderService->updateOrderStatus($order, $request->validated('order_status'));
+        $this->orderService->updateOrderStatus(
+            $order,
+            $request->validated('order_status'),
+            $request->user()->hasRole('Admin') ? $request->validated('preparation_at') : null
+        );
 
         return redirect()->route('admin.kitchen.orders.show', $order)->with('status', __('Order status updated.'));
     }

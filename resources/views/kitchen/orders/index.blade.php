@@ -17,7 +17,10 @@
                 <x-table.th>{{ __('Guest') }}</x-table.th>
                 <x-table.th>{{ __('Product') }}</x-table.th>
                 <x-table.th>{{ __('Quantity') }}</x-table.th>
-                <x-table.th>{{ __('Delivery at') }}</x-table.th>
+                @role('Admin')
+                    <x-table.th>{{ __('Delivery at') }}</x-table.th>
+                @endrole
+                <x-table.th>{{ __('Prepare by') }}</x-table.th>
                 <x-table.th>{{ __('Status') }}</x-table.th>
                 <x-table.th class="min-w-[11rem] text-right">{{ __('Actions') }}</x-table.th>
             </x-table.header>
@@ -38,7 +41,25 @@
                             ])
                         </x-table.cell>
                         <x-table.cell>{{ $order->quantity }}</x-table.cell>
-                        <x-table.cell>{{ $order->delivery_at?->setTimezone($tz)->format('d M Y H:i') }}</x-table.cell>
+                        @role('Admin')
+                            <x-table.cell>{{ $order->delivery_at?->setTimezone($tz)->format('d M Y H:i') }}</x-table.cell>
+                        @endrole
+                        <x-table.cell>
+                            @php
+                                $preparationAt = $order->preparation_at?->setTimezone($tz);
+                                $prepOverdue = $preparationAt && $preparationAt->isPast() && $order->order_status === 'processing';
+                            @endphp
+                            @if($preparationAt)
+                                <div class="font-medium {{ $prepOverdue ? 'text-red-700' : 'text-gray-900' }}">
+                                    {{ $preparationAt->format('d M Y H:i') }}
+                                </div>
+                                @if($prepOverdue)
+                                    <x-badge variant="danger" class="mt-1">{{ __('Overdue') }}</x-badge>
+                                @endif
+                            @else
+                                <span class="text-gray-400">—</span>
+                            @endif
+                        </x-table.cell>
                         <x-table.cell>
                             @php
                                 $statusVariant = match($order->order_status) {
@@ -73,7 +94,9 @@
                     </x-table.row>
                 @empty
                     <x-table.row>
-                        <x-table.cell colspan="7" class="text-center text-gray-500">{{ __('No orders for today.') }}</x-table.cell>
+                        <x-table.cell colspan="{{ auth()->user()->hasRole('Admin') ? 8 : 7 }}" class="text-center text-gray-500">
+                            {{ __('No orders for today. Orders appear here after payment is verified, delivery is today, and status is set to Processing with a preparation time.') }}
+                        </x-table.cell>
                     </x-table.row>
                 @endforelse
             </x-table.body>

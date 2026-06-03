@@ -120,10 +120,39 @@ class OrderService
         $order->save();
     }
 
-    public function updateOrderStatus(Order $order, string $orderStatus): void
+    public function updateOrderStatus(Order $order, string $orderStatus, ?string $preparationAt = null): void
     {
         $order->order_status = $orderStatus;
+
+        if ($orderStatus === 'processing' && $preparationAt !== null) {
+            $tz = settings('timezone') ?? 'Asia/Kolkata';
+            $order->preparation_at = Carbon::parse($preparationAt, $tz)->utc();
+        } elseif ($orderStatus !== 'processing') {
+            $order->preparation_at = null;
+        }
+
         $order->save();
+    }
+
+    /**
+     * @return array{min: \Carbon\Carbon, max: \Carbon\Carbon|null, timezone: string}
+     */
+    public function preparationAtRules(Order $order): array
+    {
+        $timezone = settings('timezone') ?? 'Asia/Kolkata';
+        $now = Carbon::now($timezone);
+        $min = $now->copy()->subMinutes(5);
+
+        $max = null;
+        if ($order->delivery_at) {
+            $max = $order->delivery_at->copy()->setTimezone($timezone);
+        }
+
+        return [
+            'min' => $min,
+            'max' => $max,
+            'timezone' => $timezone,
+        ];
     }
 
     public function updateSerialNumber(Order $order, ?string $serialNumber): void

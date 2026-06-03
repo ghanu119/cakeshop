@@ -13,7 +13,7 @@ class DashboardController extends Controller
     public function index(): View
     {
         $header = __('Dashboard');
-        $ordersCount = auth()->user()->can('orders.view') ? Order::count() : null;
+        $ordersCount = auth()->user()->hasRole('Admin') ? Order::count() : null;
         $productsCount = auth()->user()->can('products.view') ? Product::count() : null;
         $categoriesCount = auth()->user()->can('categories.view') ? Category::count() : null;
         $recentEnquiries = auth()->user()->can('contact_enquiries.view')

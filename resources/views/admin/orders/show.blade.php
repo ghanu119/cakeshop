@@ -59,18 +59,12 @@
                         </span>
                         
                         @can('orders.update')
-                            <form method="post" action="{{ route('admin.orders.update-status', $order) }}" class="flex items-center gap-2">
-                                @csrf
-                                <select name="order_status" class="block w-40 cursor-pointer rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                    <option value="pending" @selected($order->order_status === 'pending')>{{ __('Pending') }}</option>
-                                    <option value="processing" @selected($order->order_status === 'processing')>{{ __('Processing') }}</option>
-                                    <option value="completed" @selected($order->order_status === 'completed')>{{ __('Completed') }}</option>
-                                    <option value="cancelled" @selected($order->order_status === 'cancelled')>{{ __('Cancelled') }}</option>
-                                </select>
-                                <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                    {{ __('Update') }}
-                                </button>
-                            </form>
+                            @include('admin.orders.partials._status-form', [
+                                'order' => $order,
+                                'preparationRules' => $preparationRules,
+                                'statusFormAction' => route('admin.orders.update-status', $order),
+                                'fromKitchen' => request()->query('from') === 'kitchen',
+                            ])
                         @endcan
                     @else
                         <span class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700 shadow-sm">
@@ -86,6 +80,8 @@
             {{-- Left Column (Main Details) --}}
             <div class="space-y-6 lg:col-span-8">
                 
+                @include('admin.orders.partials._preparation-highlight', ['order' => $order, 'tz' => $tz])
+
                 {{-- Delivery Highlight --}}
                 <div class="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 p-6 shadow-sm">
                     <div>

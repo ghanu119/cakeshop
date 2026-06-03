@@ -10,20 +10,22 @@
 
     @can('orders.view')
     <div class="mb-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        @if($ordersCount !== null)
-        <a href="{{ route('admin.orders.index') }}" class="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition duration-200 hover:border-indigo-200 hover:shadow-md">
-            <div class="flex items-start justify-between">
-                <div>
-                    <p class="text-sm font-medium text-gray-500">{{ __('Total orders') }}</p>
-                    <p class="mt-2 text-3xl font-bold text-gray-900">{{ $ordersCount }}</p>
-                    <span class="mt-2 inline-flex items-center text-sm font-medium text-indigo-600 opacity-0 transition group-hover:opacity-100">{{ __('View orders') }} →</span>
+        @role('Admin')
+            @if($ordersCount !== null)
+            <a href="{{ route('admin.orders.index') }}" class="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition duration-200 hover:border-indigo-200 hover:shadow-md">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">{{ __('Total orders') }}</p>
+                        <p class="mt-2 text-3xl font-bold text-gray-900">{{ $ordersCount }}</p>
+                        <span class="mt-2 inline-flex items-center text-sm font-medium text-indigo-600 opacity-0 transition group-hover:opacity-100">{{ __('View orders') }} →</span>
+                    </div>
+                    <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
+                    </div>
                 </div>
-                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
-                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
-                </div>
-            </div>
-        </a>
-        @endif
+            </a>
+            @endif
+        @endrole
         @if($productsCount !== null)
         <a href="{{ route('admin.products.index') }}" class="group rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition duration-200 hover:border-indigo-200 hover:shadow-md">
             <div class="flex items-start justify-between">

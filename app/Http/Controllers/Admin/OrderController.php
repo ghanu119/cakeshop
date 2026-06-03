@@ -27,8 +27,9 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
         $order->load(['product', 'media']);
+        $preparationRules = $this->orderService->preparationAtRules($order);
 
-        return view('admin.orders.show', compact('order'));
+        return view('admin.orders.show', compact('order', 'preparationRules'));
     }
 
     public function verifyPayment(Order $order): RedirectResponse
@@ -46,7 +47,11 @@ class OrderController extends Controller
                 ->with('error', __('Payment must be verified before you can change the order status.'));
         }
 
-        $this->orderService->updateOrderStatus($order, $request->validated('order_status'));
+        $this->orderService->updateOrderStatus(
+            $order,
+            $request->validated('order_status'),
+            $request->validated('preparation_at')
+        );
 
         if ($order->guest_email) {
             try {

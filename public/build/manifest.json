@@ -24,7 +24,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-C7ImDexf.css",
+    "file": "assets/app-BoIc0bwd.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -62,5 +62,11 @@
       "assets/slick-DWzRxEMf.ttf",
       "assets/slick-BlzDm7g2.svg"
     ]
+  },
+  "resources/js/order-status-form.js": {
+    "file": "assets/order-status-form-tfVTC-O7.js",
+    "name": "order-status-form",
+    "src": "resources/js/order-status-form.js",
+    "isEntry": true
   }
 }

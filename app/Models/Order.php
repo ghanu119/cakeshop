@@ -40,6 +40,7 @@ class Order extends Model implements HasMedia
         'payment_amount',
         'payment_made_at',
         'delivery_at',
+        'preparation_at',
         'ordered_at',
     ];
 
@@ -52,6 +53,7 @@ class Order extends Model implements HasMedia
             'payment_amount' => 'decimal:2',
             'payment_made_at' => 'datetime',
             'delivery_at' => 'datetime',
+            'preparation_at' => 'datetime',
             'ordered_at' => 'datetime',
             'quantity' => 'integer',
         ];
@@ -153,9 +155,21 @@ class Order extends Model implements HasMedia
         return $this->variant_summary !== null && $this->variant_summary !== '';
     }
 
+    public function isProcessing(): bool
+    {
+        return $this->order_status === 'processing';
+    }
+
+    public function hasPreparationDeadline(): bool
+    {
+        return $this->preparation_at !== null;
+    }
+
     public function scopeVisibleToKitchen($query): void
     {
-        $query->where('payment_status', 'verified');
+        $query->where('payment_status', 'verified')
+            ->where('order_status', 'processing')
+            ->whereNotNull('preparation_at');
 
         $timezone = settings('timezone') ?? 'Asia/Kolkata';
         $nowShop = Carbon::now($timezone);

@@ -35,20 +35,14 @@
                             {{ __('Payment Verified') }}
                         </span>
                         
-                        @role('Admin|Kitchen')
-                            <form method="post" action="{{ route('admin.kitchen.orders.update-status', $order) }}" class="flex items-center gap-2">
-                                @csrf
-                                <select name="order_status" class="block w-40 cursor-pointer rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                    <option value="pending" @selected($order->order_status === 'pending')>{{ __('Pending') }}</option>
-                                    <option value="processing" @selected($order->order_status === 'processing')>{{ __('Processing') }}</option>
-                                    <option value="completed" @selected($order->order_status === 'completed')>{{ __('Completed') }}</option>
-                                    <option value="cancelled" @selected($order->order_status === 'cancelled')>{{ __('Cancelled') }}</option>
-                                </select>
-                                <button type="submit" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
-                                    {{ __('Update') }}
-                                </button>
-                            </form>
-                        @endrole
+                        @can('orders.update')
+                            @include('admin.orders.partials._status-form', [
+                                'order' => $order,
+                                'preparationRules' => $preparationRules,
+                                'statusFormAction' => route('admin.kitchen.orders.update-status', $order),
+                                'canSetPreparationTime' => auth()->user()->hasRole('Admin'),
+                            ])
+                        @endcan
                     @else
                         <span class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700 shadow-sm">
                             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
@@ -63,31 +57,35 @@
             {{-- Left Column (Main Details) --}}
             <div class="space-y-6 lg:col-span-8">
                 
-                {{-- Delivery Highlight --}}
-                <div class="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 p-6 shadow-sm">
-                    <div>
-                        <p class="mb-1 text-sm font-bold uppercase tracking-wider text-indigo-600">{{ __('Scheduled Delivery') }}</p>
-                        <h2 class="text-2xl font-bold text-indigo-900">{{ $deliveryAt?->format('F d, Y') }}</h2>
-                        <p class="mt-0.5 text-lg font-medium text-indigo-700">{{ $deliveryAt?->format('h:i A') }}</p>
-                    </div>
-                    @if($deliveryAt)
-                        <div class="text-right">
-                            @if(in_array($order->order_status, ['completed', 'cancelled']))
-                                <p class="mb-1 text-sm font-bold uppercase tracking-wider text-gray-500">{{ __('Status') }}</p>
-                                <p class="text-xl font-bold text-gray-700">
-                                    {{ $order->order_status === 'completed' ? __('Completed') : __('Cancelled') }}
-                                </p>
-                            @else
-                                <p class="mb-1 text-sm font-bold uppercase tracking-wider {{ $deliveryAt->isPast() ? 'text-red-500' : 'text-indigo-600' }}">
-                                    {{ $deliveryAt->isPast() ? __('Overdue by') : __('Time Left') }}
-                                </p>
-                                <p class="text-xl font-bold {{ $deliveryAt->isPast() ? 'text-red-600' : 'text-indigo-900' }}">
-                                    {{ $deliveryAt->diffForHumans(null, true) }}
-                                </p>
-                            @endif
+                @include('admin.orders.partials._preparation-highlight', ['order' => $order, 'tz' => $tz])
+
+                @role('Admin')
+                    {{-- Delivery Highlight (admin only on kitchen view) --}}
+                    <div class="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 p-6 shadow-sm">
+                        <div>
+                            <p class="mb-1 text-sm font-bold uppercase tracking-wider text-indigo-600">{{ __('Scheduled Delivery') }}</p>
+                            <h2 class="text-2xl font-bold text-indigo-900">{{ $deliveryAt?->format('F d, Y') }}</h2>
+                            <p class="mt-0.5 text-lg font-medium text-indigo-700">{{ $deliveryAt?->format('h:i A') }}</p>
                         </div>
-                    @endif
-                </div>
+                        @if($deliveryAt)
+                            <div class="text-right">
+                                @if(in_array($order->order_status, ['completed', 'cancelled']))
+                                    <p class="mb-1 text-sm font-bold uppercase tracking-wider text-gray-500">{{ __('Status') }}</p>
+                                    <p class="text-xl font-bold text-gray-700">
+                                        {{ $order->order_status === 'completed' ? __('Completed') : __('Cancelled') }}
+                                    </p>
+                                @else
+                                    <p class="mb-1 text-sm font-bold uppercase tracking-wider {{ $deliveryAt->isPast() ? 'text-red-500' : 'text-indigo-600' }}">
+                                        {{ $deliveryAt->isPast() ? __('Overdue by') : __('Time Left') }}
+                                    </p>
+                                    <p class="text-xl font-bold {{ $deliveryAt->isPast() ? 'text-red-600' : 'text-indigo-900' }}">
+                                        {{ $deliveryAt->diffForHumans(null, true) }}
+                                    </p>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                @endrole
 
                 {{-- Order Details Card --}}
                 <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
