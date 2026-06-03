@@ -2,18 +2,26 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Admin\Concerns\ValidatesProductWeightVariants;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProductRequest extends FormRequest
 {
+    use ValidatesProductWeightVariants;
+
     public function authorize(): bool
     {
         return $this->user()?->can('products.create') ?? false;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $this->prepareProductVariantInput();
+    }
+
     public function rules(): array
     {
-        return [
+        return array_merge([
             'category_id' => ['required', 'exists:categories,id'],
             'name_en' => ['required', 'string', 'max:255'],
             'name_hi' => ['nullable', 'string', 'max:255'],
@@ -23,7 +31,6 @@ class StoreProductRequest extends FormRequest
             'description_gu' => ['nullable', 'string'],
             'ingredients' => ['nullable', 'string'],
             'short_description' => ['nullable', 'string', 'max:500'],
-            'price' => ['required', 'numeric', 'min:0'],
             'status' => ['required', 'string', 'in:active,inactive'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:500'],
@@ -33,6 +40,21 @@ class StoreProductRequest extends FormRequest
             'is_featured' => ['nullable', 'boolean'],
             'homepage_sort_order' => ['nullable', 'integer', 'min:0'],
             'image' => ['nullable', 'image', 'max:5120'],
-        ];
+        ], $this->productWeightVariantRules());
+    }
+
+    public function messages(): array
+    {
+        return $this->productWeightVariantMessages();
+    }
+
+    public function attributes(): array
+    {
+        return $this->productWeightVariantAttributes();
+    }
+
+    public function withValidator($validator): void
+    {
+        $this->validateProductWeightVariants($validator);
     }
 }

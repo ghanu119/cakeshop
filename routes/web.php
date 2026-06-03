@@ -67,6 +67,14 @@ Route::middleware(['auth', 'verified', 'role:Admin|Kitchen'])->group(function ()
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class)->except(['show']);
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
+        Route::middleware(['permission:settings.manage'])->group(function () {
+            Route::resource('cake-weights', \App\Http\Controllers\Admin\CakeWeightController::class)
+                ->parameters(['cake-weights' => 'cake_weight'])
+                ->except(['show']);
+            Route::redirect('variant-option-types', '/admin/cake-weights')->name('variant-option-types.index');
+            Route::redirect('variant-option-types/create', '/admin/cake-weights/create')->name('variant-option-types.create');
+            Route::get('variant-option-types/{variant_option_type}/values', fn () => redirect()->route('admin.cake-weights.index'));
+        });
         Route::resource('features', FeatureController::class)->except(['show']);
         Route::resource('testimonials', TestimonialController::class)->except(['show']);
         Route::resource('users', UserController::class)->except(['show']);

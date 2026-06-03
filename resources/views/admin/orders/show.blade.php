@@ -189,11 +189,14 @@
                                     <p class="mb-0.5 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Product') }}</p>
                                     <p class="font-bold text-gray-900">
                                         @if($order->product)
-                                            <a href="{{ route('admin.products.edit', $order->product) }}" class="hover:text-indigo-600 hover:underline">{{ $order->product->name_en }}</a>
+                                            <a href="{{ route('admin.products.edit', $order->product) }}" class="hover:text-indigo-600 hover:underline">{{ $order->displayProductName() }}</a>
                                         @else
-                                            <span class="text-gray-500">{{ $order->product_id ? __('Removed') : '—' }}</span>
+                                            <span>{{ $order->displayProductName() }}</span>
                                         @endif
                                     </p>
+                                    @if($order->hasVariantSnapshot())
+                                        <p class="mt-1 text-sm font-semibold text-indigo-700">{{ __('Weight') }}: {{ $order->variant_summary }}</p>
+                                    @endif
                                 </div>
                             </div>
                             @if($order->product && $order->product->getFirstMediaUrl('product_images', 'thumb'))
@@ -216,7 +219,7 @@
                             </div>
                             <div class="flex items-center">
                                 <div class="w-40 shrink-0 text-gray-500">{{ __('Unit Price') }}</div>
-                                <div class="font-medium text-gray-900">₹ {{ number_format($order->amount / max(1, $order->quantity), 2) }}</div>
+                                <div class="font-medium text-gray-900">₹ {{ number_format($order->displayUnitPrice(), 2) }}</div>
                             </div>
                         </div>
 

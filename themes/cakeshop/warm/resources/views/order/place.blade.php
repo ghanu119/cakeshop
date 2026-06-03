@@ -5,6 +5,10 @@
     $currency = settings('currency') ?? 'INR';
     $symbol = $currency === 'INR' ? '₹' : $currency . ' ';
     $imgUrl = $product->getFirstMediaUrl('product_images', 'medium') ?: $product->getFirstMediaUrl('product_images', 'large');
+    $hasVariants = $hasVariants ?? false;
+    $variantChoices = $variantChoices ?? collect();
+    $initialVariantId = (int) old('product_variant_id', request('product_variant_id', $defaultVariant?->id));
+    $summaryWeightLabel = ($variantChoices->firstWhere('id', $initialVariantId) ?? $variantChoices->first())['label'] ?? '';
 @endphp
 
 <div class="min-h-screen bg-stone-50 py-12 lg:py-20 relative overflow-hidden">
@@ -60,6 +64,30 @@
                         {{ __('Order Details') }}
                     </h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        @if(!empty($hasVariants) && $variantChoices->isNotEmpty())
+                        <div class="md:col-span-2">
+                            <label class="mb-2 block text-sm font-bold text-stone-700">{{ __('Weight') }} <span class="text-red-500">*</span></label>
+                            <input type="hidden" name="product_variant_id" id="product_variant_id" value="{{ old('product_variant_id', request('product_variant_id', $defaultVariant?->id)) }}" />
+                            <div
+                                class="flex flex-wrap gap-2"
+                                data-variant-picker
+                                data-choices="{{ $variantChoices->toJson() }}"
+                                data-initial-variant-id="{{ old('product_variant_id', request('product_variant_id', $defaultVariant?->id)) }}"
+                                data-currency-symbol="{{ $symbol }}"
+                                data-hidden-input-target="#product_variant_id"
+                                data-unit-price-target="#order-unit-price"
+                                data-total-target="#order-estimated-total"
+                                data-quantity-target="#quantity"
+                                data-weight-label-target="#order-summary-weight"
+                                role="radiogroup"
+                            >
+                                @foreach($variantChoices as $choice)
+                                    <button type="button" data-variant-id="{{ $choice['id'] }}" class="rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 hover:bg-amber-50">{{ $choice['label'] }}</button>
+                                @endforeach
+                            </div>
+                            @error('product_variant_id')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
+                        </div>
+                        @endif
                         <div>
                             <label for="quantity" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Quantity') }} <span class="text-red-500">*</span></label>
                             <input type="number" name="quantity" id="quantity" value="{{ old('quantity', request('quantity', 1)) }}" min="1" max="10" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm font-semibold text-lg" required />
@@ -116,14 +144,32 @@
                                 <h4 class="text-lg sm:text-xl font-bold font-display text-stone-900 leading-tight line-clamp-3">{{ $product->name_en }}</h4>
                             </div>
                         </div>
+
+                        @if(!empty($hasVariants) && $variantChoices->isNotEmpty())
+                        <div class="mt-8 pt-6 border-t border-amber-200/70" aria-live="polite" aria-atomic="true">
+                            <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-600 mb-2.5">{{ __('Selected weight') }}</p>
+                            <div class="flex items-center gap-3 rounded-xl border border-amber-300/80 bg-amber-50/80 px-3.5 py-2.5">
+                                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-white shrink-0" aria-hidden="true">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V11"/></svg>
+                                </span>
+                                <span id="order-summary-weight" class="text-base font-bold text-amber-900">{{ $summaryWeightLabel }}</span>
+                            </div>
+                        </div>
+                        @endif
                     </div>
 
                     {{-- Summary Details --}}
                     <div class="p-6 sm:p-8 bg-white">
                         <div class="flex items-center justify-between border-b border-stone-100 pb-6 mb-6">
-                            <span class="text-stone-500 font-medium">{{ __('Price per piece') }}</span>
-                            <span class="text-xl font-bold text-stone-900">{{ $symbol }}{{ number_format($product->price, 2) }}</span>
+                            <span class="text-stone-500 font-medium">{{ !empty($hasVariants) ? __('Price per cake') : __('Price per piece') }}</span>
+                            <span class="text-xl font-bold text-stone-900" id="order-unit-price">{{ $symbol }}{{ number_format($product->price, 2) }}</span>
                         </div>
+                        @if(!empty($hasVariants))
+                        <div class="flex items-center justify-between border-b border-stone-100 pb-6 mb-6">
+                            <span class="text-stone-500 font-medium">{{ __('Estimated total') }}</span>
+                            <span class="text-xl font-bold text-amber-700" id="order-estimated-total">{{ $symbol }}{{ number_format($product->price, 2) }}</span>
+                        </div>
+                        @endif
 
                         <div class="space-y-4 mb-8">
                             <div class="flex items-start gap-3">

@@ -164,13 +164,10 @@
                                 </div>
                                 <div>
                                     <p class="mb-0.5 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Product') }}</p>
-                                    <p class="font-bold text-gray-900">
-                                        @if($order->product)
-                                            <span class="text-indigo-900">{{ $order->product->name_en }}</span>
-                                        @else
-                                            <span class="text-gray-500">{{ $order->product_id ? __('Removed') : '—' }}</span>
-                                        @endif
-                                    </p>
+                                    <p class="font-bold text-gray-900 text-indigo-900">{{ $order->displayProductName() }}</p>
+                                    @if($order->hasVariantSnapshot())
+                                        <p class="mt-2 text-base font-bold text-amber-800">{{ __('Weight') }}: {{ $order->variant_summary }}</p>
+                                    @endif
                                 </div>
                             </div>
                             @if($order->product && $order->product->getFirstMediaUrl('product_images', 'thumb'))

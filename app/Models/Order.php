@@ -21,6 +21,11 @@ class Order extends Model implements HasMedia
         'guest_email',
         'guest_phone',
         'product_id',
+        'product_variant_id',
+        'product_name',
+        'unit_price',
+        'variant_summary',
+        'weight_grams',
         'quantity',
         'message_on_cake',
         'instructions',
@@ -39,6 +44,8 @@ class Order extends Model implements HasMedia
     {
         return [
             'amount' => 'decimal:2',
+            'unit_price' => 'decimal:2',
+            'weight_grams' => 'integer',
             'payment_amount' => 'decimal:2',
             'payment_made_at' => 'datetime',
             'delivery_at' => 'datetime',
@@ -78,7 +85,46 @@ class Order extends Model implements HasMedia
 
     public function product()
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class)->withTrashed();
+    }
+
+    public function productVariant()
+    {
+        return $this->belongsTo(ProductVariant::class)->withTrashed();
+    }
+
+    public function variantSelections()
+    {
+        return $this->hasMany(OrderVariantSelection::class);
+    }
+
+    public function displayProductName(): string
+    {
+        if ($this->product_name) {
+            return $this->product_name;
+        }
+
+        if ($this->product) {
+            return $this->product->name_en;
+        }
+
+        return __('Product');
+    }
+
+    public function displayUnitPrice(): float
+    {
+        if ($this->unit_price !== null) {
+            return (float) $this->unit_price;
+        }
+
+        $qty = max(1, (int) $this->quantity);
+
+        return (float) $this->amount / $qty;
+    }
+
+    public function hasVariantSnapshot(): bool
+    {
+        return $this->variant_summary !== null && $this->variant_summary !== '';
     }
 
     public function scopeVisibleToKitchen($query): void

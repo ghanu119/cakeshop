@@ -148,6 +148,14 @@
             </div>
         </x-card>
 
+        <x-card>
+            <h2 class="mb-2 text-xl font-semibold text-gray-900">{{ __('Cake weights') }}</h2>
+            <p class="mb-4 text-sm text-gray-500">{{ __('Set the weight sizes customers can pick (250 gm, 500 gm, 1 KG, etc.). You set the price for each weight on every product.') }}</p>
+            <a href="{{ route('admin.cake-weights.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                {{ __('Manage cake weights') }}
+            </a>
+        </x-card>
+
         <div class="flex gap-4">
             <x-button type="submit" variant="primary">{{ __('Save settings') }}</x-button>
         </div>

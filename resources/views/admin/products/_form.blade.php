@@ -1,8 +1,8 @@
-@props(['product', 'categories'])
+@props(['product', 'categories', 'weightValues' => collect()])
 
 <div>
     <label for="category_id" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Category') }}</label>
-    <select name="category_id" id="category_id" required class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+    <select name="category_id" id="category_id" class="block w-full rounded-lg border px-3 py-2 shadow-sm focus:ring-2 focus:ring-offset-2 {{ $errors->has('category_id') ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-gray-500 focus:ring-gray-500' }}">
         @foreach($categories as $cat)
             <option value="{{ $cat->id }}" @selected(old('category_id', $product?->category_id) == $cat->id)>{{ $cat->name_en }}</option>
         @endforeach
@@ -14,7 +14,7 @@
 
 <div>
     <label for="name_en" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Name') }}</label>
-    <x-input type="text" name="name_en" id="name_en" value="{{ old('name_en', $product?->name_en) }}" required class="block w-full" />
+    <x-input type="text" name="name_en" id="name_en" value="{{ old('name_en', $product?->name_en) }}" class="block w-full {{ $errors->has('name_en') ? '!border-red-500' : '' }}" />
     @error('name_en')
         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
     @enderror
@@ -45,12 +45,17 @@
 </div>
 
 <div>
-    <label for="price" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Price (INR)') }}</label>
-    <x-input type="number" name="price" id="price" value="{{ old('price', $product?->price) }}" step="0.01" min="0" required class="block w-full" />
+    <label for="price" class="mb-1 block text-sm font-medium text-gray-700">
+        <span id="price-label-text">{{ __('Price (INR)') }}</span>
+        <span id="price-hint-starting" class="hidden text-gray-500 font-normal"> — {{ __('auto-set to lowest variant when variants are added') }}</span>
+    </label>
+    <x-input type="number" name="price" id="price" value="{{ old('price', $product?->price) }}" step="0.01" min="0" class="block w-full" />
     @error('price')
         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
     @enderror
 </div>
+
+@include('admin.products._variants', ['product' => $product, 'weightValues' => $weightValues])
 
 <div>
     <label for="status" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Status') }}</label>

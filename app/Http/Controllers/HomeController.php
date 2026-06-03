@@ -17,9 +17,14 @@ class HomeController extends Controller
 
     public function index(): View
     {
-        $highlights = Product::highlight()->with('media')->limit(8)->get();
-        $trending = Product::trending()->with('media')->limit(8)->get();
-        $featured = Product::featured()->with('media')->limit(8)->get();
+        $with = [
+            'media',
+            'variants' => fn ($q) => $q->active()->orderBy('sort_order'),
+            'variants.selections.value',
+        ];
+        $highlights = Product::highlight()->with($with)->limit(8)->get();
+        $trending = Product::trending()->with($with)->limit(8)->get();
+        $featured = Product::featured()->with($with)->limit(8)->get();
         $products = $this->productService->listForHomepage(request());
         $categories = Category::active()->orderBy('sort_order')->get();
         $features = Feature::active()->orderBy('sort_order')->get();

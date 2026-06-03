@@ -2,8 +2,11 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Product;
 use App\Services\OrderService;
+use App\Services\ProductVariantService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class PlaceOrderRequest extends FormRequest
 {
@@ -27,6 +30,36 @@ class PlaceOrderRequest extends FormRequest
             'message_on_cake' => ['nullable', 'string', 'max:500'],
             'instructions' => ['nullable', 'string', 'max:1000'],
             'delivery_at' => ['required', 'date', 'after_or_equal:'.$after, 'before_or_equal:'.$before],
+            'product_variant_id' => ['nullable', 'integer'],
         ];
+    }
+
+    public function withValidator(Validator $validator): void
+    {
+        $validator->after(function (Validator $validator) {
+            /** @var Product|null $product */
+            $product = $this->route('product');
+            if (! $product) {
+                return;
+            }
+
+            $variantService = app(ProductVariantService::class);
+            if (! $variantService->hasVariants($product)) {
+                return;
+            }
+
+            $variantId = $this->input('product_variant_id');
+            if (! $variantId) {
+                $validator->errors()->add('product_variant_id', __('Please select a weight.'));
+
+                return;
+            }
+
+            try {
+                $variantService->findVariantForProduct($product, (int) $variantId);
+            } catch (\Throwable) {
+                $validator->errors()->add('product_variant_id', __('Invalid weight selection.'));
+            }
+        });
     }
 }

@@ -10,6 +10,10 @@ use Illuminate\Http\Request;
 
 class OrderService
 {
+    public function __construct(
+        private ProductVariantService $productVariantService
+    ) {}
+
     public function listForAdmin(Request $request): LengthAwarePaginator
     {
         $query = Order::query()->with(['product', 'media']);
@@ -54,16 +58,31 @@ class OrderService
         $order->guest_email = $data['guest_email'] ?? null;
         $order->guest_phone = $data['guest_phone'];
         $order->product_id = $product->id;
+        $order->product_name = $product->name_en;
         $order->quantity = (int) ($data['quantity'] ?? 1);
         $order->message_on_cake = $data['message_on_cake'] ?? null;
         $order->instructions = $data['instructions'] ?? null;
-        $order->amount = $product->price * $order->quantity;
         $order->payment_status = 'pending';
         $order->order_status = 'pending';
         $tz = settings('timezone') ?? 'Asia/Kolkata';
         $order->delivery_at = Carbon::parse($data['delivery_at'], $tz)->utc();
         $order->ordered_at = now();
-        $order->save();
+
+        if ($this->productVariantService->hasVariants($product)) {
+            $variant = $this->productVariantService->findVariantForProduct(
+                $product,
+                (int) $data['product_variant_id']
+            );
+            $order->product_variant_id = $variant->id;
+            $order->unit_price = $variant->price;
+            $order->amount = $variant->price * $order->quantity;
+            $order->save();
+            $this->productVariantService->snapshotOrder($product, $variant, $order);
+        } else {
+            $order->unit_price = $product->price;
+            $order->amount = $product->price * $order->quantity;
+            $order->save();
+        }
 
         return $order;
     }

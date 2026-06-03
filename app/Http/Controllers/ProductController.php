@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\ProductService;
+use App\Services\ProductVariantService;
 use Illuminate\View\View;
 
 class ProductController extends Controller
 {
     public function __construct(
-        private ProductService $productService
+        private ProductService $productService,
+        private ProductVariantService $productVariantService
     ) {}
 
     public function index(): View
@@ -26,10 +28,20 @@ class ProductController extends Controller
     {
         $product = Product::where('slug', $slug)->active()->with('category')->firstOrFail();
         $product->load('media');
+        $this->productVariantService->eagerLoadForStorefront($product);
+        $variantChoices = $this->productVariantService->choicesForProduct($product);
+        $defaultVariant = $this->productVariantService->defaultVariant($product);
+        $hasVariants = $this->productVariantService->hasVariants($product);
 
         $related = $this->getRelatedProducts($product, 4);
 
-        return view('products.show', compact('product', 'related'));
+        return view('products.show', compact(
+            'product',
+            'related',
+            'variantChoices',
+            'defaultVariant',
+            'hasVariants'
+        ));
     }
 
     /**

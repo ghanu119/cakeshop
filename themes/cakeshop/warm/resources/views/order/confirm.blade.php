@@ -64,13 +64,14 @@
                     
                     {{-- Details --}}
                     <div class="flex-1">
-                        @if($order->product && !$order->product->trashed())
-                            <h4 class="text-lg sm:text-xl font-bold font-display text-stone-900 leading-tight mb-1">{{ $order->product->name_en }}</h4>
-                        @else
-                            <h4 class="text-lg sm:text-xl font-bold font-display text-stone-500 leading-tight mb-1">{{ $order->product?->name_en ?? __('Unknown Product') }}</h4>
-                            <span class="inline-block px-2 py-0.5 rounded bg-stone-100 text-stone-500 text-[10px] font-bold uppercase mb-1">{{ __('Unavailable') }}</span>
+                        <h4 class="text-lg sm:text-xl font-bold font-display text-stone-900 leading-tight mb-1">{{ $order->displayProductName() }}</h4>
+                        @if($order->hasVariantSnapshot())
+                            <p class="text-amber-700 text-sm font-semibold mb-1">{{ __('Weight') }}: {{ $order->variant_summary }}</p>
                         @endif
                         <p class="text-stone-500 text-sm font-medium">{{ __('Quantity') }}: {{ $order->quantity }}</p>
+                        @if($order->unit_price !== null)
+                            <p class="text-stone-500 text-sm">{{ __('Unit price') }}: {{ $symbol }}{{ number_format($order->displayUnitPrice(), 2) }}</p>
+                        @endif
                     </div>
                     
                     {{-- Price --}}

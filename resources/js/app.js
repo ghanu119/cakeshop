@@ -1,4 +1,5 @@
 import './bootstrap';
+import './product-variant-picker';
 
 import $ from 'jquery';
 window.$ = window.jQuery = $;

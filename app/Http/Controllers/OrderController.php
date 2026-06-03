@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Product;
 use App\Services\OrderService;
+use App\Services\ProductVariantService;
 use App\Http\Requests\PlaceOrderRequest;
 use App\Http\Requests\SubmitPaymentDetailsRequest;
 use Illuminate\Http\RedirectResponse;
@@ -14,7 +15,8 @@ use Illuminate\View\View;
 class OrderController extends Controller
 {
     public function __construct(
-        private OrderService $orderService
+        private OrderService $orderService,
+        private ProductVariantService $productVariantService
     ) {}
 
     public function placeForm(Product $product): View
@@ -23,8 +25,18 @@ class OrderController extends Controller
             abort(404);
         }
         $deliveryRules = $this->orderService->deliveryAtRules();
+        $this->productVariantService->eagerLoadForStorefront($product);
+        $variantChoices = $this->productVariantService->choicesForProduct($product);
+        $defaultVariant = $this->productVariantService->defaultVariant($product);
+        $hasVariants = $this->productVariantService->hasVariants($product);
 
-        return view('order.place', compact('product', 'deliveryRules'));
+        return view('order.place', compact(
+            'product',
+            'deliveryRules',
+            'variantChoices',
+            'defaultVariant',
+            'hasVariants'
+        ));
     }
 
     public function place(PlaceOrderRequest $request, Product $product): RedirectResponse
@@ -34,12 +46,15 @@ class OrderController extends Controller
         }
 
         $validated = $request->validated();
-        $recentDuplicate = Order::query()
+        $duplicateQuery = Order::query()
             ->where('product_id', $product->id)
             ->where('guest_phone', $validated['guest_phone'])
             ->where('quantity', (int) ($validated['quantity'] ?? 1))
-            ->where('ordered_at', '>=', now()->subSeconds(90))
-            ->first();
+            ->where('ordered_at', '>=', now()->subSeconds(90));
+        if (! empty($validated['product_variant_id'])) {
+            $duplicateQuery->where('product_variant_id', $validated['product_variant_id']);
+        }
+        $recentDuplicate = $duplicateQuery->first();
         if ($recentDuplicate) {
             return redirect()->route('order.confirm', ['uuid' => $recentDuplicate->uuid])
                 ->with('status', __('Your order was already received. You can view or submit payment details below.'));

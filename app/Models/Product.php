@@ -58,6 +58,21 @@ class Product extends Model implements HasMedia
         return $this->belongsTo(Category::class);
     }
 
+    public function variants()
+    {
+        return $this->hasMany(ProductVariant::class);
+    }
+
+    public function hasVariants(): bool
+    {
+        return app(\App\Services\ProductVariantService::class)->hasVariants($this);
+    }
+
+    public function syncStartingPrice(): void
+    {
+        app(\App\Services\ProductVariantService::class)->syncStartingPrice($this);
+    }
+
     public function scopeActive($query)
     {
         return $query->where('status', 'active');

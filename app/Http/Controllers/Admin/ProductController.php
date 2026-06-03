@@ -8,13 +8,15 @@ use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\ProductService;
+use App\Services\VariantOptionService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class ProductController extends Controller
 {
     public function __construct(
-        private ProductService $productService
+        private ProductService $productService,
+        private VariantOptionService $variantOptionService
     ) {}
 
     public function index(): View
@@ -31,8 +33,9 @@ class ProductController extends Controller
         $this->authorize('create', Product::class);
         $product = null;
         $categories = Category::active()->orderBy('name_en')->get();
+        $weightValues = $this->variantOptionService->activeWeightValues();
 
-        return view('admin.products.create', compact('product', 'categories'));
+        return view('admin.products.create', compact('product', 'categories', 'weightValues'));
     }
 
     public function store(StoreProductRequest $request): RedirectResponse
@@ -48,10 +51,11 @@ class ProductController extends Controller
     public function edit(Product $product): View
     {
         $this->authorize('update', $product);
-        $product->load('media');
+        $product->load(['media', 'variants.selections.value', 'variants.selections.type']);
         $categories = Category::active()->orderBy('name_en')->get();
+        $weightValues = $this->variantOptionService->activeWeightValues();
 
-        return view('admin.products.edit', compact('product', 'categories'));
+        return view('admin.products.edit', compact('product', 'categories', 'weightValues'));
     }
 
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse

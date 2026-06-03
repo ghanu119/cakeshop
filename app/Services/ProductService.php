@@ -9,6 +9,10 @@ use Illuminate\Support\Str;
 
 class ProductService
 {
+    public function __construct(
+        private ProductVariantService $productVariantService
+    ) {}
+
     public function list(Request $request): LengthAwarePaginator
     {
         $query = Product::query()->with('category');
@@ -35,7 +39,11 @@ class ProductService
 
     public function listForHomepage(Request $request): LengthAwarePaginator
     {
-        $query = Product::query()->with('category')->active();
+        $query = Product::query()->with([
+            'category',
+            'variants' => fn ($q) => $q->active()->orderBy('sort_order'),
+            'variants.selections.value',
+        ])->active();
 
         if ($request->filled('search')) {
             $term = $request->input('search');
@@ -82,7 +90,11 @@ class ProductService
         $product->description_gu = $data['description_gu'] ?? null;
         $product->ingredients = $data['ingredients'] ?? null;
         $product->short_description = $data['short_description'] ?? null;
-        $product->price = $data['price'];
+        if (! empty($data['variants'])) {
+            $product->price = $data['price'] ?? 0;
+        } else {
+            $product->price = $data['price'];
+        }
         $product->status = $data['status'] ?? 'active';
         $product->meta_title = $data['meta_title'] ?? null;
         $product->meta_description = $data['meta_description'] ?? null;
@@ -102,6 +114,12 @@ class ProductService
 
         $product->save();
 
-        return $product;
+        if (! empty($data['variants'])) {
+            $this->productVariantService->syncVariants($product, $data['variants']);
+        } else {
+            $product->variants()->each(fn ($v) => $v->delete());
+        }
+
+        return $product->fresh();
     }
 }

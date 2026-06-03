@@ -9,18 +9,20 @@
         <p class="mb-4 text-gray-600">{{ __('Keep this reference for payment and tracking.') }}</p>
         <p class="mb-2">
             {{ __('Product') }}:
-            @if($order->product)
-                @if($order->product->trashed())
-                    <span class="text-gray-600">{{ $order->product->name_en }}</span>
-                    <span class="text-sm text-gray-500">({{ __('no longer available') }})</span>
-                @else
-                    <a href="{{ route('products.show', $order->product->slug) }}" class="font-medium text-gray-900 underline hover:no-underline">{{ $order->product->name_en }}</a>
-                @endif
+            @if($order->product && ! $order->product->trashed())
+                <a href="{{ route('products.show', $order->product->slug) }}" class="font-medium text-gray-900 underline hover:no-underline">{{ $order->displayProductName() }}</a>
             @else
-                <span class="text-gray-500">{{ __('Product no longer available') }}</span>
+                <span class="font-medium text-gray-900">{{ $order->displayProductName() }}</span>
+                @if($order->product?->trashed())
+                    <span class="text-sm text-gray-500">({{ __('no longer available') }})</span>
+                @endif
             @endif
         </p>
+        @if($order->hasVariantSnapshot())
+            <p class="mb-2 text-amber-800 font-medium">{{ __('Weight') }}: {{ $order->variant_summary }}</p>
+        @endif
         <p class="mb-2">{{ __('Quantity') }}: {{ $order->quantity }}</p>
+        <p class="mb-2">{{ __('Unit price') }}: ₹ {{ number_format($order->displayUnitPrice(), 2) }}</p>
         <p class="mb-4">{{ __('Amount') }}: ₹ {{ number_format($order->amount, 2) }}</p>
 
         <div class="mb-4 flex flex-wrap items-center gap-3 border-t border-stone-200 pt-4">

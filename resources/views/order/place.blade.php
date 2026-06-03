@@ -1,12 +1,46 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $currency = settings('currency') ?? 'INR';
+    $symbol = $currency === 'INR' ? '₹' : $currency . ' ';
+    $hasVariants = $hasVariants ?? false;
+    $variantChoices = $variantChoices ?? collect();
+@endphp
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
     <h1 class="mb-6 text-3xl font-bold tracking-tight text-gray-900">{{ __('Order') }}: {{ $product->name_en }}</h1>
     <x-card class="mb-6">
-        <p class="mb-4 text-gray-600">Rs. {{ number_format($product->price, 2) }} {{ __('per piece') }}</p>
+        <p class="mb-4 text-gray-600">
+            <span id="order-unit-price">{{ $symbol }}{{ number_format($product->price, 2) }}</span>
+            {{ $hasVariants ? __('per cake') : __('per piece') }}
+        </p>
+        @if($hasVariants)
+            <p class="mb-2 text-sm font-medium text-gray-700">{{ __('Estimated total') }}: <span id="order-estimated-total">{{ $symbol }}{{ number_format($product->price, 2) }}</span></p>
+        @endif
         <form method="post" action="{{ route('order.store', $product) }}" class="space-y-4">
             @csrf
+            @if($hasVariants && $variantChoices->isNotEmpty())
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">{{ __('Weight') }} *</label>
+                    <input type="hidden" name="product_variant_id" id="product_variant_id" value="{{ old('product_variant_id', request('product_variant_id', $defaultVariant?->id)) }}" />
+                    <div
+                        class="flex flex-wrap gap-2"
+                        data-variant-picker
+                        data-choices="{{ $variantChoices->toJson() }}"
+                        data-initial-variant-id="{{ old('product_variant_id', request('product_variant_id', $defaultVariant?->id)) }}"
+                        data-currency-symbol="{{ $symbol }}"
+                        data-hidden-input-target="#product_variant_id"
+                        data-unit-price-target="#order-unit-price"
+                        data-total-target="#order-estimated-total"
+                        data-quantity-target="#quantity"
+                    >
+                        @foreach($variantChoices as $choice)
+                            <button type="button" data-variant-id="{{ $choice['id'] }}" class="rounded-full border border-gray-300 px-3 py-1 text-sm font-medium">{{ $choice['label'] }}</button>
+                        @endforeach
+                    </div>
+                    @error('product_variant_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+            @endif
             <div>
                 <label for="guest_name" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Your name') }} *</label>
                 <x-input type="text" name="guest_name" id="guest_name" value="{{ old('guest_name') }}" class="block w-full" required />
