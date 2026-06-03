@@ -21,6 +21,7 @@
                     <option value="processing" @selected(request('order_status') === 'processing')>{{ __('Processing') }}</option>
                     <option value="completed" @selected(request('order_status') === 'completed')>{{ __('Completed') }}</option>
                     <option value="cancelled" @selected(request('order_status') === 'cancelled')>{{ __('Cancelled') }}</option>
+                    <option value="delivered" @selected(request('order_status') === 'delivered')>{{ __('Delivered') }}</option>
                 </select>
             </div>
             <div class="w-40">
@@ -56,6 +57,9 @@
                 <x-table.th>{{ __('UUID') }}</x-table.th>
                 <x-table.th>{{ __('Guest') }}</x-table.th>
                 <x-table.th>{{ __('Product') }}</x-table.th>
+                @role('Admin')
+                    <x-table.th>{{ __('Type') }}</x-table.th>
+                @endrole
                 <x-table.th>{{ __('Amount') }}</x-table.th>
                 <x-table.th>{{ __('Payment') }}</x-table.th>
                 <x-table.th>{{ __('Order status') }}</x-table.th>
@@ -81,6 +85,11 @@
                                 'flavorClass' => 'text-xs text-rose-700',
                             ])
                         </x-table.cell>
+                        @role('Admin')
+                            <x-table.cell>
+                                <x-badge :variant="$order->isDeliveryFulfillment() ? 'info' : 'default'">{{ $order->fulfillmentLabel() }}</x-badge>
+                            </x-table.cell>
+                        @endrole
                         <x-table.cell class="whitespace-nowrap font-medium">₹ {{ number_format($order->amount, 2) }}</x-table.cell>
                         <x-table.cell>
                             <x-badge :variant="$order->payment_status === 'verified' ? 'success' : 'warning'">{{ $order->payment_status }}</x-badge>
@@ -91,6 +100,7 @@
                                     'pending' => 'warning',
                                     'processing' => 'info',
                                     'completed' => 'success',
+                                    'delivered' => 'success',
                                     'cancelled' => 'danger',
                                     default => 'default',
                                 };
@@ -107,7 +117,7 @@
                     </x-table.row>
                 @empty
                     <x-table.row>
-                        <x-table.cell colspan="8" class="text-center text-gray-500">{{ __('No orders found.') }}</x-table.cell>
+                        <x-table.cell colspan="9" class="text-center text-gray-500">{{ __('No orders found.') }}</x-table.cell>
                     </x-table.row>
                 @endforelse
             </x-table.body>

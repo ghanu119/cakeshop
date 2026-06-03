@@ -14,6 +14,12 @@ class Order extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, SoftDeletes;
 
+    public const FULFILLMENT_TAKEAWAY = 'takeaway';
+
+    public const FULFILLMENT_DELIVERY = 'delivery';
+
+    public const STATUS_DELIVERED = 'delivered';
+
     protected $fillable = [
         'uuid',
         'user_id',
@@ -32,6 +38,8 @@ class Order extends Model implements HasMedia
         'quantity',
         'message_on_cake',
         'instructions',
+        'fulfillment_type',
+        'delivery_address',
         'serial_number',
         'amount',
         'payment_status',
@@ -73,7 +81,7 @@ class Order extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('payment_proof');
+        $this->addMediaCollection('payment_proof')->singleFile();
     }
 
     public function registerMediaConversions(?Media $media = null): void
@@ -189,5 +197,56 @@ class Order extends Model implements HasMedia
     public function isPaymentVerified(): bool
     {
         return $this->payment_status === 'verified';
+    }
+
+    public function hasPaymentDetailsSubmitted(): bool
+    {
+        if ($this->payment_reference || $this->payment_amount !== null || $this->payment_made_at !== null) {
+            return true;
+        }
+
+        return $this->hasMedia('payment_proof');
+    }
+
+    public function paymentStatusBadgeLabel(): string
+    {
+        if ($this->isPaymentVerified()) {
+            return __('Paid');
+        }
+
+        if ($this->hasPaymentDetailsSubmitted()) {
+            return __('Awaiting verification');
+        }
+
+        return __('Payment pending');
+    }
+
+    public function isTakeaway(): bool
+    {
+        return $this->fulfillment_type === self::FULFILLMENT_TAKEAWAY;
+    }
+
+    public function isDeliveryFulfillment(): bool
+    {
+        return $this->fulfillment_type === self::FULFILLMENT_DELIVERY;
+    }
+
+    public function isDelivered(): bool
+    {
+        return $this->order_status === self::STATUS_DELIVERED;
+    }
+
+    public function isStatusLocked(): bool
+    {
+        return $this->isDelivered();
+    }
+
+    public function fulfillmentLabel(): string
+    {
+        return match ($this->fulfillment_type) {
+            self::FULFILLMENT_DELIVERY => __('Delivery'),
+            self::FULFILLMENT_TAKEAWAY => __('Take away'),
+            default => __('Take away'),
+        };
     }
 }

@@ -24,7 +24,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BoIc0bwd.css",
+    "file": "assets/app-hGD6f3oJ.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -62,6 +62,18 @@
       "assets/slick-DWzRxEMf.ttf",
       "assets/slick-BlzDm7g2.svg"
     ]
+  },
+  "resources/js/order-fulfillment-type.js": {
+    "file": "assets/order-fulfillment-type-_cip7NzS.js",
+    "name": "order-fulfillment-type",
+    "src": "resources/js/order-fulfillment-type.js",
+    "isEntry": true
+  },
+  "resources/js/order-place-confirm.js": {
+    "file": "assets/order-place-confirm-Ck9XvazR.js",
+    "name": "order-place-confirm",
+    "src": "resources/js/order-place-confirm.js",
+    "isEntry": true
   },
   "resources/js/order-status-form.js": {
     "file": "assets/order-status-form-tfVTC-O7.js",

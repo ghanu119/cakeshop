@@ -22,7 +22,7 @@ class PlaceOrderRequest extends FormRequest
         $after = $rules['after']->format('Y-m-d\TH:i');
         $before = $rules['before']->format('Y-m-d\TH:i');
 
-        return [
+        $rules = [
             'guest_name' => ['required', 'string', 'max:255'],
             'guest_email' => ['nullable', 'email'],
             'guest_phone' => ['required', 'string', 'max:50'],
@@ -33,6 +33,13 @@ class PlaceOrderRequest extends FormRequest
             'product_variant_id' => ['nullable', 'integer'],
             'flavor_id' => ['nullable', 'integer'],
         ];
+
+        if (uses_better_buns_checkout()) {
+            $rules['fulfillment_type'] = ['required', 'string', 'in:takeaway,delivery'];
+            $rules['delivery_address'] = ['nullable', 'string', 'max:1000', 'required_if:fulfillment_type,delivery'];
+        }
+
+        return $rules;
     }
 
     public function withValidator(Validator $validator): void

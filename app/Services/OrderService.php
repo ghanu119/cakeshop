@@ -7,6 +7,7 @@ use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
@@ -63,6 +64,10 @@ class OrderService
         $order->quantity = (int) ($data['quantity'] ?? 1);
         $order->message_on_cake = $data['message_on_cake'] ?? null;
         $order->instructions = $data['instructions'] ?? null;
+        $order->fulfillment_type = $data['fulfillment_type'] ?? Order::FULFILLMENT_TAKEAWAY;
+        $order->delivery_address = $order->fulfillment_type === Order::FULFILLMENT_DELIVERY
+            ? ($data['delivery_address'] ?? null)
+            : null;
         $order->payment_status = 'pending';
         $order->order_status = 'pending';
         $tz = settings('timezone') ?? 'Asia/Kolkata';
@@ -122,6 +127,26 @@ class OrderService
 
     public function updateOrderStatus(Order $order, string $orderStatus, ?string $preparationAt = null): void
     {
+        if ($order->isStatusLocked()) {
+            throw ValidationException::withMessages([
+                'order_status' => [__('This order cannot be changed.')],
+            ]);
+        }
+
+        if ($orderStatus === Order::STATUS_DELIVERED) {
+            if (! $order->isDeliveryFulfillment()) {
+                throw ValidationException::withMessages([
+                    'order_status' => [__('Delivered status is only available for delivery orders.')],
+                ]);
+            }
+
+            if ($order->order_status !== 'completed') {
+                throw ValidationException::withMessages([
+                    'order_status' => [__('Order must be completed before marking as delivered.')],
+                ]);
+            }
+        }
+
         $order->order_status = $orderStatus;
 
         if ($orderStatus === 'processing' && $preparationAt !== null) {

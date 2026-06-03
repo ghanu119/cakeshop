@@ -82,6 +82,8 @@
                 
                 @include('admin.orders.partials._preparation-highlight', ['order' => $order, 'tz' => $tz])
 
+                @include('admin.orders.partials._fulfillment-highlight', ['order' => $order])
+
                 {{-- Delivery Highlight --}}
                 <div class="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 p-6 shadow-sm">
                     <div>
@@ -91,10 +93,16 @@
                     </div>
                     @if($deliveryAt)
                         <div class="text-right">
-                            @if(in_array($order->order_status, ['completed', 'cancelled']))
+                            @if(in_array($order->order_status, ['completed', 'cancelled', 'delivered']))
                                 <p class="mb-1 text-sm font-bold uppercase tracking-wider text-gray-500">{{ __('Status') }}</p>
                                 <p class="text-xl font-bold text-gray-700">
-                                    {{ $order->order_status === 'completed' ? __('Completed') : __('Cancelled') }}
+                                    @if($order->order_status === 'delivered')
+                                        {{ __('Delivered') }}
+                                    @elseif($order->order_status === 'completed')
+                                        {{ __('Completed') }}
+                                    @else
+                                        {{ __('Cancelled') }}
+                                    @endif
                                 </p>
                             @else
                                 <p class="mb-1 text-sm font-bold uppercase tracking-wider {{ $deliveryAt->isPast() ? 'text-red-500' : 'text-indigo-600' }}">

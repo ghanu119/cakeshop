@@ -1,7 +1,7 @@
 @if($order->isProcessing() && $order->hasPreparationDeadline())
     @php
         $preparationAt = $order->preparation_at->setTimezone($tz);
-        $prepOverdue = $preparationAt->isPast() && ! in_array($order->order_status, ['completed', 'cancelled']);
+        $prepOverdue = $preparationAt->isPast() && ! in_array($order->order_status, ['completed', 'cancelled', 'delivered']);
     @endphp
     <div class="flex items-center justify-between rounded-xl border border-sky-100 bg-sky-50 p-6 shadow-sm">
         <div>

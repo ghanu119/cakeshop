@@ -9,6 +9,7 @@
     $variantChoices = $variantChoices ?? collect();
     $initialFlavorId = old('flavor_id', $product->flavors->first()?->id);
     $initialFlavorName = $product->flavors->firstWhere('id', (int) $initialFlavorId)?->name_en ?? '';
+    $initialFulfillmentType = old('fulfillment_type', 'takeaway');
 @endphp
 
 @include('order.partials._picker-styles')
@@ -68,11 +69,15 @@
                 <x-input type="email" name="guest_email" id="guest_email" value="{{ old('guest_email') }}" class="block w-full" />
                 @error('guest_email')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
-            <div>
-                <label for="quantity" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Quantity') }} *</label>
-                <x-input type="number" name="quantity" id="quantity" value="{{ old('quantity', request('quantity', 1)) }}" min="1" max="10" class="block w-full" required />
-                @error('quantity')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-            </div>
+            @if(uses_better_buns_checkout())
+                @include('order.partials._fulfillment-order-fields', ['initialFulfillmentType' => $initialFulfillmentType])
+            @else
+                <div>
+                    <label for="quantity" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Quantity') }} *</label>
+                    <x-input type="number" name="quantity" id="quantity" value="{{ old('quantity', request('quantity', 1)) }}" min="1" max="10" class="block w-full" required />
+                    @error('quantity')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+            @endif
             <div>
                 <label for="delivery_at" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Delivery date and time') }} * ({{ $deliveryRules['timezone'] }})</label>
                 @php

@@ -18,7 +18,7 @@ class UpdateOrderStatusRequest extends FormRequest
     public function rules(): array
     {
         $allowedStatuses = $this->user()->hasRole('Admin')
-            ? ['pending', 'processing', 'completed', 'cancelled']
+            ? ['pending', 'processing', 'completed', 'cancelled', 'delivered']
             : ['completed', 'cancelled'];
 
         $rules = [
@@ -35,6 +35,35 @@ class UpdateOrderStatusRequest extends FormRequest
     public function withValidator(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
+            /** @var Order|null $order */
+            $order = $this->route('order');
+            if (! $order) {
+                return;
+            }
+
+            if ($order->isStatusLocked()) {
+                $validator->errors()->add(
+                    'order_status',
+                    __('This order cannot be changed.')
+                );
+
+                return;
+            }
+
+            if ($this->input('order_status') === 'delivered') {
+                if (! $order->isDeliveryFulfillment()) {
+                    $validator->errors()->add(
+                        'order_status',
+                        __('Delivered status is only available for delivery orders.')
+                    );
+                } elseif ($order->order_status !== 'completed') {
+                    $validator->errors()->add(
+                        'order_status',
+                        __('Order must be completed before marking as delivered.')
+                    );
+                }
+            }
+
             if (! $this->user()->hasRole('Admin')) {
                 if ($this->filled('preparation_at')) {
                     $validator->errors()->add(
@@ -51,12 +80,6 @@ class UpdateOrderStatusRequest extends FormRequest
             }
 
             if ($validator->errors()->has('preparation_at')) {
-                return;
-            }
-
-            /** @var Order|null $order */
-            $order = $this->route('order');
-            if (! $order) {
                 return;
             }
 

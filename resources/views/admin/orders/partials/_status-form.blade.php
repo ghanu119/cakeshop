@@ -7,8 +7,15 @@
     $currentStatus = old('order_status', $order->order_status);
     $showPrepPanel = $canSetPreparationTime && $currentStatus === 'processing';
     $kitchenStatusOptions = ['completed', 'cancelled'];
+    $showDeliveredOption = $canSetPreparationTime && $order->isDeliveryFulfillment() && ! $order->isStatusLocked();
 @endphp
 
+@if($order->isStatusLocked())
+    <span class="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-sm font-semibold text-teal-800 shadow-sm">
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+        {{ __('Delivered') }}
+    </span>
+@else
 <div id="order-status" class="w-full md:w-auto">
     <form
         method="post"
@@ -34,6 +41,9 @@
                     <option value="pending" @selected($currentStatus === 'pending')>{{ __('Pending') }}</option>
                     <option value="processing" @selected($currentStatus === 'processing')>{{ __('Processing') }}</option>
                     <option value="completed" @selected($currentStatus === 'completed')>{{ __('Completed') }}</option>
+                    @if($showDeliveredOption)
+                        <option value="delivered" @selected($currentStatus === 'delivered')>{{ __('Delivered') }}</option>
+                    @endif
                     <option value="cancelled" @selected($currentStatus === 'cancelled')>{{ __('Cancelled') }}</option>
                 @else
                     @foreach($kitchenStatusOptions as $status)
@@ -91,3 +101,4 @@
 @push('scripts')
     @vite(['resources/js/order-status-form.js'])
 @endpush
+@endif

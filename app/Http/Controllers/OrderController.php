@@ -86,7 +86,7 @@ class OrderController extends Controller
     public function confirm(string $uuid): View|RedirectResponse
     {
         $order = Order::where('uuid', $uuid)->firstOrFail();
-        $order->load(['product' => fn ($q) => $q->withTrashed()]);
+        $order->load(['product' => fn ($q) => $q->withTrashed(), 'media']);
 
         return view('order.confirm', compact('order'));
     }
@@ -97,6 +97,7 @@ class OrderController extends Controller
             return view('order.submit-payment-lookup');
         }
         $order = Order::where('uuid', $uuid)->firstOrFail();
+        $order->load('media');
 
         return view('order.submit-payment', compact('order'));
     }
@@ -118,6 +119,7 @@ class OrderController extends Controller
     public function submitPayment(SubmitPaymentDetailsRequest $request, string $uuid): RedirectResponse
     {
         $order = Order::where('uuid', $uuid)->firstOrFail();
+        $isUpdate = $order->hasPaymentDetailsSubmitted();
         $data = $request->validated();
         $this->orderService->submitPaymentDetails($order, $data);
 
@@ -126,8 +128,12 @@ class OrderController extends Controller
                 ->toMediaCollection('payment_proof');
         }
 
+        $statusMessage = $isUpdate
+            ? __('Payment details updated. We will verify and update your order shortly.')
+            : __('Payment details submitted. We will verify and update your order shortly.');
+
         return redirect()->route('order.confirm', ['uuid' => $order->uuid])
-            ->with('status', __('Payment details submitted. We will verify and update your order shortly.'));
+            ->with('status', $statusMessage);
     }
 
     public function historyForm(): View

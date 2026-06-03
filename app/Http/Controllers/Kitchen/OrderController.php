@@ -52,12 +52,35 @@ class OrderController extends Controller
                 ->with('error', __('Payment must be verified before you can change the order status.'));
         }
 
+        $newStatus = $request->validated('order_status');
+
         $this->orderService->updateOrderStatus(
             $order,
-            $request->validated('order_status'),
+            $newStatus,
             $request->user()->hasRole('Admin') ? $request->validated('preparation_at') : null
         );
 
-        return redirect()->route('admin.kitchen.orders.show', $order)->with('status', __('Order status updated.'));
+        $order->refresh();
+
+        $stillOnKitchenQueue = Order::query()
+            ->whereKey($order->id)
+            ->visibleToKitchen()
+            ->exists();
+
+        if (! $stillOnKitchenQueue) {
+            $message = match ($newStatus) {
+                'completed' => __('Order marked as completed and removed from today\'s kitchen list.'),
+                'cancelled' => __('Order cancelled and removed from today\'s kitchen list.'),
+                default => __('Order status updated. It is no longer on today\'s kitchen list.'),
+            };
+
+            return redirect()
+                ->route('admin.kitchen.orders.index')
+                ->with('status', $message);
+        }
+
+        return redirect()
+            ->route('admin.kitchen.orders.show', $order)
+            ->with('status', __('Order status updated.'));
     }
 }

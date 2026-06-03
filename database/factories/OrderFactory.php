@@ -28,6 +28,8 @@ class OrderFactory extends Factory
             'product_id' => Product::factory(),
             'product_name' => 'Test Cake',
             'quantity' => 1,
+            'fulfillment_type' => Order::FULFILLMENT_TAKEAWAY,
+            'delivery_address' => null,
             'unit_price' => 500,
             'amount' => 500,
             'payment_status' => 'pending',
@@ -40,6 +42,15 @@ class OrderFactory extends Factory
     public function verified(): static
     {
         return $this->state(fn () => ['payment_status' => 'verified']);
+    }
+
+    public function paymentDetailsSubmitted(): static
+    {
+        return $this->state(fn () => [
+            'payment_reference' => 'UPI' . fake()->numerify('########'),
+            'payment_amount' => 500,
+            'payment_made_at' => now()->subHour(),
+        ]);
     }
 
     public function processing(?Carbon $preparationAt = null): static
@@ -56,6 +67,22 @@ class OrderFactory extends Factory
 
         return $this->state(fn () => [
             'delivery_at' => Carbon::now($tz)->addHours(8)->utc(),
+        ]);
+    }
+
+    public function deliveryFulfillment(?string $address = null): static
+    {
+        return $this->state(fn () => [
+            'fulfillment_type' => Order::FULFILLMENT_DELIVERY,
+            'delivery_address' => $address ?? fake()->address(),
+        ]);
+    }
+
+    public function completed(): static
+    {
+        return $this->state(fn () => [
+            'order_status' => 'completed',
+            'preparation_at' => null,
         ]);
     }
 }
