@@ -65,9 +65,11 @@
                     {{-- Details --}}
                     <div class="flex-1">
                         <h4 class="text-lg sm:text-xl font-bold font-display text-stone-900 leading-tight mb-1">{{ $order->displayProductName() }}</h4>
-                        @if($order->hasVariantSnapshot())
-                            <p class="text-amber-700 text-sm font-semibold mb-1">{{ __('Weight') }}: {{ $order->variant_summary }}</p>
-                        @endif
+                        @include('order.partials._order-options', [
+                            'order' => $order,
+                            'weightClass' => 'text-amber-700 text-sm font-semibold mb-1',
+                            'flavorClass' => 'text-rose-700 text-sm font-semibold mb-1',
+                        ])
                         <p class="text-stone-500 text-sm font-medium">{{ __('Quantity') }}: {{ $order->quantity }}</p>
                         @if($order->unit_price !== null)
                             <p class="text-stone-500 text-sm">{{ __('Unit price') }}: {{ $symbol }}{{ number_format($order->displayUnitPrice(), 2) }}</p>

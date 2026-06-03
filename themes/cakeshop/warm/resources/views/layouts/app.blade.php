@@ -160,5 +160,21 @@
                 </div>
             </div>
         </footer>
+
+        <script>
+            document.querySelectorAll('form').forEach(function(form) {
+                form.addEventListener('submit', function() {
+                    var btn = form.querySelector('button[type="submit"], input[type="submit"]');
+                    if (btn && !btn.disabled) {
+                        btn.disabled = true;
+                        if (btn.tagName === 'BUTTON' && btn.textContent.trim()) {
+                            var text = btn.getAttribute('data-submitting-text') || '{{ __("Processing...") }}';
+                            btn.textContent = text;
+                        }
+                    }
+                });
+            });
+        </script>
+        @stack('scripts')
     </body>
 </html>

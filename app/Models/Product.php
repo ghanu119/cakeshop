@@ -63,6 +63,23 @@ class Product extends Model implements HasMedia
         return $this->hasMany(ProductVariant::class);
     }
 
+    public function flavors()
+    {
+        return $this->belongsToMany(Flavor::class)
+            ->withPivot('sort_order')
+            ->withTimestamps()
+            ->orderByPivot('sort_order');
+    }
+
+    public function hasFlavors(): bool
+    {
+        if ($this->relationLoaded('flavors')) {
+            return $this->flavors->where('status', 'active')->isNotEmpty();
+        }
+
+        return $this->flavors()->active()->exists();
+    }
+
     public function hasVariants(): bool
     {
         return app(\App\Services\ProductVariantService::class)->hasVariants($this);

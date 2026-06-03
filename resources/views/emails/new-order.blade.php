@@ -8,6 +8,9 @@
 @if($order->hasVariantSnapshot())
 - {{ __('Weight') }}: {{ $order->variant_summary }}
 @endif
+@if($order->hasFlavorSnapshot())
+- {{ __('Flavor') }}: {{ $order->displayFlavorName() }}
+@endif
 - {{ __('Quantity') }}: {{ $order->quantity }}
 - {{ __('Unit price') }}: ₹ {{ number_format($order->displayUnitPrice(), 2) }}
 - {{ __('Amount') }}: ₹ {{ number_format($order->amount, 2) }}

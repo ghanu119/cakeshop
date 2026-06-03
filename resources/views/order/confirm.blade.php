@@ -18,9 +18,11 @@
                 @endif
             @endif
         </p>
-        @if($order->hasVariantSnapshot())
-            <p class="mb-2 text-amber-800 font-medium">{{ __('Weight') }}: {{ $order->variant_summary }}</p>
-        @endif
+        @include('order.partials._order-options', [
+            'order' => $order,
+            'weightClass' => 'mb-2 text-amber-800 font-medium',
+            'flavorClass' => 'mb-2 text-rose-800 font-medium',
+        ])
         <p class="mb-2">{{ __('Quantity') }}: {{ $order->quantity }}</p>
         <p class="mb-2">{{ __('Unit price') }}: ₹ {{ number_format($order->displayUnitPrice(), 2) }}</p>
         <p class="mb-4">{{ __('Amount') }}: ₹ {{ number_format($order->amount, 2) }}</p>

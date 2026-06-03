@@ -23,7 +23,8 @@ class OrderService
             $query->where(function ($q) use ($term) {
                 $q->where('guest_phone', 'like', "%{$term}%")
                     ->orWhere('guest_name', 'like', "%{$term}%")
-                    ->orWhere('uuid', 'like', "%{$term}%");
+                    ->orWhere('uuid', 'like', "%{$term}%")
+                    ->orWhere('flavor_name', 'like', "%{$term}%");
             });
         }
         if ($request->filled('order_status')) {
@@ -68,6 +69,8 @@ class OrderService
         $order->delivery_at = Carbon::parse($data['delivery_at'], $tz)->utc();
         $order->ordered_at = now();
 
+        $this->applyFlavorSnapshot($order, $product, $data['flavor_id'] ?? null);
+
         if ($this->productVariantService->hasVariants($product)) {
             $variant = $this->productVariantService->findVariantForProduct(
                 $product,
@@ -85,6 +88,22 @@ class OrderService
         }
 
         return $order;
+    }
+
+    private function applyFlavorSnapshot(Order $order, Product $product, mixed $flavorId): void
+    {
+        if ($flavorId === null || $flavorId === '') {
+            return;
+        }
+
+        $flavor = $product->flavors()->active()->whereKey((int) $flavorId)->first();
+        if (! $flavor) {
+            return;
+        }
+
+        $order->flavor_id = $flavor->id;
+        $order->flavor_name = $flavor->name_en;
+        $order->flavor_slug = $flavor->slug;
     }
 
     public function submitPaymentDetails(Order $order, array $data): void

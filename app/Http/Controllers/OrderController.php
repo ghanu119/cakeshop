@@ -26,16 +26,21 @@ class OrderController extends Controller
         }
         $deliveryRules = $this->orderService->deliveryAtRules();
         $this->productVariantService->eagerLoadForStorefront($product);
+        $product->load([
+            'flavors' => fn ($q) => $q->active()->orderByPivot('sort_order'),
+        ]);
         $variantChoices = $this->productVariantService->choicesForProduct($product);
         $defaultVariant = $this->productVariantService->defaultVariant($product);
         $hasVariants = $this->productVariantService->hasVariants($product);
+        $hasFlavors = $product->hasFlavors();
 
         return view('order.place', compact(
             'product',
             'deliveryRules',
             'variantChoices',
             'defaultVariant',
-            'hasVariants'
+            'hasVariants',
+            'hasFlavors'
         ));
     }
 
@@ -53,6 +58,9 @@ class OrderController extends Controller
             ->where('ordered_at', '>=', now()->subSeconds(90));
         if (! empty($validated['product_variant_id'])) {
             $duplicateQuery->where('product_variant_id', $validated['product_variant_id']);
+        }
+        if (! empty($validated['flavor_id'])) {
+            $duplicateQuery->where('flavor_id', $validated['flavor_id']);
         }
         $recentDuplicate = $duplicateQuery->first();
         if ($recentDuplicate) {

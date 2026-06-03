@@ -194,9 +194,11 @@
                                             <span>{{ $order->displayProductName() }}</span>
                                         @endif
                                     </p>
-                                    @if($order->hasVariantSnapshot())
-                                        <p class="mt-1 text-sm font-semibold text-indigo-700">{{ __('Weight') }}: {{ $order->variant_summary }}</p>
-                                    @endif
+                                    @include('order.partials._order-options', [
+                                        'order' => $order,
+                                        'weightClass' => 'mt-1 text-sm font-semibold text-indigo-700',
+                                        'flavorClass' => 'mt-1 text-sm font-semibold text-rose-700',
+                                    ])
                                 </div>
                             </div>
                             @if($order->product && $order->product->getFirstMediaUrl('product_images', 'thumb'))

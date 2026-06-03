@@ -40,6 +40,8 @@ class UpdateProductRequest extends FormRequest
             'is_featured' => ['nullable', 'boolean'],
             'homepage_sort_order' => ['nullable', 'integer', 'min:0'],
             'image' => ['nullable', 'image', 'max:5120'],
+            'flavor_ids' => ['nullable', 'array'],
+            'flavor_ids.*' => ['integer', 'exists:flavors,id'],
         ], $this->productWeightVariantRules());
     }
 

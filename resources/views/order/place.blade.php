@@ -5,8 +5,14 @@
     $currency = settings('currency') ?? 'INR';
     $symbol = $currency === 'INR' ? '₹' : $currency . ' ';
     $hasVariants = $hasVariants ?? false;
+    $hasFlavors = $hasFlavors ?? false;
     $variantChoices = $variantChoices ?? collect();
+    $initialFlavorId = old('flavor_id', $product->flavors->first()?->id);
+    $initialFlavorName = $product->flavors->firstWhere('id', (int) $initialFlavorId)?->name_en ?? '';
 @endphp
+
+@include('order.partials._picker-styles')
+
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
     <h1 class="mb-6 text-3xl font-bold tracking-tight text-gray-900">{{ __('Order') }}: {{ $product->name_en }}</h1>
     <x-card class="mb-6">
@@ -24,7 +30,7 @@
                     <label class="mb-1 block text-sm font-medium text-gray-700">{{ __('Weight') }} *</label>
                     <input type="hidden" name="product_variant_id" id="product_variant_id" value="{{ old('product_variant_id', request('product_variant_id', $defaultVariant?->id)) }}" />
                     <div
-                        class="flex flex-wrap gap-2"
+                        class="flex flex-wrap gap-2 variant-picker"
                         data-variant-picker
                         data-choices="{{ $variantChoices->toJson() }}"
                         data-initial-variant-id="{{ old('product_variant_id', request('product_variant_id', $defaultVariant?->id)) }}"
@@ -34,13 +40,19 @@
                         data-total-target="#order-estimated-total"
                         data-quantity-target="#quantity"
                     >
+                        @php $initialVariantId = (int) old('product_variant_id', request('product_variant_id', $defaultVariant?->id)); @endphp
                         @foreach($variantChoices as $choice)
-                            <button type="button" data-variant-id="{{ $choice['id'] }}" class="rounded-full border border-gray-300 px-3 py-1 text-sm font-medium">{{ $choice['label'] }}</button>
+                            @php $isSelected = (string) $initialVariantId === (string) $choice['id']; @endphp
+                            <button type="button" data-variant-id="{{ $choice['id'] }}" class="rounded-full border border-gray-300 px-3 py-1 text-sm font-medium" aria-pressed="{{ $isSelected ? 'true' : 'false' }}">{{ $choice['label'] }}</button>
                         @endforeach
                     </div>
                     @error('product_variant_id')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
                 </div>
             @endif
+            @include('order.partials._flavor-picker', [
+                'product' => $product,
+                'hasFlavors' => $hasFlavors,
+            ])
             <div>
                 <label for="guest_name" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Your name') }} *</label>
                 <x-input type="text" name="guest_name" id="guest_name" value="{{ old('guest_name') }}" class="block w-full" required />

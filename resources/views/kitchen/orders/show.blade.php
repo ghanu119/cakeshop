@@ -165,9 +165,11 @@
                                 <div>
                                     <p class="mb-0.5 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Product') }}</p>
                                     <p class="font-bold text-gray-900 text-indigo-900">{{ $order->displayProductName() }}</p>
-                                    @if($order->hasVariantSnapshot())
-                                        <p class="mt-2 text-base font-bold text-amber-800">{{ __('Weight') }}: {{ $order->variant_summary }}</p>
-                                    @endif
+                                    @include('order.partials._order-options', [
+                                        'order' => $order,
+                                        'weightClass' => 'mt-2 text-base font-bold text-amber-800',
+                                        'flavorClass' => 'mt-2 text-base font-bold text-rose-800',
+                                    ])
                                 </div>
                             </div>
                             @if($order->product && $order->product->getFirstMediaUrl('product_images', 'thumb'))

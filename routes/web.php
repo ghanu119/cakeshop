@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ContactEnquiryController;
 use App\Http\Controllers\Admin\FeatureController;
+use App\Http\Controllers\Admin\FlavorController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TestimonialController;
@@ -64,6 +65,7 @@ Route::middleware(['auth', 'verified', 'role:Admin|Kitchen'])->group(function ()
             Route::post('kitchen/orders/{order}/update-status', [KitchenOrderController::class, 'updateStatus'])->name('kitchen.orders.update-status');
         });
         Route::resource('categories', CategoryController::class)->except(['show']);
+        Route::resource('flavors', FlavorController::class)->except(['show']);
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class)->except(['show']);
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');

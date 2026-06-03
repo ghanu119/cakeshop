@@ -21,6 +21,7 @@ class HomeController extends Controller
             'media',
             'variants' => fn ($q) => $q->active()->orderBy('sort_order'),
             'variants.selections.value',
+            'flavors' => fn ($q) => $q->active()->orderByPivot('sort_order'),
         ];
         $highlights = Product::highlight()->with($with)->limit(8)->get();
         $trending = Product::trending()->with($with)->limit(8)->get();

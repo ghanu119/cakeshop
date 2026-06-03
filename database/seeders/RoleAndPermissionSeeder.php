@@ -44,6 +44,10 @@ class RoleAndPermissionSeeder extends Seeder
             'testimonials.create',
             'testimonials.update',
             'testimonials.delete',
+            'flavors.view',
+            'flavors.create',
+            'flavors.update',
+            'flavors.delete',
         ];
 
         foreach ($permissions as $name) {

@@ -31,6 +31,7 @@ class PlaceOrderRequest extends FormRequest
             'instructions' => ['nullable', 'string', 'max:1000'],
             'delivery_at' => ['required', 'date', 'after_or_equal:'.$after, 'before_or_equal:'.$before],
             'product_variant_id' => ['nullable', 'integer'],
+            'flavor_id' => ['nullable', 'integer'],
         ];
     }
 
@@ -44,21 +45,27 @@ class PlaceOrderRequest extends FormRequest
             }
 
             $variantService = app(ProductVariantService::class);
-            if (! $variantService->hasVariants($product)) {
-                return;
+
+            if ($variantService->hasVariants($product)) {
+                $variantId = $this->input('product_variant_id');
+                if (! $variantId) {
+                    $validator->errors()->add('product_variant_id', __('Please select a weight.'));
+                } else {
+                    try {
+                        $variantService->findVariantForProduct($product, (int) $variantId);
+                    } catch (\Throwable) {
+                        $validator->errors()->add('product_variant_id', __('Invalid weight selection.'));
+                    }
+                }
             }
 
-            $variantId = $this->input('product_variant_id');
-            if (! $variantId) {
-                $validator->errors()->add('product_variant_id', __('Please select a weight.'));
-
-                return;
-            }
-
-            try {
-                $variantService->findVariantForProduct($product, (int) $variantId);
-            } catch (\Throwable) {
-                $validator->errors()->add('product_variant_id', __('Invalid weight selection.'));
+            if ($product->hasFlavors()) {
+                $flavorId = $this->input('flavor_id');
+                if (! $flavorId) {
+                    $validator->errors()->add('flavor_id', __('Please select a flavor.'));
+                } elseif (! $product->flavors()->active()->whereKey($flavorId)->exists()) {
+                    $validator->errors()->add('flavor_id', __('Invalid flavor selection.'));
+                }
             }
         });
     }

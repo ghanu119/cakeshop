@@ -1,5 +1,6 @@
 import './bootstrap';
 import './product-variant-picker';
+import './flavor-picker';
 
 import $ from 'jquery';
 window.$ = window.jQuery = $;

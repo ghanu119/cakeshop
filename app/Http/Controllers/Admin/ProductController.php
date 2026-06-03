@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Category;
+use App\Models\Flavor;
 use App\Models\Product;
 use App\Services\ProductService;
 use App\Services\VariantOptionService;
@@ -34,8 +35,9 @@ class ProductController extends Controller
         $product = null;
         $categories = Category::active()->orderBy('name_en')->get();
         $weightValues = $this->variantOptionService->activeWeightValues();
+        $flavors = Flavor::active()->orderBy('sort_order')->orderBy('name_en')->get();
 
-        return view('admin.products.create', compact('product', 'categories', 'weightValues'));
+        return view('admin.products.create', compact('product', 'categories', 'weightValues', 'flavors'));
     }
 
     public function store(StoreProductRequest $request): RedirectResponse
@@ -51,11 +53,12 @@ class ProductController extends Controller
     public function edit(Product $product): View
     {
         $this->authorize('update', $product);
-        $product->load(['media', 'variants.selections.value', 'variants.selections.type']);
+        $product->load(['media', 'variants.selections.value', 'variants.selections.type', 'flavors']);
         $categories = Category::active()->orderBy('name_en')->get();
         $weightValues = $this->variantOptionService->activeWeightValues();
+        $flavors = Flavor::active()->orderBy('sort_order')->orderBy('name_en')->get();
 
-        return view('admin.products.edit', compact('product', 'categories', 'weightValues'));
+        return view('admin.products.edit', compact('product', 'categories', 'weightValues', 'flavors'));
     }
 
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse

@@ -31,9 +31,7 @@
                     <x-card class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                         <div>
                             <p class="font-medium text-gray-900">{{ $order->displayProductName() }}</p>
-                            @if($order->hasVariantSnapshot())
-                                <p class="text-sm text-amber-700">{{ __('Weight') }}: {{ $order->variant_summary }}</p>
-                            @endif
+                            @include('order.partials._order-options', ['order' => $order])
                             <p class="text-sm text-gray-500">{{ __('Reference') }}: <span class="font-mono">{{ $order->uuid }}</span></p>
                             <p class="text-sm text-gray-600">{{ __('Ordered') }}: {{ $order->ordered_at?->format('d M Y H:i') }} · {{ __('Amount') }}: ₹ {{ number_format($order->amount, 2) }}</p>
                             <div class="mt-2 flex flex-wrap gap-2">

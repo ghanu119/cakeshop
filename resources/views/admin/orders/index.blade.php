@@ -73,7 +73,14 @@
                             <div>{{ $order->guest_name }}</div>
                             <div class="text-sm text-gray-500">{{ $order->guest_phone }}</div>
                         </x-table.cell>
-                        <x-table.cell>{{ $order->product?->name_en ?? '—' }}</x-table.cell>
+                        <x-table.cell>
+                            <div>{{ $order->displayProductName() }}</div>
+                            @include('order.partials._order-options', [
+                                'order' => $order,
+                                'weightClass' => 'text-xs text-amber-700',
+                                'flavorClass' => 'text-xs text-rose-700',
+                            ])
+                        </x-table.cell>
                         <x-table.cell class="whitespace-nowrap font-medium">₹ {{ number_format($order->amount, 2) }}</x-table.cell>
                         <x-table.cell>
                             <x-badge :variant="$order->payment_status === 'verified' ? 'success' : 'warning'">{{ $order->payment_status }}</x-badge>

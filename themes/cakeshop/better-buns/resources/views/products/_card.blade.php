@@ -14,6 +14,11 @@
         $weightLabels = $weightLabels->unique()->values();
     }
     $hasVariants = $weightLabels->isNotEmpty();
+    $flavorLabels = collect();
+    if ($product->relationLoaded('flavors')) {
+        $flavorLabels = $product->flavors->pluck('name_en')->filter()->values();
+    }
+    $hasFlavors = $flavorLabels->isNotEmpty();
 @endphp
 <a href="{{ route('products.show', $product->slug) }}" class="group flex flex-col bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.12)] border border-amber-100/50 hover:border-amber-200 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden h-full">
     <div class="relative overflow-hidden aspect-[4/3] bg-stone-50">
@@ -48,6 +53,16 @@
                 @foreach($weightLabels->take(5) as $label)
                     <span class="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200">{{ $label }}</span>
                 @endforeach
+            </div>
+        @endif
+        @if($hasFlavors)
+            <div class="mb-3 flex flex-wrap gap-1">
+                @foreach($flavorLabels->take(5) as $label)
+                    <span class="inline-flex rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-800 border border-rose-200">{{ $label }}</span>
+                @endforeach
+                @if($flavorLabels->count() > 5)
+                    <span class="inline-flex rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold text-stone-600 border border-stone-200">+{{ $flavorLabels->count() - 5 }}</span>
+                @endif
             </div>
         @endif
         @if($product->short_description)

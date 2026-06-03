@@ -18,7 +18,7 @@
         <form method="post" action="{{ route('admin.products.update', $product) }}" enctype="multipart/form-data" class="space-y-8" novalidate>
             @csrf
             @method('PUT')
-            @include('admin.products._form', ['product' => $product, 'categories' => $categories, 'weightValues' => $weightValues])
+            @include('admin.products._form', ['product' => $product, 'categories' => $categories, 'weightValues' => $weightValues, 'flavors' => $flavors])
             <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-6">
                 <x-button type="submit" variant="primary" class="shadow-sm">{{ __('Update Product') }}</x-button>
                 <a href="{{ route('admin.products.index') }}" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50">
@@ -28,3 +28,23 @@
         </form>
     </x-card>
 @endsection
+
+@push('styles')
+<style>
+    .select2-container--default .select2-selection--multiple {
+        min-height: 42px;
+        border-radius: 0.5rem;
+        border-color: rgb(209 213 219);
+        padding: 0.25rem 0.5rem;
+    }
+    .select2-container--default.select2-container--focus .select2-selection--multiple {
+        border-color: rgb(107 114 128);
+        outline: 2px solid rgb(107 114 128);
+        outline-offset: 2px;
+    }
+</style>
+@endpush
+
+@push('scripts')
+    @vite('resources/js/admin-select2.js')
+@endpush

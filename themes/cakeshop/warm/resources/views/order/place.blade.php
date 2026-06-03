@@ -6,10 +6,15 @@
     $symbol = $currency === 'INR' ? '₹' : $currency . ' ';
     $imgUrl = $product->getFirstMediaUrl('product_images', 'medium') ?: $product->getFirstMediaUrl('product_images', 'large');
     $hasVariants = $hasVariants ?? false;
+    $hasFlavors = $hasFlavors ?? false;
     $variantChoices = $variantChoices ?? collect();
     $initialVariantId = (int) old('product_variant_id', request('product_variant_id', $defaultVariant?->id));
     $summaryWeightLabel = ($variantChoices->firstWhere('id', $initialVariantId) ?? $variantChoices->first())['label'] ?? '';
+    $initialFlavorId = old('flavor_id', $product->flavors->first()?->id);
+    $summaryFlavorLabel = $product->flavors->firstWhere('id', (int) $initialFlavorId)?->name_en ?? '';
 @endphp
+
+@include('order.partials._picker-styles')
 
 <div class="min-h-screen bg-stone-50 py-12 lg:py-20 relative overflow-hidden">
     <!-- Soft background glow effect -->
@@ -69,7 +74,7 @@
                             <label class="mb-2 block text-sm font-bold text-stone-700">{{ __('Weight') }} <span class="text-red-500">*</span></label>
                             <input type="hidden" name="product_variant_id" id="product_variant_id" value="{{ old('product_variant_id', request('product_variant_id', $defaultVariant?->id)) }}" />
                             <div
-                                class="flex flex-wrap gap-2"
+                                class="flex flex-wrap gap-2 variant-picker"
                                 data-variant-picker
                                 data-choices="{{ $variantChoices->toJson() }}"
                                 data-initial-variant-id="{{ old('product_variant_id', request('product_variant_id', $defaultVariant?->id)) }}"
@@ -82,12 +87,23 @@
                                 role="radiogroup"
                             >
                                 @foreach($variantChoices as $choice)
-                                    <button type="button" data-variant-id="{{ $choice['id'] }}" class="rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 hover:bg-amber-50">{{ $choice['label'] }}</button>
+                                    @php $isSelected = (string) $initialVariantId === (string) $choice['id']; @endphp
+                                    <button type="button" data-variant-id="{{ $choice['id'] }}" class="rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 hover:bg-amber-50" aria-pressed="{{ $isSelected ? 'true' : 'false' }}">{{ $choice['label'] }}</button>
                                 @endforeach
                             </div>
                             @error('product_variant_id')<p class="mt-2 text-sm text-red-600">{{ $message }}</p>@enderror
                         </div>
                         @endif
+                        @include('order.partials._flavor-picker', [
+                            'product' => $product,
+                            'hasFlavors' => $hasFlavors,
+                            'wrapperClass' => 'md:col-span-2',
+                            'labelClass' => 'mb-2 block text-sm font-bold text-stone-700',
+                            'pickerClass' => 'flex flex-wrap gap-2',
+                            'buttonClass' => 'rounded-full border border-rose-200 bg-white px-4 py-2 text-sm font-semibold text-rose-900 hover:bg-rose-50',
+                            'errorClass' => 'mt-2 text-sm text-red-600 font-medium',
+                            'flavorLabelTarget' => '#order-summary-flavor',
+                        ])
                         <div>
                             <label for="quantity" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Quantity') }} <span class="text-red-500">*</span></label>
                             <input type="number" name="quantity" id="quantity" value="{{ old('quantity', request('quantity', 1)) }}" min="1" max="10" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm font-semibold text-lg" required />
@@ -153,6 +169,17 @@
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V11"/></svg>
                                 </span>
                                 <span id="order-summary-weight" class="text-base font-bold text-amber-900">{{ $summaryWeightLabel }}</span>
+                            </div>
+                        </div>
+                        @endif
+                        @if(!empty($hasFlavors) && $product->flavors->isNotEmpty())
+                        <div class="mt-6 pt-6 border-t border-rose-200/70" aria-live="polite" aria-atomic="true">
+                            <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-rose-600 mb-2.5">{{ __('Selected flavor') }}</p>
+                            <div class="flex items-center gap-3 rounded-xl border border-rose-200/80 bg-rose-50/80 px-3.5 py-2.5">
+                                <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500 text-white shrink-0" aria-hidden="true">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
+                                </span>
+                                <span id="order-summary-flavor" class="text-base font-bold text-rose-900">{{ $summaryFlavorLabel }}</span>
                             </div>
                         </div>
                         @endif

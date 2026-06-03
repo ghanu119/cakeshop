@@ -26,6 +26,9 @@ class Order extends Model implements HasMedia
         'unit_price',
         'variant_summary',
         'weight_grams',
+        'flavor_id',
+        'flavor_name',
+        'flavor_slug',
         'quantity',
         'message_on_cake',
         'instructions',
@@ -96,6 +99,29 @@ class Order extends Model implements HasMedia
     public function variantSelections()
     {
         return $this->hasMany(OrderVariantSelection::class);
+    }
+
+    public function flavor()
+    {
+        return $this->belongsTo(Flavor::class)->withTrashed();
+    }
+
+    public function hasFlavorSnapshot(): bool
+    {
+        return $this->flavor_name !== null && $this->flavor_name !== '';
+    }
+
+    public function displayFlavorName(): string
+    {
+        if ($this->flavor_name) {
+            return $this->flavor_name;
+        }
+
+        if ($this->flavor) {
+            return $this->flavor->displayName();
+        }
+
+        return '';
     }
 
     public function displayProductName(): string

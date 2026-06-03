@@ -1,4 +1,8 @@
-@props(['product', 'categories', 'weightValues' => collect()])
+@props(['product', 'categories', 'weightValues' => collect(), 'flavors' => collect()])
+
+@php
+    $selectedFlavorIds = old('flavor_ids', $product?->flavors?->pluck('id')->all() ?? []);
+@endphp
 
 <div>
     <label for="category_id" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Category') }}</label>
@@ -56,6 +60,22 @@
 </div>
 
 @include('admin.products._variants', ['product' => $product, 'weightValues' => $weightValues])
+
+<div>
+    <label for="flavor_ids" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Flavors') }}</label>
+    <select name="flavor_ids[]" id="flavor_ids" multiple class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+        @foreach($flavors as $flavor)
+            <option value="{{ $flavor->id }}" @selected(in_array($flavor->id, $selectedFlavorIds))>{{ $flavor->name_en }}</option>
+        @endforeach
+    </select>
+    <p class="mt-1 text-xs text-gray-500">{{ __('Select flavors customers can choose at checkout. Does not affect price.') }}</p>
+    @error('flavor_ids')
+        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+    @enderror
+    @error('flavor_ids.*')
+        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+    @enderror
+</div>
 
 <div>
     <label for="status" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Status') }}</label>

@@ -33,9 +33,6 @@ export function initProductVariantPicker(root) {
 
         pills.forEach((pill) => {
             const active = parseInt(pill.dataset.variantId, 10) === id;
-            pill.classList.toggle('ring-2', active);
-            pill.classList.toggle('ring-amber-500', active);
-            pill.classList.toggle('bg-amber-100', active);
             pill.setAttribute('aria-pressed', active ? 'true' : 'false');
         });
 

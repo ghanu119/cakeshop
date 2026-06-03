@@ -43,6 +43,7 @@ class ProductService
             'category',
             'variants' => fn ($q) => $q->active()->orderBy('sort_order'),
             'variants.selections.value',
+            'flavors' => fn ($q) => $q->active()->orderByPivot('sort_order'),
         ])->active();
 
         if ($request->filled('search')) {
@@ -120,6 +121,19 @@ class ProductService
             $product->variants()->each(fn ($v) => $v->delete());
         }
 
+        $this->syncFlavors($product, $data['flavor_ids'] ?? []);
+
         return $product->fresh();
+    }
+
+    public function syncFlavors(Product $product, array $flavorIds): void
+    {
+        $sync = collect($flavorIds)
+            ->filter(fn ($id) => $id !== null && $id !== '')
+            ->values()
+            ->mapWithKeys(fn ($id, $index) => [(int) $id => ['sort_order' => $index]])
+            ->all();
+
+        $product->flavors()->sync($sync);
     }
 }

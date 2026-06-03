@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Category;
+use App\Models\Flavor;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
 
@@ -33,6 +34,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => true,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 1,
+                'flavors' => ['chocolate'],
             ],
             [
                 'name_en' => 'Vanilla Buttercream Cake',
@@ -46,6 +48,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => true,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 2,
+                'flavors' => ['vanilla'],
             ],
             [
                 'name_en' => 'Red Velvet Cake',
@@ -59,6 +62,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => false,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 3,
+                'flavors' => ['red-velvet'],
             ],
             [
                 'name_en' => 'Strawberry Fresh Cream Cake',
@@ -72,6 +76,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => true,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 4,
+                'flavors' => ['strawberry', 'vanilla'],
             ],
             [
                 'name_en' => 'Black Forest Cake',
@@ -85,6 +90,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => true,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 5,
+                'flavors' => ['black-forest', 'chocolate'],
             ],
             [
                 'name_en' => 'Three-Tier Wedding Cake',
@@ -98,6 +104,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => true,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 6,
+                'flavors' => ['vanilla', 'strawberry', 'red-velvet', 'chocolate', 'butterscotch'],
             ],
             [
                 'name_en' => 'Mango Mousse Cake',
@@ -111,6 +118,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => false,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 7,
+                'flavors' => ['mango'],
             ],
             [
                 'name_en' => 'Oreo Cheesecake',
@@ -124,6 +132,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => true,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 8,
+                'flavors' => ['chocolate', 'vanilla'],
             ],
             [
                 'name_en' => 'Custom Photo Cake',
@@ -137,6 +146,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => true,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 9,
+                'flavors' => ['chocolate', 'vanilla', 'strawberry', 'red-velvet', 'butterscotch', 'black-forest'],
             ],
             [
                 'name_en' => 'Assorted Cupcakes (6 pcs)',
@@ -150,6 +160,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => false,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 10,
+                'flavors' => ['chocolate', 'vanilla', 'red-velvet'],
             ],
             [
                 'name_en' => 'Pineapple Pastry (Box of 4)',
@@ -163,6 +174,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => false,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 11,
+                'flavors' => ['pineapple'],
             ],
             [
                 'name_en' => 'Festive Dry Fruit Cake',
@@ -209,7 +221,25 @@ class ProductSeeder extends Seeder
             if ($product->getMedia('product_images')->isEmpty()) {
                 $this->addCakeImage($product, $item['slug']);
             }
+
+            $this->syncProductFlavors($product, $item['flavors'] ?? []);
         }
+    }
+
+    private function syncProductFlavors(Product $product, array $flavorSlugs): void
+    {
+        if ($flavorSlugs === [] || Flavor::count() === 0) {
+            return;
+        }
+
+        $flavorIds = Flavor::whereIn('slug', $flavorSlugs)->pluck('id', 'slug');
+        $sync = collect($flavorSlugs)
+            ->filter(fn (string $slug) => $flavorIds->has($slug))
+            ->values()
+            ->mapWithKeys(fn (string $slug, int $index) => [$flavorIds[$slug] => ['sort_order' => $index]])
+            ->all();
+
+        $product->flavors()->sync($sync);
     }
 
     private function addCakeImage(Product $product, string $slug): void

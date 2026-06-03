@@ -1,4 +1,8 @@
 {
+  "_jquery-BZOalPbs.js": {
+    "file": "assets/jquery-BZOalPbs.js",
+    "name": "jquery"
+  },
   "node_modules/slick-carousel/slick/ajax-loader.gif": {
     "file": "assets/ajax-loader-BcnMEykj.gif",
     "src": "node_modules/slick-carousel/slick/ajax-loader.gif"
@@ -20,7 +24,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-B5D994gr.css",
+    "file": "assets/app-C7ImDexf.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -28,11 +32,26 @@
       "app.css"
     ]
   },
+  "resources/js/admin-select2.js": {
+    "file": "assets/admin-select2-Ccc19UsX.js",
+    "name": "admin-select2",
+    "src": "resources/js/admin-select2.js",
+    "isEntry": true,
+    "imports": [
+      "_jquery-BZOalPbs.js"
+    ],
+    "css": [
+      "assets/admin-select2-Cw2tYcCP.css"
+    ]
+  },
   "resources/js/app.js": {
-    "file": "assets/app-94DO9RAd.js",
+    "file": "assets/app-HcqTkMS2.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
+    "imports": [
+      "_jquery-BZOalPbs.js"
+    ],
     "css": [
       "assets/app-Jm68KGQQ.css"
     ],
