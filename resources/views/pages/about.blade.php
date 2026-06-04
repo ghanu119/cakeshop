@@ -34,45 +34,14 @@
     </div>
 </section>
 
-{{-- Heritage timeline (Our Story) --}}
-<section class="py-20 lg:py-28 bg-white relative">
+{{-- Our Story milestones --}}
+<section class="section-warm py-20 lg:py-28 relative">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="text-center mb-16" data-aos="fade-up">
             <h2 class="font-display text-4xl sm:text-5xl font-bold text-stone-900 mb-4">{{ __('Our Story') }}</h2>
             <p class="text-xl text-stone-500 max-w-2xl mx-auto font-light">{{ __('Key milestones on our journey') }}</p>
         </div>
-        <div class="relative max-w-4xl mx-auto px-4 sm:px-0">
-            <!-- Center Line -->
-            <div class="absolute left-8 sm:left-1/2 top-0 bottom-0 w-0.5 -translate-x-px bg-amber-200"></div>
-            
-            <!-- Increased space-y to push items further apart -->
-            <div class="space-y-24 sm:space-y-32">
-                @foreach([
-                    ['title' => __('The beginning'), 'text' => __('We opened our first kitchen with a dream to bring artisan cakes to every celebration.')],
-                    ['title' => __('Growing roots'), 'text' => __('Expanded our range with seasonal favorites and custom wedding cakes.')],
-                    ['title' => __('Award recognition'), 'text' => __('Our recipes and quality were recognized by local food critics and community.')],
-                    ['title' => __('Sweetness redefined'), 'text' => __('We continue to craft with intention—pure ingredients, patient process, and a touch of modern magic.')],
-                ] as $milestone)
-                <div class="relative w-full group" data-aos="fade-up" data-aos-delay="{{ $loop->index * 100 }}">
-                    
-                    <!-- Icon -->
-                    <div class="absolute left-8 sm:left-1/2 top-0 sm:top-1/2 w-12 h-12 -translate-x-1/2 sm:-translate-y-1/2 rounded-full bg-white border-4 border-amber-100 shadow-sm flex items-center justify-center text-amber-500 group-hover:border-amber-400 group-hover:bg-amber-50 transition-all duration-300 z-10">
-                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" /></svg>
-                    </div>
-
-                    <!-- Content -->
-                    <div class="w-full flex @if($loop->odd) sm:justify-start @else sm:justify-end @endif">
-                        <!-- Added more padding to push text further away from the center line -->
-                        <div class="w-full sm:w-1/2 pl-20 sm:pl-0 @if($loop->odd) sm:pr-20 sm:text-right @else sm:pl-20 sm:text-left @endif pt-2 sm:pt-0">
-                            <h3 class="font-display text-xl font-bold text-stone-900 mb-2">{{ $milestone['title'] }}</h3>
-                            <p class="text-stone-500 leading-relaxed">{{ $milestone['text'] }}</p>
-                        </div>
-                    </div>
-
-                </div>
-                @endforeach
-            </div>
-        </div>
+        @include('pages.partials._our-story-timeline')
     </div>
 </section>
 
