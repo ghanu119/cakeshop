@@ -5,8 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Collection;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class Product extends Model implements HasMedia
 {
@@ -46,11 +48,60 @@ class Product extends Model implements HasMedia
         ];
     }
 
-    public function registerMediaConversions(\Spatie\MediaLibrary\MediaCollections\Models\Media $media = null): void
+    public function registerMediaCollections(): void
     {
-        $this->addMediaConversion('thumb')->width(150)->keepOriginalImageFormat();
-        $this->addMediaConversion('medium')->width(400)->keepOriginalImageFormat();
-        $this->addMediaConversion('large')->width(800)->keepOriginalImageFormat();
+        $this->addMediaCollection('product_images');
+    }
+
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $collections = ['product_images'];
+
+        $this->addMediaConversion('thumb')
+            ->width(150)
+            ->keepOriginalImageFormat()
+            ->performOnCollections(...$collections)
+            ->nonQueued();
+
+        $this->addMediaConversion('medium')
+            ->width(400)
+            ->keepOriginalImageFormat()
+            ->performOnCollections(...$collections)
+            ->nonQueued();
+
+        $this->addMediaConversion('large')
+            ->width(800)
+            ->keepOriginalImageFormat()
+            ->performOnCollections(...$collections)
+            ->nonQueued();
+    }
+
+    /**
+     * @return Collection<int, Media>
+     */
+    public function orderedProductImages(): Collection
+    {
+        return $this->getMedia('product_images')->sortBy('order_column')->values();
+    }
+
+    public function productImageUrl(Media $media, string $conversion = ''): string
+    {
+        if ($conversion !== '' && $media->hasGeneratedConversion($conversion)) {
+            return $media->getUrl($conversion);
+        }
+
+        return $media->getUrl();
+    }
+
+    public function primaryProductImageUrl(string $conversion = 'large'): ?string
+    {
+        $media = $this->orderedProductImages()->first();
+
+        if (! $media) {
+            return null;
+        }
+
+        return $this->productImageUrl($media, $conversion);
     }
 
     public function category()

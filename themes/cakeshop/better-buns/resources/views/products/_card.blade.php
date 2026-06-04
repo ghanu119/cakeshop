@@ -1,7 +1,13 @@
 @php
     $currency = settings('currency') ?? 'INR';
     $symbol = $currency === 'INR' ? '₹' : $currency . ' ';
-    $imgUrl = $product->getFirstMediaUrl('product_images', 'medium') ?: $product->getFirstMediaUrl('product_images', 'large');
+    $cardImages = $product->orderedProductImages()
+        ->map(fn ($media) => $product->productImageUrl($media, 'medium'))
+        ->filter()
+        ->values();
+    $imgUrl = $cardImages->first();
+    $cardImageCount = $cardImages->count();
+    $productUrl = route('products.show', $product->slug);
     $weightLabels = collect();
     if ($product->relationLoaded('variants')) {
         foreach ($product->variants->where('status', 'active') as $variant) {
@@ -20,19 +26,53 @@
     }
     $hasFlavors = $flavorLabels->isNotEmpty();
 @endphp
-<a href="{{ route('products.show', $product->slug) }}" class="group flex flex-col bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.12)] border border-amber-100/50 hover:border-amber-200 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden h-full">
-    <div class="relative overflow-hidden aspect-[4/3] bg-stone-50">
-        @if($imgUrl)
-            <img src="{{ $imgUrl }}" alt="{{ $product->name_en }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+<article class="group flex flex-col bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.12)] border border-amber-100/50 hover:border-amber-200 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden h-full">
+    <div
+        class="product-card-media relative overflow-hidden aspect-[4/3] bg-stone-50"
+        data-product-url="{{ $productUrl }}"
+    >
+        @if($cardImageCount > 1)
+            <div class="js-product-card-slider product-card-slider h-full w-full">
+                @foreach($cardImages as $index => $cardImgUrl)
+                    <div class="product-card-slide h-full">
+                        <img
+                            src="{{ $cardImgUrl }}"
+                            alt="{{ $product->name_en }}"
+                            class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
+                        />
+                    </div>
+                @endforeach
+            </div>
+            <div
+                class="product-card-dots"
+                role="tablist"
+                aria-label="{{ __('Product images') }}"
+            >
+                @foreach($cardImages as $index => $cardImgUrl)
+                    <button
+                        type="button"
+                        class="product-card-dot {{ $index === 0 ? 'is-active' : '' }}"
+                        data-slide="{{ $index }}"
+                        role="tab"
+                        aria-label="{{ __('Image :n of :total', ['n' => $index + 1, 'total' => $cardImageCount]) }}"
+                        aria-selected="{{ $index === 0 ? 'true' : 'false' }}"
+                    ></button>
+                @endforeach
+            </div>
+        @elseif($imgUrl)
+            <a href="{{ $productUrl }}" class="block h-full w-full" tabindex="-1" aria-hidden="true">
+                <img src="{{ $imgUrl }}" alt="{{ $product->name_en }}" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            </a>
         @else
-            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50">
+            <a href="{{ $productUrl }}" class="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50" tabindex="-1" aria-hidden="true">
                 <svg class="h-16 w-16 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-            </div>
+            </a>
         @endif
         @if($product->is_highlight || $product->is_trending || $product->is_featured)
-            <div class="absolute top-4 right-4 z-10 flex flex-col gap-2">
+            <div class="pointer-events-none absolute top-4 right-4 z-30 flex flex-col gap-2">
                 @if($product->is_highlight)
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-white text-xs font-black uppercase tracking-wider shadow-md" style="background-color: #f59e0b;">{{ __('Highlight') }}</span>
                 @elseif($product->is_trending)
@@ -43,7 +83,7 @@
             </div>
         @endif
     </div>
-    <div class="flex flex-col flex-grow p-6 sm:p-8">
+    <a href="{{ $productUrl }}" class="flex flex-col flex-grow p-6 sm:p-8">
         @if($product->category)
             <p class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-2">{{ $product->category->name_en }}</p>
         @endif
@@ -88,5 +128,5 @@
                 </svg>
             </div>
         </div>
-    </div>
-</a>
+    </a>
+</article>

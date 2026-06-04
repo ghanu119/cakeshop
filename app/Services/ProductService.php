@@ -15,7 +15,7 @@ class ProductService
 
     public function list(Request $request): LengthAwarePaginator
     {
-        $query = Product::query()->with('category');
+        $query = Product::query()->with(['category', 'media']);
 
         if ($request->filled('search')) {
             $term = $request->input('search');
@@ -41,6 +41,7 @@ class ProductService
     {
         $query = Product::query()->with([
             'category',
+            'media',
             'variants' => fn ($q) => $q->active()->orderBy('sort_order'),
             'variants.selections.value',
             'flavors' => fn ($q) => $q->active()->orderByPivot('sort_order'),

@@ -2,11 +2,13 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Http\Requests\Admin\Concerns\ValidatesProductImages;
 use App\Http\Requests\Admin\Concerns\ValidatesProductWeightVariants;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProductRequest extends FormRequest
 {
+    use ValidatesProductImages;
     use ValidatesProductWeightVariants;
 
     public function authorize(): bool
@@ -39,10 +41,9 @@ class UpdateProductRequest extends FormRequest
             'is_trending' => ['nullable', 'boolean'],
             'is_featured' => ['nullable', 'boolean'],
             'homepage_sort_order' => ['nullable', 'integer', 'min:0'],
-            'image' => ['nullable', 'image', 'max:5120'],
             'flavor_ids' => ['nullable', 'array'],
             'flavor_ids.*' => ['integer', 'exists:flavors,id'],
-        ], $this->productWeightVariantRules());
+        ], $this->productWeightVariantRules(), $this->productImageRules());
     }
 
     public function messages(): array
@@ -58,5 +59,6 @@ class UpdateProductRequest extends FormRequest
     public function withValidator($validator): void
     {
         $this->validateProductWeightVariants($validator);
+        $this->validateProductImages($validator);
     }
 }

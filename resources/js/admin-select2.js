@@ -14,5 +14,6 @@ document.addEventListener('DOMContentLoaded', function () {
         width: '100%',
         placeholder: 'Select flavors…',
         allowClear: true,
+        dropdownParent: $flavorSelect.parent(),
     });
 });

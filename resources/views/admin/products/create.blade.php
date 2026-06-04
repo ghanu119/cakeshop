@@ -15,7 +15,7 @@
     @endif
 
     <x-card class="max-w-3xl" :elevated="true">
-        <form method="post" action="{{ route('admin.products.store') }}" enctype="multipart/form-data" class="space-y-8" novalidate>
+        <form method="post" action="{{ route('admin.products.store') }}" class="space-y-8" novalidate>
             @csrf
             @include('admin.products._form', ['product' => null, 'categories' => $categories, 'weightValues' => $weightValues, 'flavors' => $flavors])
             <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-6">
@@ -45,5 +45,5 @@
 @endpush
 
 @push('scripts')
-    @vite('resources/js/admin-select2.js')
+    @vite(['resources/js/admin-select2.js', 'resources/js/admin-product-images.js'])
 @endpush

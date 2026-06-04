@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Category;
 use App\Models\Flavor;
 use App\Models\Product;
+use App\Services\ProductImageService;
 use App\Services\ProductService;
 use App\Services\VariantOptionService;
 use Illuminate\Http\RedirectResponse;
@@ -17,8 +18,19 @@ class ProductController extends Controller
 {
     public function __construct(
         private ProductService $productService,
+        private ProductImageService $productImageService,
         private VariantOptionService $variantOptionService
     ) {}
+
+    private function productPayloadKeys(): array
+    {
+        return [
+            'image',
+            'product_images',
+            'primary_image',
+            'removed_media_ids',
+        ];
+    }
 
     public function index(): View
     {
@@ -42,10 +54,11 @@ class ProductController extends Controller
 
     public function store(StoreProductRequest $request): RedirectResponse
     {
-        $product = $this->productService->createOrUpdate(null, $request->safe()->except('image'));
-        if ($request->hasFile('image')) {
-            $product->addMediaFromRequest('image')->toMediaCollection('product_images');
-        }
+        $product = $this->productService->createOrUpdate(
+            null,
+            $request->safe()->except($this->productPayloadKeys())
+        );
+        $this->productImageService->syncFromRequest($product, $request, $request->user());
 
         return redirect()->route('admin.products.index')->with('status', __('Product created.'));
     }
@@ -63,11 +76,11 @@ class ProductController extends Controller
 
     public function update(UpdateProductRequest $request, Product $product): RedirectResponse
     {
-        $this->productService->createOrUpdate($product, $request->safe()->except('image'));
-        if ($request->hasFile('image')) {
-            $product->clearMediaCollection('product_images');
-            $product->addMediaFromRequest('image')->toMediaCollection('product_images');
-        }
+        $this->productService->createOrUpdate(
+            $product,
+            $request->safe()->except($this->productPayloadKeys())
+        );
+        $this->productImageService->syncFromRequest($product, $request, $request->user());
 
         return redirect()->route('admin.products.index')->with('status', __('Product updated.'));
     }

@@ -14,12 +14,12 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700&display=swap" rel="stylesheet" />
 
         @stack('styles')
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
+        @vite(['resources/css/app.css', 'resources/js/admin.js'])
     </head>
-    <body class="min-h-screen bg-gray-50 font-sans antialiased text-gray-900">
-        <div class="flex h-screen overflow-hidden">
+    <body class="bg-gray-50 font-sans antialiased text-gray-900">
+        <div class="flex min-h-screen">
             <!-- Sidebar -->
-            <aside class="flex h-full w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
+            <aside class="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
                 <div class="border-b border-gray-100 bg-gray-50/50 px-5 py-5">
                     <a href="{{ route('admin.dashboard') }}" class="text-lg font-semibold tracking-tight text-gray-900">{{ config('app.name') }}</a>
                     <p class="mt-0.5 text-xs font-medium uppercase tracking-wider text-gray-400">Admin</p>
@@ -105,16 +105,14 @@
                 </div>
             </aside>
 
-            <main class="flex-1 overflow-auto bg-gray-50">
-                <div class="py-8 px-4 sm:px-6 lg:px-8">
-                    @if (session('status'))
-                        <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('status') }}</div>
-                    @endif
-                    @if (session('error'))
-                        <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ session('error') }}</div>
-                    @endif
-                    @yield('content')
-                </div>
+            <main class="min-w-0 flex-1 py-8 px-4 sm:px-6 lg:px-8">
+                @if (session('status'))
+                    <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('status') }}</div>
+                @endif
+                @if (session('error'))
+                    <div class="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{{ session('error') }}</div>
+                @endif
+                @yield('content')
             </main>
         </div>
         @stack('scripts')

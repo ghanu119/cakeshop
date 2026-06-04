@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Flavor;
 use App\Models\Product;
 use Illuminate\Database\Seeder;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ProductSeeder extends Seeder
 {
@@ -21,9 +22,11 @@ class ProductSeeder extends Seeder
 
         $defaultCategory = $categories->get('birthday-cakes') ?? $categories->first();
 
+        // Optional image_count: number of Spatie product_images to seed (primary = first).
         $items = [
             [
                 'name_en' => 'Chocolate Truffle Cake',
+                'image_count' => 4,
                 'slug' => 'chocolate-truffle-cake',
                 'short_description' => 'Rich dark chocolate layers with smooth truffle filling. A classic favourite.',
                 'description_en' => 'Our signature Chocolate Truffle Cake is made with premium cocoa and fresh cream. Perfect for birthdays and celebrations.',
@@ -38,6 +41,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name_en' => 'Vanilla Buttercream Cake',
+                'image_count' => 3,
                 'slug' => 'vanilla-buttercream-cake',
                 'short_description' => 'Light sponge with silky vanilla buttercream. Elegant and delicious.',
                 'description_en' => 'A timeless vanilla sponge layered with our house-made buttercream. Ideal for any occasion.',
@@ -52,6 +56,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name_en' => 'Red Velvet Cake',
+                'image_count' => 3,
                 'slug' => 'red-velvet-cake',
                 'short_description' => 'Classic red velvet with cream cheese frosting. Moist and indulgent.',
                 'description_en' => 'Our Red Velvet Cake features a tender crumb and tangy cream cheese frosting. A crowd-pleaser at every party.',
@@ -66,6 +71,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name_en' => 'Strawberry Fresh Cream Cake',
+                'image_count' => 4,
                 'slug' => 'strawberry-fresh-cream-cake',
                 'short_description' => 'Fresh strawberries and whipped cream on a light sponge.',
                 'description_en' => 'Seasonal strawberries and fresh cream on a delicate sponge. Refreshing and beautiful.',
@@ -80,6 +86,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name_en' => 'Black Forest Cake',
+                'image_count' => 4,
                 'slug' => 'black-forest-cake',
                 'short_description' => 'Chocolate sponge, cherries, and whipped cream. A German classic.',
                 'description_en' => 'Layers of chocolate cake, cherry compote, and fresh cream, finished with chocolate shavings.',
@@ -94,6 +101,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name_en' => 'Three-Tier Wedding Cake',
+                'image_count' => 3,
                 'slug' => 'three-tier-wedding-cake',
                 'short_description' => 'Elegant vanilla and raspberry tiers. Custom design available.',
                 'description_en' => 'A stunning three-tier wedding cake with vanilla and raspberry layers. We work with you on design and flavours.',
@@ -108,6 +116,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name_en' => 'Mango Mousse Cake',
+                'image_count' => 2,
                 'slug' => 'mango-mousse-cake',
                 'short_description' => 'Silky mango mousse on a light biscuit base. Summer favourite.',
                 'description_en' => 'Made with ripe Alphonso mangoes and light mousse. Perfect for summer celebrations.',
@@ -122,6 +131,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name_en' => 'Oreo Cheesecake',
+                'image_count' => 3,
                 'slug' => 'oreo-cheesecake',
                 'short_description' => 'Creamy cheesecake with Oreo pieces and cookie base.',
                 'description_en' => 'Rich cream cheese and crushed Oreos in every bite. No-bake, smooth and decadent.',
@@ -136,6 +146,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name_en' => 'Custom Photo Cake',
+                'image_count' => 3,
                 'slug' => 'custom-photo-cake',
                 'short_description' => 'Your favourite photo printed on a sheet cake. Edible image.',
                 'description_en' => 'Send us your image and we print it on a premium cake. Great for birthdays and anniversaries.',
@@ -150,6 +161,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name_en' => 'Assorted Cupcakes (6 pcs)',
+                'image_count' => 2,
                 'slug' => 'assorted-cupcakes-6',
                 'short_description' => 'Six hand-decorated cupcakes in mixed flavours.',
                 'description_en' => 'Chocolate, vanilla, and red velvet cupcakes with buttercream. Ideal as gifts or party favours.',
@@ -164,6 +176,7 @@ class ProductSeeder extends Seeder
             ],
             [
                 'name_en' => 'Pineapple Pastry (Box of 4)',
+                'image_count' => 2,
                 'slug' => 'pineapple-pastry-box',
                 'short_description' => 'Classic pineapple pastries. Soft and fruity.',
                 'description_en' => 'Four pieces of our beloved pineapple pastry. Light, fluffy, and full of flavour.',
@@ -188,6 +201,7 @@ class ProductSeeder extends Seeder
                 'is_featured' => true,
                 'show_on_homepage' => true,
                 'homepage_sort_order' => 12,
+                'image_count' => 3,
             ],
         ];
 
@@ -218,9 +232,11 @@ class ProductSeeder extends Seeder
                 ]
             );
 
-            if ($product->getMedia('product_images')->isEmpty()) {
-                $this->addCakeImage($product, $item['slug']);
+            $imageCount = (int) ($item['image_count'] ?? 1);
+            if (($item['is_highlight'] ?? false) || ($item['is_trending'] ?? false) || ($item['is_featured'] ?? false)) {
+                $imageCount = max($imageCount, 3);
             }
+            $this->seedProductImages($product, $item['slug'], $imageCount);
 
             $this->syncProductFlavors($product, $item['flavors'] ?? []);
         }
@@ -242,16 +258,33 @@ class ProductSeeder extends Seeder
         $product->flavors()->sync($sync);
     }
 
-    private function addCakeImage(Product $product, string $slug): void
+    private function seedProductImages(Product $product, string $slug, int $count): void
     {
-        $lock = abs(crc32($slug));
-        $url = self::CAKE_IMAGE_BASE . '?lock=' . $lock;
+        $count = max(1, min($count, 10));
+        $existing = $product->getMedia('product_images')->count();
 
-        try {
-            $product->addMediaFromUrl($url)
-                ->toMediaCollection('product_images');
-        } catch (\Throwable $e) {
-            $this->command->warn("Could not add cake image for product [{$product->slug}]: {$e->getMessage()}");
+        if ($existing >= $count) {
+            return;
+        }
+
+        $startIndex = $existing;
+        $newMediaIds = $product->getMedia('product_images')->sortBy('order_column')->pluck('id')->all();
+
+        for ($index = $startIndex; $index < $count; $index++) {
+            $lock = abs(crc32($slug)) + $index;
+            $url = self::CAKE_IMAGE_BASE.'?lock='.$lock;
+
+            try {
+                $media = $product->addMediaFromUrl($url)
+                    ->toMediaCollection('product_images');
+                $newMediaIds[] = $media->id;
+            } catch (\Throwable $e) {
+                $this->command->warn("Could not add cake image for product [{$product->slug}] (#{$index}): {$e->getMessage()}");
+            }
+        }
+
+        if ($newMediaIds !== []) {
+            Media::setNewOrder($newMediaIds);
         }
     }
 }

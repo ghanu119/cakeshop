@@ -131,13 +131,4 @@
     @enderror
 </div>
 
-<div>
-    <label for="image" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Product image') }}</label>
-    <input type="file" name="image" id="image" accept="image/*" class="block w-full text-sm text-gray-500 file:rounded-lg file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-gray-700" />
-    @if($product?->getFirstMediaUrl('product_images', 'thumb'))
-        <p class="mt-1 text-sm text-gray-500">{{ __('Current image:') }} <img src="{{ $product->getFirstMediaUrl('product_images', 'thumb') }}" alt="" class="inline h-12 w-12 object-cover rounded" /></p>
-    @endif
-    @error('image')
-        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-    @enderror
-</div>
+@include('admin.products.partials._images-manager', ['product' => $product])

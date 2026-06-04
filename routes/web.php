@@ -66,6 +66,10 @@ Route::middleware(['auth', 'verified', 'role:Admin|Kitchen'])->group(function ()
         });
         Route::resource('categories', CategoryController::class)->except(['show']);
         Route::resource('flavors', FlavorController::class)->except(['show']);
+        Route::post('products/images/temp', [\App\Http\Controllers\Admin\ProductImageTempController::class, 'store'])
+            ->name('products.images.temp.store');
+        Route::delete('products/images/temp/{token}', [\App\Http\Controllers\Admin\ProductImageTempController::class, 'destroy'])
+            ->name('products.images.temp.destroy');
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class)->except(['show']);
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');

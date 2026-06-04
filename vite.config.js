@@ -7,7 +7,10 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'resources/js/admin.js',
                 'resources/js/admin-select2.js',
+                'resources/js/admin-product-images.js',
+                'resources/js/product-gallery.js',
                 'resources/js/order-status-form.js',
                 'resources/js/order-fulfillment-type.js',
                 'resources/js/order-place-confirm.js',

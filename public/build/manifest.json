@@ -1,4 +1,8 @@
 {
+  "_index-C0Zqfgkc.js": {
+    "file": "assets/index-C0Zqfgkc.js",
+    "name": "index"
+  },
   "_jquery-BZOalPbs.js": {
     "file": "assets/jquery-BZOalPbs.js",
     "name": "jquery"
@@ -24,7 +28,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-hGD6f3oJ.css",
+    "file": "assets/app-DLi5-G3j.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -32,8 +36,17 @@
       "app.css"
     ]
   },
+  "resources/js/admin-product-images.js": {
+    "file": "assets/admin-product-images-8voqbjz0.js",
+    "name": "admin-product-images",
+    "src": "resources/js/admin-product-images.js",
+    "isEntry": true,
+    "imports": [
+      "_index-C0Zqfgkc.js"
+    ]
+  },
   "resources/js/admin-select2.js": {
-    "file": "assets/admin-select2-Ccc19UsX.js",
+    "file": "assets/admin-select2-CVVppEL7.js",
     "name": "admin-select2",
     "src": "resources/js/admin-select2.js",
     "isEntry": true,
@@ -44,13 +57,25 @@
       "assets/admin-select2-Cw2tYcCP.css"
     ]
   },
+  "resources/js/admin.js": {
+    "file": "assets/admin-Du_iHytD.js",
+    "name": "admin",
+    "src": "resources/js/admin.js",
+    "isEntry": true,
+    "imports": [
+      "_index-C0Zqfgkc.js"
+    ]
+  },
   "resources/js/app.js": {
-    "file": "assets/app-HcqTkMS2.js",
+    "file": "assets/app-BwgvM5aY.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
-      "_jquery-BZOalPbs.js"
+      "resources/js/admin.js",
+      "resources/js/product-gallery.js",
+      "_jquery-BZOalPbs.js",
+      "_index-C0Zqfgkc.js"
     ],
     "css": [
       "assets/app-Jm68KGQQ.css"
@@ -80,5 +105,17 @@
     "name": "order-status-form",
     "src": "resources/js/order-status-form.js",
     "isEntry": true
+  },
+  "resources/js/product-gallery.js": {
+    "file": "assets/product-gallery-DWLfC_7Y.js",
+    "name": "product-gallery",
+    "src": "resources/js/product-gallery.js",
+    "isEntry": true,
+    "imports": [
+      "_jquery-BZOalPbs.js"
+    ],
+    "css": [
+      "assets/product-gallery-DDmNB4Vk.css"
+    ]
   }
 }

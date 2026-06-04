@@ -187,4 +187,34 @@
 
 /* Admin area: force neutral gray background (no frontend theme/pink) */
 html.admin-area,
-html.admin-area body { background: #f9fafb !important; background-image: none !important; }
+html.admin-area body {
+    background: #f9fafb !important;
+    background-image: none !important;
+    background-attachment: scroll !important;
+}
+
+/* Admin product image previews — fixed thumb size, never expand page height */
+#product-images-manager [data-role="preview-grid"] {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+}
+#product-images-manager .product-image-thumb {
+    position: relative;
+    width: 7rem;
+    height: 7rem;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    border: 1px solid rgb(229 231 235);
+    background: rgb(249 250 251);
+    box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+#product-images-manager .product-image-thumb img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: cover;
+}
