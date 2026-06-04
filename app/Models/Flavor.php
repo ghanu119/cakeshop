@@ -12,8 +12,6 @@ class Flavor extends Model
 
     protected $fillable = [
         'name_en',
-        'name_hi',
-        'name_gu',
         'slug',
         'status',
         'sort_order',
@@ -40,8 +38,6 @@ class Flavor extends Model
 
         return $query->where(function ($q) use ($term) {
             $q->where('name_en', 'like', "%{$term}%")
-                ->orWhere('name_hi', 'like', "%{$term}%")
-                ->orWhere('name_gu', 'like', "%{$term}%")
                 ->orWhere('slug', 'like', "%{$term}%");
         });
     }

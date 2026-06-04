@@ -11,8 +11,6 @@ return new class extends Migration
         Schema::create('flavors', function (Blueprint $table) {
             $table->id();
             $table->string('name_en');
-            $table->string('name_hi')->nullable();
-            $table->string('name_gu')->nullable();
             $table->string('slug')->unique();
             $table->string('status', 20)->default('active');
             $table->unsignedInteger('sort_order')->default(0);

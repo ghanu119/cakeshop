@@ -19,8 +19,6 @@ class FlavorFactory extends Factory
 
         return [
             'name_en' => ucfirst($name),
-            'name_hi' => null,
-            'name_gu' => null,
             'slug' => Str::slug($name),
             'status' => 'active',
             'sort_order' => fake()->numberBetween(0, 20),

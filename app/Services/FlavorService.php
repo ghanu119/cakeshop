@@ -29,8 +29,6 @@ class FlavorService
         $flavor = $flavor ?? new Flavor;
 
         $flavor->name_en = $data['name_en'];
-        $flavor->name_hi = $data['name_hi'] ?? null;
-        $flavor->name_gu = $data['name_gu'] ?? null;
         $flavor->status = $data['status'] ?? 'active';
         $flavor->sort_order = (int) ($data['sort_order'] ?? 0);
         $flavor->badge_color = $data['badge_color'] ?? null;

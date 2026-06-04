@@ -9,22 +9,6 @@
 </div>
 
 <div>
-    <label for="name_hi" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Name (Hindi)') }}</label>
-    <x-input type="text" name="name_hi" id="name_hi" value="{{ old('name_hi', $flavor?->name_hi) }}" class="block w-full" />
-    @error('name_hi')
-        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-    @enderror
-</div>
-
-<div>
-    <label for="name_gu" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Name (Gujarati)') }}</label>
-    <x-input type="text" name="name_gu" id="name_gu" value="{{ old('name_gu', $flavor?->name_gu) }}" class="block w-full" />
-    @error('name_gu')
-        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
-    @enderror
-</div>
-
-<div>
     <label for="status" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Status') }}</label>
     <select name="status" id="status" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
         <option value="active" @selected(old('status', $flavor?->status) === 'active')>{{ __('Active') }}</option>

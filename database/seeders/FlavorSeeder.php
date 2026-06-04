@@ -25,8 +25,6 @@ class FlavorSeeder extends Seeder
                 ['slug' => $item['slug']],
                 [
                     'name_en' => $item['name_en'],
-                    'name_hi' => null,
-                    'name_gu' => null,
                     'status' => 'active',
                     'sort_order' => $item['sort_order'],
                     'badge_color' => $item['badge_color'],
