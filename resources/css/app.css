@@ -139,6 +139,10 @@
     }
 }
 
+.products-hero {
+    background: var(--theme-section-mesh);
+}
+
 /* Slick overrides – use theme accent */
 .slick-dots li button:before { color: var(--theme-accent-hex, #d97706); }
 .slick-dots li.slick-active button:before { color: #b45309; opacity: 1; }

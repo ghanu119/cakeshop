@@ -3,27 +3,39 @@
 @section('title', __('Products') . ' – ' . (settings('site_name') ?: config('app.name')))
 
 @section('content')
-{{-- Page Header --}}
-<section class="relative min-h-[30vh] flex items-center overflow-hidden bg-amber-50 py-16 lg:py-24">
-    <!-- Soft background glow effect -->
-    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-tr from-amber-200/40 to-orange-200/40 rounded-full blur-3xl opacity-60 pointer-events-none"></div>
-    
-    <div class="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-        <h1 class="font-display text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-stone-900 mb-6 drop-shadow-sm">{{ __('Our Products') }}</h1>
-        <p class="text-lg sm:text-xl text-stone-600 max-w-2xl mx-auto leading-relaxed">{{ __('Explore our complete collection of handcrafted, delicious cakes') }}</p>
-    </div>
-</section>
-
-{{-- Filter and Products Section --}}
-<section class="bg-white py-12 lg:py-20 relative">
-    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-        {{-- Filter Section --}}
-        <div class="mb-16 rounded-3xl border border-amber-100 bg-white p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-            <div class="flex items-center gap-3 mb-6">
-                <svg class="w-6 h-6 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-                <h2 class="text-2xl font-bold text-stone-900">{{ __('Filter Products') }}</h2>
+<section class="bg-stone-50 py-6 lg:py-8" data-testid="products-page">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        {{-- Page title: one clear hierarchy, no extra card --}}
+        <header class="mb-5">
+            <nav class="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-stone-500" aria-label="{{ __('Breadcrumb') }}">
+                <a href="{{ route('home') }}" class="transition-colors hover:text-amber-600">{{ __('Home') }}</a>
+                <svg class="h-4 w-4 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
+                <span class="text-stone-900">{{ __('Products') }}</span>
+            </nav>
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+                <div>
+                    <h1 class="font-display text-2xl font-bold tracking-tight text-stone-900 sm:text-3xl">
+                        {{ __('Our') }} <span class="text-amber-600">{{ __('Products') }}</span>
+                    </h1>
+                    <p class="mt-1 text-sm text-stone-600 sm:text-base">
+                        {{ __('Explore our complete collection of handcrafted, delicious cakes') }}
+                    </p>
+                </div>
+                @if($products->total() > 0)
+                    <p class="shrink-0 text-sm font-medium text-stone-500">
+                        <span class="font-semibold text-amber-600">{{ $products->total() }}</span> {{ __('products') }}
+                    </p>
+                @endif
             </div>
-            <form method="get" action="{{ route('products.index') }}" class="space-y-6" id="product-filters">
+        </header>
+
+        {{-- Filters (single utility card) --}}
+        <div class="mb-8 rounded-2xl border border-amber-100/80 bg-white p-5 shadow-sm sm:p-6">
+            <h2 class="mb-4 flex items-center gap-2 text-base font-semibold text-stone-900">
+                <svg class="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
+                {{ __('Filter Products') }}
+            </h2>
+            <form method="get" action="{{ route('products.index') }}" class="space-y-5" id="product-filters">
                 @include('products.partials._filters-fields', [
                     'inputClass' => 'w-full rounded-xl border border-amber-200/60 bg-amber-50/30 px-4 py-3 text-stone-900 placeholder:text-stone-400 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all',
                     'selectClass' => 'w-full rounded-xl border border-amber-200/60 bg-amber-50/30 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all',
@@ -43,15 +55,11 @@
             </form>
         </div>
 
-        {{-- Results Count --}}
-        <div class="mb-8 flex items-center justify-between">
-            <h3 class="text-xl font-bold text-stone-900">{{ __('Our Collection') }}</h3>
-            @if(request()->hasAny(['search', 'category_id', 'sort', 'price_min', 'price_max', 'flavor_ids', 'weight_ids']))
-                <div class="text-sm font-medium text-stone-500 bg-stone-100 px-4 py-1.5 rounded-full">
-                    {{ __('Showing') }} <span class="text-amber-600 font-bold">{{ $products->total() }}</span> {{ __('products') }}
-                </div>
-            @endif
-        </div>
+        @if(request()->hasAny(['search', 'category_id', 'sort', 'price_min', 'price_max', 'flavor_ids', 'weight_ids']))
+            <p class="mb-4 text-sm text-stone-600">
+                {{ __('Showing') }} <span class="font-semibold text-stone-900">{{ $products->total() }}</span> {{ __('matching products') }}
+            </p>
+        @endif
 
         {{-- Products Grid --}}
         <div class="product-list-grid grid gap-8 sm:gap-10 sm:grid-cols-2 lg:grid-cols-4">

@@ -315,6 +315,11 @@ footer {
     }
 }
 
+/* Products page */
+.products-hero {
+    background: var(--theme-section-mesh);
+}
+
 /* Ingredients page */
 .ingredients-hero {
     background: var(--theme-section-mesh);

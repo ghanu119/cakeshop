@@ -87,6 +87,10 @@
     }
 }
 
+.products-hero {
+    background: var(--theme-section-mesh);
+}
+
 .slick-dots li button:before { color: var(--theme-accent-hex); }
 .slick-dots li.slick-active button:before { color: #b45309; opacity: 1; }
 .slick-prev, .slick-next { z-index: 10; }
