@@ -13,8 +13,17 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 class ProductSeeder extends Seeder
 {
-    /** Cake/dessert placeholder images (800x800) for the online cake shop. */
+    /** Cake-only placeholder images (800x800) via Flickr tags (tag_mode=all on loremflickr). */
     private const CAKE_IMAGE_BASE = 'https://loremflickr.com/800/800';
+
+    /** Flickr tag must match one of these (substring match) or "cake" is prepended. */
+    private const CAKE_FAMILY_TAGS = ['cake', 'cupcake', 'cheesecake', 'fruitcake', 'weddingcake'];
+
+    /** Tags that often return non-cake photos when combined with Flickr search. */
+    private const BLOCKED_IMAGE_TAGS = ['photo', 'dessert', 'pastry', 'assorted', 'white', 'tier', 'oreo'];
+
+    /** Fallback locks for generic "cake" images when a tagged fetch fails. */
+    private const CAKE_FALLBACK_LOCKS = [1, 7, 13, 21, 42, 55, 88, 101, 212, 309];
 
     /** @var Collection<int, VariantOptionValue> */
     private Collection $weightValuesByGrams;
@@ -35,7 +44,7 @@ class ProductSeeder extends Seeder
         $defaultCategory = $categories->get('birthday-cakes') ?? $categories->first();
 
         // weights: grams => INR price (synced as product variants; product.price = minimum weight price)
-        // image_count: Spatie product_images (primary = first); image_tags: loremflickr search tags
+        // image_count: Spatie product_images (primary = first); image_tags: optional flavour hints (always normalized to cake-only)
         $items = [
             [
                 'name_en' => 'Chocolate Truffle Cake',
@@ -48,7 +57,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => 40,
                 'category' => 'birthday-cakes',
                 'image_count' => 4,
-                'image_tags' => 'chocolate,cake',
+                'image_tags' => 'cake,chocolate',
                 'weights' => [500 => 899, 1000 => 1599, 2000 => 2799],
                 'is_highlight' => true,
                 'is_trending' => true,
@@ -68,7 +77,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => 40,
                 'category' => 'birthday-cakes',
                 'image_count' => 3,
-                'image_tags' => 'vanilla,cake,white',
+                'image_tags' => 'cake,vanilla',
                 'weights' => [500 => 699, 1000 => 1249, 2000 => 2199],
                 'is_highlight' => true,
                 'is_trending' => false,
@@ -88,7 +97,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => 40,
                 'category' => 'custom-cakes',
                 'image_count' => 4,
-                'image_tags' => 'redvelvet,cake',
+                'image_tags' => 'cake,redvelvet',
                 'weights' => [500 => 999, 1000 => 1799, 2000 => 3199],
                 'is_highlight' => true,
                 'is_trending' => true,
@@ -107,7 +116,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => 35,
                 'category' => 'birthday-cakes',
                 'image_count' => 4,
-                'image_tags' => 'strawberry,cake',
+                'image_tags' => 'cake,strawberry',
                 'weights' => [500 => 849, 1000 => 1499, 2000 => 2599],
                 'is_highlight' => false,
                 'is_trending' => true,
@@ -126,7 +135,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => 40,
                 'category' => 'birthday-cakes',
                 'image_count' => 4,
-                'image_tags' => 'blackforest,chocolate,cake',
+                'image_tags' => 'cake,blackforest',
                 'weights' => [500 => 949, 1000 => 1699, 2000 => 2999],
                 'is_highlight' => true,
                 'is_trending' => true,
@@ -145,7 +154,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => null,
                 'category' => 'wedding-cakes',
                 'image_count' => 5,
-                'image_tags' => 'wedding,cake,tier',
+                'image_tags' => 'cake,wedding',
                 'weights' => [2000 => 4999, 3000 => 7499],
                 'is_highlight' => false,
                 'is_trending' => false,
@@ -164,7 +173,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => 30,
                 'category' => 'pastries-desserts',
                 'image_count' => 3,
-                'image_tags' => 'mango,dessert,cake',
+                'image_tags' => 'cake,mango',
                 'weights' => [500 => 799, 1000 => 1399],
                 'is_highlight' => false,
                 'is_trending' => true,
@@ -182,7 +191,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => null,
                 'category' => 'pastries-desserts',
                 'image_count' => 3,
-                'image_tags' => 'cheesecake,oreo,dessert',
+                'image_tags' => 'cheesecake,cake',
                 'weights' => [500 => 749, 1000 => 1299],
                 'is_highlight' => false,
                 'is_trending' => true,
@@ -201,7 +210,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => 25,
                 'category' => 'custom-cakes',
                 'image_count' => 4,
-                'image_tags' => 'birthday,cake,photo',
+                'image_tags' => 'cake,birthday',
                 'weights' => [1000 => 1299, 2000 => 2299],
                 'is_highlight' => false,
                 'is_trending' => false,
@@ -219,7 +228,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => null,
                 'category' => 'cupcakes',
                 'image_count' => 3,
-                'image_tags' => 'cupcake,assorted',
+                'image_tags' => 'cupcake,cake',
                 'weights' => [250 => 449, 500 => 649],
                 'is_highlight' => false,
                 'is_trending' => true,
@@ -237,7 +246,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => null,
                 'category' => 'pastries-desserts',
                 'image_count' => 2,
-                'image_tags' => 'pineapple,pastry,dessert',
+                'image_tags' => 'cake,pineapple',
                 'weights' => [250 => 199],
                 'is_highlight' => false,
                 'is_trending' => false,
@@ -256,7 +265,7 @@ class ProductSeeder extends Seeder
                 'message_on_cake_max_length' => 30,
                 'category' => 'seasonal-specials',
                 'image_count' => 3,
-                'image_tags' => 'fruitcake,christmas,cake',
+                'image_tags' => 'fruitcake,cake',
                 'weights' => [500 => 1099, 1000 => 1999, 2000 => 3499],
                 'is_highlight' => false,
                 'is_trending' => true,
@@ -305,7 +314,7 @@ class ProductSeeder extends Seeder
                 $product,
                 $item['slug'],
                 $imageCount,
-                $item['image_tags'] ?? 'cake,dessert'
+                $item['image_tags'] ?? 'cake'
             );
             $this->syncProductFlavors($product, $item['flavors'] ?? []);
             $this->syncProductWeightVariants($product, $item['weights'] ?? []);
@@ -384,25 +393,86 @@ class ProductSeeder extends Seeder
             return;
         }
 
-        $tags = preg_replace('/[^a-z0-9,_-]/i', '', $imageTags) ?: 'cake,dessert';
+        $tags = $this->normalizeCakeImageTags($imageTags);
         $startIndex = $existing;
         $newMediaIds = $product->getMedia('product_images')->sortBy('order_column')->pluck('id')->all();
 
         for ($index = $startIndex; $index < $count; $index++) {
-            $lock = abs(crc32($slug.'-'.$tags)) + $index;
-            $url = self::CAKE_IMAGE_BASE.'/'.$tags.'?lock='.$lock;
+            $media = $this->attachCakeImageFromUrl($product, $slug, $tags, $index);
 
-            try {
-                $media = $product->addMediaFromUrl($url)
-                    ->toMediaCollection('product_images');
+            if ($media) {
                 $newMediaIds[] = $media->id;
-            } catch (\Throwable $e) {
-                $this->command?->warn("Could not add cake image for product [{$product->slug}] (#{$index}): {$e->getMessage()}");
+
+                continue;
+            }
+
+            $fallbackLock = self::CAKE_FALLBACK_LOCKS[$index % count(self::CAKE_FALLBACK_LOCKS)];
+            $fallbackUrl = self::CAKE_IMAGE_BASE.'/cake?lock='.$fallbackLock;
+            $media = $this->attachCakeImageFromUrl($product, $slug, 'cake', $index, $fallbackUrl);
+
+            if ($media) {
+                $newMediaIds[] = $media->id;
             }
         }
 
         if ($newMediaIds !== []) {
             Media::setNewOrder($newMediaIds);
+        }
+    }
+
+    /**
+     * Keep Flickr tags cake-specific: require a cake-family tag and drop ambiguous keywords.
+     */
+    private function normalizeCakeImageTags(string $imageTags): string
+    {
+        $raw = preg_replace('/[^a-z0-9,_-]/i', '', strtolower($imageTags)) ?: '';
+        $parts = array_values(array_filter(explode(',', $raw)));
+        $parts = array_values(array_diff($parts, self::BLOCKED_IMAGE_TAGS));
+
+        $hasCakeFamily = collect($parts)->contains(
+            fn (string $tag) => in_array($tag, self::CAKE_FAMILY_TAGS, true)
+        );
+
+        if (! $hasCakeFamily) {
+            array_unshift($parts, 'cake');
+        }
+
+        if (! in_array('cake', $parts, true)) {
+            array_unshift($parts, 'cake');
+        } else {
+            $parts = array_values(array_unique(array_merge(['cake'], array_diff($parts, ['cake']))));
+        }
+
+        return implode(',', array_slice($parts, 0, 3)) ?: 'cake';
+    }
+
+    private function cakeImageUrl(string $slug, string $tags, int $index, ?string $overrideUrl = null): string
+    {
+        if ($overrideUrl !== null) {
+            return $overrideUrl;
+        }
+
+        $lock = abs(crc32($slug.'|'.$tags.'|'.$index));
+
+        return self::CAKE_IMAGE_BASE.'/'.$tags.'?lock='.$lock;
+    }
+
+    private function attachCakeImageFromUrl(
+        Product $product,
+        string $slug,
+        string $tags,
+        int $index,
+        ?string $overrideUrl = null
+    ): ?Media {
+        $url = $this->cakeImageUrl($slug, $tags, $index, $overrideUrl);
+
+        try {
+            return $product->addMediaFromUrl($url)
+                ->toMediaCollection('product_images');
+        } catch (\Throwable $e) {
+            $this->command?->warn("Could not add cake image for product [{$product->slug}] (#{$index}): {$e->getMessage()}");
+
+            return null;
         }
     }
 }
