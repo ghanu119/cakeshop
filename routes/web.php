@@ -26,6 +26,7 @@ Route::get('contact', [ContactController::class, 'index'])->name('contact.index'
 Route::post('contact', [ContactController::class, 'store'])->name('contact.store');
 
 Route::get('about', [PageController::class, 'about'])->name('about');
+Route::get('ingredients', [PageController::class, 'ingredients'])->name('ingredients');
 Route::get('terms', [PageController::class, 'terms'])->name('terms');
 Route::get('privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('cookie-policy', [PageController::class, 'cookiePolicy'])->name('cookie-policy');

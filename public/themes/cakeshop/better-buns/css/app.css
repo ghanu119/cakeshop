@@ -314,3 +314,22 @@ footer {
         right: 0.25rem;
     }
 }
+
+/* Ingredients page */
+.ingredients-hero {
+    background: var(--theme-section-mesh);
+}
+
+.ingredients-hero-card {
+    border-color: var(--theme-card-border);
+}
+
+.ingredients-bento-card {
+    min-height: 10rem;
+}
+
+@media (min-width: 768px) {
+    .ingredients-bento {
+        grid-auto-rows: minmax(9rem, auto);
+    }
+}
