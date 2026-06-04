@@ -4,77 +4,85 @@
     $multiSelectClass = $multiSelectClass ?? $selectClass;
     $hasMultiFilters = (isset($filterFlavors) && $filterFlavors->isNotEmpty())
         || (isset($filterWeights) && $filterWeights->isNotEmpty());
-    $priceInputClass = $priceInputClass ?? 'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20';
+    $priceInputClass = $priceInputClass ?? 'w-full min-w-0 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20';
     $labelClass = $labelClass ?? 'mb-2 block text-sm font-medium text-gray-700';
-    $gridClass = $gridClass ?? 'grid gap-4 sm:grid-cols-2 lg:grid-cols-3';
+    $fieldsGridClass = $fieldsGridClass ?? $gridClass ?? 'product-filters-grid grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4';
+    $searchPlaceholder = $searchPlaceholder ?? __('Search by name, ingredients, or flavor...');
     $selectedFlavorIds = array_map('intval', (array) request('flavor_ids', []));
     $selectedWeightIds = array_map('intval', (array) request('weight_ids', []));
 @endphp
-<div class="{{ $gridClass }}">
-    <div>
+<div class="product-filters-fields">
+    <div class="product-filters-field product-filters-search">
         <label for="search" class="{{ $labelClass }}">{{ __('Search') }}</label>
-        <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="{{ __('Search by name, ingredients, or flavor...') }}" class="{{ $inputClass }}">
+        <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="{{ $searchPlaceholder }}" class="{{ $inputClass }}">
     </div>
-    <div>
-        <label for="category_id" class="{{ $labelClass }}">{{ __('Category') }}</label>
-        <select name="category_id" id="category_id" class="{{ $selectClass }}">
-            <option value="">{{ __('All Categories') }}</option>
-            @foreach($categories as $cat)
-                <option value="{{ $cat->id }}" @selected(request('category_id') == $cat->id)>{{ $cat->name_en }}</option>
-            @endforeach
-        </select>
-    </div>
-    @if(isset($filterFlavors) && $filterFlavors->isNotEmpty())
-    <div>
-        <label for="flavor_ids" class="{{ $labelClass }}">{{ __('Flavor') }}</label>
-        <select name="flavor_ids[]" id="flavor_ids" multiple class="{{ $multiSelectClass }} js-product-filter-multi" data-placeholder="{{ __('Select flavors…') }}">
-            @foreach($filterFlavors as $flavor)
-                <option value="{{ $flavor->id }}" @selected(in_array($flavor->id, $selectedFlavorIds, true))>{{ $flavor->name_en }}</option>
-            @endforeach
-        </select>
-    </div>
-    @endif
-    @if(isset($filterWeights) && $filterWeights->isNotEmpty())
-    <div>
-        <label for="weight_ids" class="{{ $labelClass }}">{{ __('Weight') }}</label>
-        <select name="weight_ids[]" id="weight_ids" multiple class="{{ $multiSelectClass }} js-product-filter-multi" data-placeholder="{{ __('Select weights…') }}">
-            @foreach($filterWeights as $weight)
-                <option value="{{ $weight->id }}" @selected(in_array($weight->id, $selectedWeightIds, true))>{{ $weight->label }}</option>
-            @endforeach
-        </select>
-    </div>
-    @endif
-    @if($priceRange && $priceRange->min_price !== null)
-    <div>
-        <label class="{{ $labelClass }}">{{ __('Price range') }}</label>
-        <div class="flex items-center gap-2">
-            <input type="number" name="price_min" id="price_min" value="{{ request('price_min') }}" min="{{ $priceRange->min_price }}" max="{{ $priceRange->max_price }}" step="1" placeholder="{{ __('Min') }}" class="{{ $priceInputClass }}">
-            <span class="text-gray-400">–</span>
-            <input type="number" name="price_max" id="price_max" value="{{ request('price_max') }}" min="{{ $priceRange->min_price }}" max="{{ $priceRange->max_price }}" step="1" placeholder="{{ __('Max') }}" class="{{ $priceInputClass }}">
+
+    <div class="{{ $fieldsGridClass }}">
+        <div class="product-filters-field">
+            <label for="category_id" class="{{ $labelClass }}">{{ __('Category') }}</label>
+            <select name="category_id" id="category_id" class="{{ $selectClass }}">
+                <option value="">{{ __('All Categories') }}</option>
+                @foreach($categories as $cat)
+                    <option value="{{ $cat->id }}" @selected(request('category_id') == $cat->id)>{{ $cat->name_en }}</option>
+                @endforeach
+            </select>
         </div>
-    </div>
-    @endif
-    <div>
-        <label for="sort" class="{{ $labelClass }}">{{ __('Sort By') }}</label>
-        <select name="sort" id="sort" class="{{ $selectClass }}">
-            <option value="name_asc" @selected(request('sort', 'name_asc') === 'name_asc')>{{ __('Name A–Z') }}</option>
-            <option value="name_desc" @selected(request('sort') === 'name_desc')>{{ __('Name Z–A') }}</option>
-            <option value="price_asc" @selected(request('sort') === 'price_asc')>{{ __('Price: Low to High') }}</option>
-            <option value="price_desc" @selected(request('sort') === 'price_desc')>{{ __('Price: High to Low') }}</option>
-            <option value="newest" @selected(request('sort') === 'newest')>{{ __('Newest First') }}</option>
-        </select>
+        @if(isset($filterFlavors) && $filterFlavors->isNotEmpty())
+        <div class="product-filters-field">
+            <label for="flavor_ids" class="{{ $labelClass }}">{{ __('Flavor') }}</label>
+            <select name="flavor_ids[]" id="flavor_ids" multiple class="{{ $multiSelectClass }} js-product-filter-multi" data-placeholder="{{ __('Select flavors…') }}">
+                @foreach($filterFlavors as $flavor)
+                    <option value="{{ $flavor->id }}" @selected(in_array($flavor->id, $selectedFlavorIds, true))>{{ $flavor->name_en }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+        @if(isset($filterWeights) && $filterWeights->isNotEmpty())
+        <div class="product-filters-field">
+            <label for="weight_ids" class="{{ $labelClass }}">{{ __('Weight') }}</label>
+            <select name="weight_ids[]" id="weight_ids" multiple class="{{ $multiSelectClass }} js-product-filter-multi" data-placeholder="{{ __('Select weights…') }}">
+                @foreach($filterWeights as $weight)
+                    <option value="{{ $weight->id }}" @selected(in_array($weight->id, $selectedWeightIds, true))>{{ $weight->label }}</option>
+                @endforeach
+            </select>
+        </div>
+        @endif
+        @if($priceRange && $priceRange->min_price !== null)
+        <div class="product-filters-field product-filters-field--price sm:col-span-2 xl:col-span-2">
+            <label class="{{ $labelClass }}" for="price_min">{{ __('Price range') }}</label>
+            <div class="flex items-center gap-2">
+                <input type="number" name="price_min" id="price_min" value="{{ request('price_min') }}" min="{{ $priceRange->min_price }}" max="{{ $priceRange->max_price }}" step="1" placeholder="{{ __('Min') }}" class="{{ $priceInputClass }}" aria-label="{{ __('Minimum price') }}">
+                <span class="shrink-0 text-stone-400" aria-hidden="true">–</span>
+                <input type="number" name="price_max" id="price_max" value="{{ request('price_max') }}" min="{{ $priceRange->min_price }}" max="{{ $priceRange->max_price }}" step="1" placeholder="{{ __('Max') }}" class="{{ $priceInputClass }}" aria-label="{{ __('Maximum price') }}">
+            </div>
+        </div>
+        @endif
+        <div class="product-filters-field">
+            <label for="sort" class="{{ $labelClass }}">{{ __('Sort By') }}</label>
+            <select name="sort" id="sort" class="{{ $selectClass }}">
+                <option value="name_asc" @selected(request('sort', 'name_asc') === 'name_asc')>{{ __('Name A–Z') }}</option>
+                <option value="name_desc" @selected(request('sort') === 'name_desc')>{{ __('Name Z–A') }}</option>
+                <option value="price_asc" @selected(request('sort') === 'price_asc')>{{ __('Price: Low to High') }}</option>
+                <option value="price_desc" @selected(request('sort') === 'price_desc')>{{ __('Price: High to Low') }}</option>
+                <option value="newest" @selected(request('sort') === 'newest')>{{ __('Newest First') }}</option>
+            </select>
+        </div>
     </div>
 </div>
 
 @if($hasMultiFilters)
 @push('styles')
 <style>
+    #product-filters .product-filters-fields .select2-container {
+        width: 100% !important;
+    }
     #product-filters .select2-container--default .select2-selection--multiple {
-        min-height: 2.75rem;
+        min-height: 3rem;
         border-radius: 0.75rem;
-        border-color: rgb(253 230 138 / 0.6);
-        background-color: rgb(255 251 235 / 0.3);
-        padding: 0.25rem 0.5rem;
+        border: 1px solid rgb(231 229 228);
+        background-color: #fff;
+        padding: 0.35rem 0.5rem;
+        box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.04);
     }
     #product-filters .select2-container--default.select2-container--focus .select2-selection--multiple,
     #product-filters .select2-container--default.select2-container--open .select2-selection--multiple {
@@ -88,6 +96,7 @@
         border-color: rgb(253 230 138);
         color: rgb(68 64 60);
         padding: 0.125rem 0.5rem;
+        font-size: 0.8125rem;
     }
     #product-filters .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
         color: rgb(180 83 9);
@@ -96,6 +105,7 @@
     #product-filters .select2-dropdown {
         border-radius: 0.75rem;
         border-color: rgb(253 230 138 / 0.6);
+        z-index: 40;
     }
 </style>
 @endpush

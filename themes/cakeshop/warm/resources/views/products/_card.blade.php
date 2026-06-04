@@ -3,64 +3,56 @@
     $symbol = $currency === 'INR' ? '₹' : $currency . ' ';
     $imgUrl = $product->getFirstMediaUrl('product_images', 'medium') ?: $product->getFirstMediaUrl('product_images', 'large');
 @endphp
-<a href="{{ route('products.show', $product->slug) }}" class="group flex flex-col bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.12)] border border-amber-100/50 hover:border-amber-200 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden h-full">
-    <div class="relative overflow-hidden aspect-[4/3] bg-stone-50">
+<a href="{{ route('products.show', $product->slug) }}" class="product-card group flex h-full flex-col overflow-hidden rounded-2xl border border-amber-100/60 bg-white shadow-sm transition duration-300 hover:-translate-y-0.5 hover:border-amber-200 hover:shadow-[0_12px_28px_rgb(217,119,6,0.12)]">
+    <div class="relative aspect-[4/3] overflow-hidden bg-stone-100">
         @if($imgUrl)
-            <img src="{{ $imgUrl }}" alt="{{ $product->name_en }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <img src="{{ $imgUrl }}" alt="{{ $product->name_en }}" class="h-full w-full object-cover transition duration-500 group-hover:scale-105" loading="lazy" />
         @else
-            <div class="w-full h-full flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50">
-                <svg class="h-16 w-16 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50">
+                <svg class="h-12 w-12 text-amber-200 sm:h-14 sm:w-14" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
             </div>
         @endif
-        
-        {{-- Badges --}}
+
         @if($product->is_highlight || $product->is_trending || $product->is_featured)
-            <div class="absolute top-4 right-4 z-10 flex flex-col gap-2">
+            <div class="absolute right-2 top-2 z-10 sm:right-2.5 sm:top-2.5">
                 @if($product->is_highlight)
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-white text-xs font-black uppercase tracking-wider shadow-md" style="background-color: #f59e0b;">{{ __('Highlight') }}</span>
+                    <span class="inline-flex rounded-md bg-amber-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">{{ __('Highlight') }}</span>
                 @elseif($product->is_trending)
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-white text-xs font-black uppercase tracking-wider shadow-md" style="background-color: #ef4444;">{{ __('Trending') }}</span>
+                    <span class="inline-flex rounded-md bg-red-500 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">{{ __('Trending') }}</span>
                 @elseif($product->is_featured)
-                    <span class="inline-flex items-center px-3 py-1 rounded-full text-white text-xs font-black uppercase tracking-wider shadow-md" style="background-color: #1c1917;">{{ __('Featured') }}</span>
+                    <span class="inline-flex rounded-md bg-stone-900 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white shadow-sm">{{ __('Featured') }}</span>
                 @endif
             </div>
         @endif
-        
-        <div class="absolute inset-0 bg-gradient-to-t from-stone-900/40 via-stone-900/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
     </div>
-    
-    <div class="flex flex-col flex-grow p-6 sm:p-8">
+
+    <div class="flex flex-1 flex-col p-3.5 sm:p-4">
         @if($product->category)
-            <p class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-2">{{ $product->category->name_en }}</p>
+            <p class="mb-1 text-[10px] font-bold uppercase tracking-wider text-amber-600 sm:text-xs">{{ $product->category->name_en }}</p>
         @endif
-        
-        <h3 class="text-xl font-bold text-stone-900 mb-3 group-hover:text-amber-600 transition-colors line-clamp-1">{{ $product->name_en }}</h3>
-        
+
+        <h3 class="mb-1.5 line-clamp-2 text-sm font-bold leading-snug text-stone-900 transition group-hover:text-amber-700 sm:text-base">{{ $product->name_en }}</h3>
+
         @if($product->short_description)
-            <p class="text-sm text-stone-500 mb-6 line-clamp-2 leading-relaxed flex-grow">{{ $product->short_description }}</p>
+            <p class="mb-3 line-clamp-2 flex-grow text-xs leading-relaxed text-stone-500 sm:text-sm">{{ $product->short_description }}</p>
         @else
-            <div class="mb-6 flex-grow"></div>
+            <div class="mb-3 flex-grow"></div>
         @endif
-        
-        <div class="mt-auto flex items-end justify-between border-t border-stone-100 pt-5">
+
+        <div class="mt-auto flex items-center justify-between gap-2 border-t border-stone-100 pt-3">
             @php
                 $formattedPrice = number_format($product->price, 2);
                 [$wholePrice, $decimalPrice] = explode('.', $formattedPrice);
             @endphp
-            <div class="leading-none">
-                <p class="inline-flex items-end whitespace-nowrap text-2xl font-extrabold tracking-tight text-stone-900">
-                    {{ $symbol }}{{ $wholePrice }}<span class="mb-[2px] text-sm font-semibold text-stone-600">.{{ $decimalPrice }}</span>
-                </p>
-            </div>
-            
-            <div class="flex items-center self-end text-amber-600 font-bold transition-colors group-hover:text-amber-700">
+            <p class="text-lg font-extrabold leading-none text-stone-900 sm:text-xl">
+                {{ $symbol }}{{ $wholePrice }}<span class="text-xs font-semibold text-stone-500">.{{ $decimalPrice }}</span>
+            </p>
+            <span class="inline-flex shrink-0 items-center text-xs font-bold text-amber-600 sm:text-sm">
                 {{ __('View') }}
-                <svg class="ml-1 h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                </svg>
-            </div>
+                <svg class="ml-0.5 h-4 w-4 transition group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg>
+            </span>
         </div>
     </div>
 </a>
