@@ -41,7 +41,7 @@
 
         <div class="catalog-layout">
             {{-- Filters: collapsible on mobile, sticky sidebar on desktop --}}
-            <details class="catalog-filters-panel group rounded-2xl border border-amber-100/90 bg-white shadow-sm lg:sticky lg:top-24 lg:col-start-1 lg:row-start-1 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:rounded-2xl lg:border-amber-100/90 lg:bg-white lg:shadow-sm">
+            <details open class="catalog-filters-panel group rounded-2xl border border-amber-100/90 bg-white shadow-sm lg:sticky lg:top-24 lg:col-start-1 lg:row-start-1 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:rounded-2xl lg:border-amber-100/90 lg:bg-white lg:shadow-sm">
                 <summary class="catalog-filters-summary flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-semibold text-stone-900 sm:px-5 sm:py-4 lg:hidden [&::-webkit-details-marker]:hidden">
                     <span class="inline-flex items-center gap-2">
                         <svg class="h-5 w-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" /></svg>
@@ -82,6 +82,25 @@
                     </form>
                 </div>
             </details>
+            <script>
+                (function (panel) {
+                    if (!panel) return;
+                    var mobileQuery = window.matchMedia('(max-width: 1023px)');
+                    function syncPanelOpenState() {
+                        if (mobileQuery.matches) {
+                            panel.removeAttribute('open');
+                        } else {
+                            panel.setAttribute('open', '');
+                        }
+                    }
+                    syncPanelOpenState();
+                    if (typeof mobileQuery.addEventListener === 'function') {
+                        mobileQuery.addEventListener('change', syncPanelOpenState);
+                    } else if (typeof mobileQuery.addListener === 'function') {
+                        mobileQuery.addListener(syncPanelOpenState);
+                    }
+                })(document.querySelector('.catalog-filters-panel'));
+            </script>
 
             {{-- Product results --}}
             <div class="catalog-results min-w-0 lg:col-start-2 lg:row-start-1">
