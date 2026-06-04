@@ -39,6 +39,7 @@ class Setting extends Model
         'instagram_url' => '',
         'twitter_url' => '',
         'product_note' => '',
+        'message_on_cake_max_length' => '50',
     ];
 
     public static function get(string $key, $default = null)

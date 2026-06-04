@@ -89,7 +89,8 @@
             </div>
             <div>
                 <label for="message_on_cake" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Message on cake') }}</label>
-                <x-input type="text" name="message_on_cake" id="message_on_cake" value="{{ old('message_on_cake') }}" class="block w-full" />
+                <x-input type="text" name="message_on_cake" id="message_on_cake" value="{{ old('message_on_cake') }}" maxlength="{{ $messageOnCakeMaxLength }}" class="block w-full" />
+                <p class="mt-1 text-xs text-gray-500">{{ __('Maximum :max characters', ['max' => $messageOnCakeMaxLength]) }}</p>
                 @error('message_on_cake')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
             <div>

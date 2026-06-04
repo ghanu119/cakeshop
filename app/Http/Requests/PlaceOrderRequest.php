@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Order;
 use App\Models\Product;
 use App\Services\OrderService;
 use App\Services\ProductVariantService;
@@ -22,12 +23,16 @@ class PlaceOrderRequest extends FormRequest
         $after = $rules['after']->format('Y-m-d\TH:i');
         $before = $rules['before']->format('Y-m-d\TH:i');
 
+        /** @var Product|null $product */
+        $product = $this->route('product');
+        $messageMax = $product?->messageOnCakeMaxLength() ?? Order::defaultMessageOnCakeMaxLength();
+
         $rules = [
             'guest_name' => ['required', 'string', 'max:255'],
             'guest_email' => ['nullable', 'email'],
             'guest_phone' => ['required', 'string', 'max:50'],
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
-            'message_on_cake' => ['nullable', 'string', 'max:500'],
+            'message_on_cake' => ['nullable', 'string', 'max:'.$messageMax],
             'instructions' => ['nullable', 'string', 'max:1000'],
             'delivery_at' => ['required', 'date', 'after_or_equal:'.$after, 'before_or_equal:'.$before],
             'product_variant_id' => ['nullable', 'integer'],

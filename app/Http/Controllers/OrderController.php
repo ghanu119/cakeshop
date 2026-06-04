@@ -34,13 +34,16 @@ class OrderController extends Controller
         $hasVariants = $this->productVariantService->hasVariants($product);
         $hasFlavors = $product->hasFlavors();
 
+        $messageOnCakeMaxLength = $product->messageOnCakeMaxLength();
+
         return view('order.place', compact(
             'product',
             'deliveryRules',
             'variantChoices',
             'defaultVariant',
             'hasVariants',
-            'hasFlavors'
+            'hasFlavors',
+            'messageOnCakeMaxLength'
         ));
     }
 

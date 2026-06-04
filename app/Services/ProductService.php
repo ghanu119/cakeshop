@@ -189,6 +189,9 @@ class ProductService
         $product->description_gu = $data['description_gu'] ?? null;
         $product->ingredients = $data['ingredients'] ?? null;
         $product->short_description = $data['short_description'] ?? null;
+        $product->message_on_cake_max_length = isset($data['message_on_cake_max_length']) && $data['message_on_cake_max_length'] !== '' && $data['message_on_cake_max_length'] !== null
+            ? (int) $data['message_on_cake_max_length']
+            : null;
         if (! empty($data['variants'])) {
             $product->price = $data['price'] ?? 0;
         } else {

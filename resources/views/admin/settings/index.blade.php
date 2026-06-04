@@ -145,6 +145,12 @@
                     <x-input type="number" name="order_min_hours_before_delivery" id="order_min_hours_before_delivery" value="{{ old('order_min_hours_before_delivery', $settings['order_min_hours_before_delivery'] ?? 4) }}" min="0" max="72" class="block w-full" />
                     <p class="mt-1 text-sm text-gray-500">{{ __('Order must be placed at least this many hours before requested delivery.') }}</p>
                 </div>
+                <div>
+                    <label for="message_on_cake_max_length" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Message on cake — max characters') }}</label>
+                    <x-input type="number" name="message_on_cake_max_length" id="message_on_cake_max_length" value="{{ old('message_on_cake_max_length', $settings['message_on_cake_max_length'] ?? \App\Models\Order::MESSAGE_ON_CAKE_MAX_LENGTH) }}" min="{{ \App\Models\Order::MESSAGE_ON_CAKE_MIN_LENGTH }}" max="{{ \App\Models\Order::MESSAGE_ON_CAKE_LIMIT_MAX }}" class="block w-full" />
+                    <p class="mt-1 text-sm text-gray-500">{{ __('Default limit for the optional inscription on the order form. Individual products can override this. Allowed range: :min–:max characters.', ['min' => \App\Models\Order::MESSAGE_ON_CAKE_MIN_LENGTH, 'max' => \App\Models\Order::MESSAGE_ON_CAKE_LIMIT_MAX]) }}</p>
+                    @error('message_on_cake_max_length')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
             </div>
         </x-card>
 

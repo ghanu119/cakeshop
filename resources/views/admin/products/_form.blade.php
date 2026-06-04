@@ -35,6 +35,15 @@
 </div>
 
 <div>
+    <label for="message_on_cake_max_length" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Message on cake — max characters') }} <span class="font-normal text-gray-500">({{ __('Optional') }})</span></label>
+    <x-input type="number" name="message_on_cake_max_length" id="message_on_cake_max_length" value="{{ old('message_on_cake_max_length', $product?->message_on_cake_max_length) }}" min="{{ \App\Models\Order::MESSAGE_ON_CAKE_MIN_LENGTH }}" max="{{ \App\Models\Order::MESSAGE_ON_CAKE_LIMIT_MAX }}" class="block w-full" placeholder="{{ \App\Models\Order::defaultMessageOnCakeMaxLength() }}" />
+    <p class="mt-1 text-xs text-gray-500">{{ __('Leave empty to use the site default (:default characters). Use a lower limit for small cakes or a higher limit for large sheet cakes.', ['default' => \App\Models\Order::defaultMessageOnCakeMaxLength()]) }}</p>
+    @error('message_on_cake_max_length')
+        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+    @enderror
+</div>
+
+<div>
     <label for="description_en" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Description (English)') }}</label>
     <textarea name="description_en" id="description_en" rows="4" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">{{ old('description_en', $product?->description_en) }}</textarea>
     @error('description_en')

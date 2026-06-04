@@ -126,7 +126,8 @@
                         </div>
                         <div class="md:col-span-2">
                             <label for="message_on_cake" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Message on Cake') }} <span class="text-stone-400 font-medium">({{ __('Optional') }})</span></label>
-                            <input type="text" name="message_on_cake" id="message_on_cake" value="{{ old('message_on_cake') }}" placeholder="{{ __('e.g. Happy Birthday John!') }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" />
+                            <input type="text" name="message_on_cake" id="message_on_cake" value="{{ old('message_on_cake') }}" placeholder="{{ __('e.g. Happy Birthday John!') }}" maxlength="{{ $messageOnCakeMaxLength }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" />
+                            <p class="mt-2 text-xs text-stone-500">{{ __('Maximum :max characters', ['max' => $messageOnCakeMaxLength]) }}</p>
                             @error('message_on_cake')<p class="mt-2 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
                         </div>
                         <div class="md:col-span-2">

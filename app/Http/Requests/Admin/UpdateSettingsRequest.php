@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Order;
 use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateSettingsRequest extends FormRequest
@@ -30,6 +31,7 @@ class UpdateSettingsRequest extends FormRequest
             'kitchen_lead_hours' => ['nullable', 'integer', 'min:0'],
             'order_max_future_days' => ['nullable', 'integer', 'min:1', 'max:90'],
             'order_min_hours_before_delivery' => ['nullable', 'integer', 'min:0', 'max:72'],
+            'message_on_cake_max_length' => ['nullable', 'integer', 'min:'.Order::MESSAGE_ON_CAKE_MIN_LENGTH, 'max:'.Order::MESSAGE_ON_CAKE_LIMIT_MAX],
             'payment_qr' => ['nullable', 'image', 'max:2048'],
             'header_icon' => ['nullable', 'image', 'max:1024'],
             'facebook_url' => ['nullable', 'string', 'max:500', 'url'],

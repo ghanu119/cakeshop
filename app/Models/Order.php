@@ -20,6 +20,29 @@ class Order extends Model implements HasMedia
 
     public const STATUS_DELIVERED = 'delivered';
 
+    /** Default max inscription length when no site or product override is set. */
+    public const MESSAGE_ON_CAKE_MAX_LENGTH = 50;
+
+    public const MESSAGE_ON_CAKE_MIN_LENGTH = 5;
+
+    public const MESSAGE_ON_CAKE_LIMIT_MAX = 100;
+
+    public static function defaultMessageOnCakeMaxLength(): int
+    {
+        $value = settings('message_on_cake_max_length');
+
+        if ($value === null || $value === '') {
+            return self::MESSAGE_ON_CAKE_MAX_LENGTH;
+        }
+
+        return self::clampMessageOnCakeLimit((int) $value);
+    }
+
+    public static function clampMessageOnCakeLimit(int $length): int
+    {
+        return max(self::MESSAGE_ON_CAKE_MIN_LENGTH, min(self::MESSAGE_ON_CAKE_LIMIT_MAX, $length));
+    }
+
     protected $fillable = [
         'uuid',
         'user_id',

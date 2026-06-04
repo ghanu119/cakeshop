@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Order;
 use App\Http\Requests\Admin\Concerns\ValidatesProductImages;
 use App\Http\Requests\Admin\Concerns\ValidatesProductWeightVariants;
 use Illuminate\Foundation\Http\FormRequest;
@@ -33,6 +34,7 @@ class StoreProductRequest extends FormRequest
             'description_gu' => ['nullable', 'string'],
             'ingredients' => ['nullable', 'string'],
             'short_description' => ['nullable', 'string', 'max:500'],
+            'message_on_cake_max_length' => ['nullable', 'integer', 'min:'.Order::MESSAGE_ON_CAKE_MIN_LENGTH, 'max:'.Order::MESSAGE_ON_CAKE_LIMIT_MAX],
             'status' => ['required', 'string', 'in:active,inactive'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:500'],

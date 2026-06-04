@@ -25,6 +25,7 @@ class Product extends Model implements HasMedia
         'description_gu',
         'ingredients',
         'short_description',
+        'message_on_cake_max_length',
         'price',
         'status',
         'meta_title',
@@ -45,7 +46,17 @@ class Product extends Model implements HasMedia
             'is_trending' => 'boolean',
             'is_featured' => 'boolean',
             'homepage_sort_order' => 'integer',
+            'message_on_cake_max_length' => 'integer',
         ];
+    }
+
+    public function messageOnCakeMaxLength(): int
+    {
+        if ($this->message_on_cake_max_length !== null) {
+            return Order::clampMessageOnCakeLimit((int) $this->message_on_cake_max_length);
+        }
+
+        return Order::defaultMessageOnCakeMaxLength();
     }
 
     public function registerMediaCollections(): void

@@ -24,6 +24,7 @@ class SettingSeeder extends Seeder
             'order_max_future_days' => '7',
             'order_min_hours_before_delivery' => '4',
             'kitchen_lead_hours' => '24',
+            'message_on_cake_max_length' => '50',
         ];
 
         foreach ($items as $key => $value) {
