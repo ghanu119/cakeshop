@@ -1,16 +1,16 @@
 @php
     use App\Services\ProductImageTempService;
 
+    $product = $product ?? null;
     $maxImages = \App\Services\ProductImageService::MAX_IMAGES;
     $existingImages = $product
-        ? $product->orderedProductImages()->map(function ($media) {
-            return [
-                'ref' => 'existing:'.$media->id,
-                'id' => $media->id,
-                'url' => ProductImageTempService::normalizePreviewUrl($product->productImageUrl($media, 'thumb')),
-                'name' => $media->name,
-            ];
-        })->values()->all()
+        ? $product->orderedProductImages()->map(fn ($media) => [
+            'ref' => 'existing:'.$media->id,
+            'id' => $media->id,
+            'url' => ProductImageTempService::normalizePreviewUrl($product->productImageUrl($media, 'thumb')),
+            'fullUrl' => ProductImageTempService::normalizePreviewUrl($product->productImageUrl($media, 'large')),
+            'name' => $media->name,
+        ])->values()->all()
         : [];
 @endphp
 

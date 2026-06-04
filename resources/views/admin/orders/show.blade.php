@@ -171,6 +171,8 @@
                                 </div>
                             </div>
                         @endif
+
+                        @include('admin.orders.partials._product-image-preview', ['order' => $order])
                     </div>
                 </div>
             </div>
@@ -205,11 +207,7 @@
                                     ])
                                 </div>
                             </div>
-                            @if($order->product && $order->product->getFirstMediaUrl('product_images', 'thumb'))
-                                <div class="shrink-0">
-                                    <img src="{{ $order->product->getFirstMediaUrl('product_images', 'thumb') }}" alt="{{ $order->product->name_en }}" class="h-16 w-16 rounded-lg object-cover shadow-sm ring-1 ring-gray-900/10" />
-                                </div>
-                            @endif
+                            @include('admin.orders.partials._product-image-thumb', ['order' => $order])
                         </div>
 
                         <div class="space-y-3 border-t border-gray-100 pt-4 text-sm">
@@ -289,4 +287,10 @@
             </div>
         </div>
     </div>
+
+    <x-image-lightbox />
 @endsection
+
+@push('scripts')
+    @vite('resources/js/image-lightbox.js')
+@endpush

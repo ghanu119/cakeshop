@@ -26,7 +26,7 @@ class OrderController extends Controller
     public function show(Order $order): View
     {
         $this->authorize('view', $order);
-        $order->load(['product', 'media']);
+        $order->load(['product.media', 'media']);
         $preparationRules = $this->orderService->preparationAtRules($order);
 
         return view('admin.orders.show', compact('order', 'preparationRules'));

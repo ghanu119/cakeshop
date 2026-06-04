@@ -40,6 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
         items = JSON.parse(root.dataset.existing || '[]').map((row) => ({
             ref: row.ref,
             url: normalizePreviewUrl(row.url),
+            fullUrl: normalizePreviewUrl(row.fullUrl || row.url),
             name: row.name,
             kind: 'existing',
             mediaId: row.id,
@@ -147,14 +148,29 @@ document.addEventListener('DOMContentLoaded', () => {
             return frame;
         }
 
+        const fullSrc = item.fullUrl || item.url;
+        const lightboxBtn = document.createElement('button');
+        lightboxBtn.type = 'button';
+        lightboxBtn.setAttribute('data-image-lightbox', '');
+        lightboxBtn.setAttribute('data-full-src', fullSrc);
+        lightboxBtn.setAttribute('data-alt', item.name || '');
+
         const img = document.createElement('img');
         img.src = item.url;
         img.alt = item.name || '';
         img.loading = 'lazy';
         img.addEventListener('error', () => {
-            frame.innerHTML = `<div class="flex h-full w-full items-center justify-center">${placeholderSvg()}</div>`;
+            lightboxBtn.innerHTML = `<div class="flex h-full w-full items-center justify-center">${placeholderSvg()}</div>`;
         });
-        frame.appendChild(img);
+        lightboxBtn.appendChild(img);
+
+        const zoomHint = document.createElement('span');
+        zoomHint.className = 'product-image-thumb__zoom-hint';
+        zoomHint.setAttribute('aria-hidden', 'true');
+        zoomHint.innerHTML = `<svg class="h-6 w-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 016 0zM10 7a3 3 0 106 0 3 3 0 00-6 0z"/></svg>`;
+        lightboxBtn.appendChild(zoomHint);
+
+        frame.appendChild(lightboxBtn);
 
         return frame;
     }
@@ -173,6 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const controls = document.createElement('div');
             controls.className =
                 'absolute inset-x-0 bottom-0 flex flex-wrap gap-1 bg-black/60 p-1';
+            controls.addEventListener('click', (e) => e.stopPropagation());
             if (isPrimary) {
                 const badge = document.createElement('span');
                 badge.className =
@@ -235,6 +252,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ref: null,
             token: null,
             url: localUrl,
+            fullUrl: localUrl,
             localUrl,
             name: file.name,
             kind: 'temp',
@@ -261,10 +279,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
+            const previewUrl = normalizePreviewUrl(data.url) || localUrl;
             items[index] = {
                 ref: `temp:${data.token}`,
                 token: data.token,
-                url: normalizePreviewUrl(data.url) || localUrl,
+                url: previewUrl,
+                fullUrl: previewUrl,
                 name: data.name || file.name,
                 kind: 'temp',
                 uploading: false,

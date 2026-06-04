@@ -14,6 +14,7 @@ export default defineConfig({
                 'resources/js/order-status-form.js',
                 'resources/js/order-fulfillment-type.js',
                 'resources/js/order-place-confirm.js',
+                'resources/js/image-lightbox.js',
             ],
             refresh: true,
         }),

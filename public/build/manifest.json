@@ -28,7 +28,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DLi5-G3j.css",
+    "file": "assets/app-7rMFjZKc.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -37,7 +37,7 @@
     ]
   },
   "resources/js/admin-product-images.js": {
-    "file": "assets/admin-product-images-8voqbjz0.js",
+    "file": "assets/admin-product-images-Cgy5n_00.js",
     "name": "admin-product-images",
     "src": "resources/js/admin-product-images.js",
     "isEntry": true,
@@ -67,7 +67,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-BwgvM5aY.js",
+    "file": "assets/app-BId_en9b.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -88,6 +88,12 @@
       "assets/slick-BlzDm7g2.svg"
     ]
   },
+  "resources/js/image-lightbox.js": {
+    "file": "assets/image-lightbox-CpGYtt6_.js",
+    "name": "image-lightbox",
+    "src": "resources/js/image-lightbox.js",
+    "isEntry": true
+  },
   "resources/js/order-fulfillment-type.js": {
     "file": "assets/order-fulfillment-type-_cip7NzS.js",
     "name": "order-fulfillment-type",
@@ -107,7 +113,7 @@
     "isEntry": true
   },
   "resources/js/product-gallery.js": {
-    "file": "assets/product-gallery-DWLfC_7Y.js",
+    "file": "assets/product-gallery-CfwUITmX.js",
     "name": "product-gallery",
     "src": "resources/js/product-gallery.js",
     "isEntry": true,

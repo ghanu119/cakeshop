@@ -33,6 +33,22 @@ class ProductImagesTest extends TestCase
         return $admin;
     }
 
+    public function test_admin_can_view_product_edit_page_with_images_manager(): void
+    {
+        $admin = $this->adminUser();
+        $category = Category::factory()->create();
+        $product = Product::factory()->create(['category_id' => $category->id]);
+
+        $path = UploadedFile::fake()->image('cake.jpg')->store('temp', 'public');
+        $product->addMedia(Storage::disk('public')->path($path))->toMediaCollection('product_images');
+
+        $response = $this->actingAs($admin)->get(route('admin.products.edit', $product));
+
+        $response->assertOk();
+        $response->assertSee('id="product-images-manager"', false);
+        $response->assertSee('data-image-lightbox', false);
+    }
+
     public function test_guest_cannot_upload_temp_product_image(): void
     {
         $response = $this->post(route('admin.products.images.temp.store'), [

@@ -28,7 +28,7 @@ class OrderController extends Controller
     public function show(Order $order): View
     {
         $order = Order::query()
-            ->with(['product'])
+            ->with(['product.media'])
             ->where('id', $order->id)
             ->visibleToKitchen()
             ->firstOrFail();

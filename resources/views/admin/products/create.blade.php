@@ -26,6 +26,8 @@
             </div>
         </form>
     </x-card>
+
+    <x-image-lightbox />
 @endsection
 
 @push('styles')
@@ -45,5 +47,5 @@
 @endpush
 
 @push('scripts')
-    @vite(['resources/js/admin-select2.js', 'resources/js/admin-product-images.js'])
+    @vite(['resources/js/admin-select2.js', 'resources/js/admin-product-images.js', 'resources/js/image-lightbox.js'])
 @endpush

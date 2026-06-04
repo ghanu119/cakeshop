@@ -187,6 +187,16 @@ footer {
     border-color: #f18c16 !important;
     box-shadow: 0 0 0 1px rgba(241, 140, 22, 0.35);
 }
+
+/* Order confirm compact product gallery */
+.order-product-gallery--compact .order-product-gallery__thumb {
+    display: block;
+    cursor: zoom-in;
+    transition: border-color 0.15s;
+}
+.order-product-gallery--compact .order-product-gallery__thumb:hover {
+    border-color: rgba(241, 140, 22, 0.6) !important;
+}
 .product-card-media {
     touch-action: pan-y pinch-zoom;
 }

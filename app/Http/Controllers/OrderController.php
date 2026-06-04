@@ -86,7 +86,7 @@ class OrderController extends Controller
     public function confirm(string $uuid): View|RedirectResponse
     {
         $order = Order::where('uuid', $uuid)->firstOrFail();
-        $order->load(['product' => fn ($q) => $q->withTrashed(), 'media']);
+        $order->load(['product' => fn ($q) => $q->withTrashed(), 'product.media', 'media']);
 
         return view('order.confirm', compact('order'));
     }

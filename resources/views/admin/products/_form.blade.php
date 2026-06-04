@@ -1,6 +1,8 @@
-@props(['product', 'categories', 'weightValues' => collect(), 'flavors' => collect()])
-
 @php
+    /** @var \App\Models\Product|null $product */
+    /** @var \Illuminate\Support\Collection $categories */
+    /** @var \Illuminate\Support\Collection $weightValues */
+    /** @var \Illuminate\Support\Collection $flavors */
     $selectedFlavorIds = old('flavor_ids', $product?->flavors?->pluck('id')->all() ?? []);
 @endphp
 

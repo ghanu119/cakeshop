@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+@if(active_theme() === 'better-buns')
+    @include('order.partials._order-confirm-better-buns', ['order' => $order])
+@else
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
     <h1 class="mb-6 text-3xl font-bold tracking-tight text-gray-900">{{ __('Order confirmed') }}</h1>
 
@@ -53,4 +56,5 @@
         <a href="{{ route('home') }}" class="text-gray-600 hover:underline">{{ __('Back to home') }}</a>
     </p>
 </div>
+@endif
 @endsection

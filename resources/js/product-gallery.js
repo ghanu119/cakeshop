@@ -84,6 +84,31 @@ function initProductGalleryShell($root) {
     $root.addClass('is-gallery-ready');
 }
 
+function initOrderCompactGallery($gallery) {
+    const $mainImg = $gallery.find('.js-order-gallery-main-img');
+    const $mainLink = $gallery.find('.js-order-gallery-main');
+
+    $gallery.on('click.orderCompactThumb', '[data-order-gallery-thumb]', function (e) {
+        const $thumb = $(this);
+        const mediumSrc = $thumb.data('medium-src');
+        const index = parseInt($thumb.data('order-gallery-thumb'), 10);
+
+        if (mediumSrc && $mainImg.length) {
+            $mainImg.attr('src', mediumSrc);
+        }
+        if ($mainLink.length && !Number.isNaN(index)) {
+            $mainLink.attr('data-gallery-index', index);
+            const href = $thumb.attr('href');
+            if (href) {
+                $mainLink.attr('href', href);
+            }
+        }
+
+        $gallery.find('[data-order-gallery-thumb]').removeClass('border-amber-500').addClass('border-transparent');
+        $thumb.removeClass('border-transparent').addClass('border-amber-500');
+    });
+}
+
 function initProductGallery() {
     const $roots = $('.js-product-gallery');
     if (!$roots.length) {
@@ -94,6 +119,10 @@ function initProductGallery() {
         const $gallery = $(this);
         bindLightbox($gallery);
         initProductGalleryShell($gallery);
+
+        if ($gallery.hasClass('order-product-gallery--compact')) {
+            initOrderCompactGallery($gallery);
+        }
 
         const $main = $gallery.find('.js-product-gallery-main');
         const $thumbs = $gallery.parent().find('.js-product-gallery-thumbs');
