@@ -7,6 +7,20 @@
     "file": "assets/jquery-BZOalPbs.js",
     "name": "jquery"
   },
+  "_select2-Cw2tYcCP.css": {
+    "file": "assets/select2-Cw2tYcCP.css",
+    "src": "_select2-Cw2tYcCP.css"
+  },
+  "_select2.min-D8qBNHDr.js": {
+    "file": "assets/select2.min-D8qBNHDr.js",
+    "name": "select2.min",
+    "imports": [
+      "_jquery-BZOalPbs.js"
+    ],
+    "css": [
+      "assets/select2-Cw2tYcCP.css"
+    ]
+  },
   "node_modules/slick-carousel/slick/ajax-loader.gif": {
     "file": "assets/ajax-loader-BcnMEykj.gif",
     "src": "node_modules/slick-carousel/slick/ajax-loader.gif"
@@ -28,7 +42,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-_fwcCNL4.css",
+    "file": "assets/app-BphD8Zh3.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -46,15 +60,13 @@
     ]
   },
   "resources/js/admin-select2.js": {
-    "file": "assets/admin-select2-CVVppEL7.js",
+    "file": "assets/admin-select2-BnWoMGJF.js",
     "name": "admin-select2",
     "src": "resources/js/admin-select2.js",
     "isEntry": true,
     "imports": [
-      "_jquery-BZOalPbs.js"
-    ],
-    "css": [
-      "assets/admin-select2-Cw2tYcCP.css"
+      "_jquery-BZOalPbs.js",
+      "_select2.min-D8qBNHDr.js"
     ]
   },
   "resources/js/admin.js": {
@@ -111,6 +123,16 @@
     "name": "order-status-form",
     "src": "resources/js/order-status-form.js",
     "isEntry": true
+  },
+  "resources/js/product-filters-select2.js": {
+    "file": "assets/product-filters-select2-DFsY-Ugn.js",
+    "name": "product-filters-select2",
+    "src": "resources/js/product-filters-select2.js",
+    "isEntry": true,
+    "imports": [
+      "_jquery-BZOalPbs.js",
+      "_select2.min-D8qBNHDr.js"
+    ]
   },
   "resources/js/product-gallery.js": {
     "file": "assets/product-gallery-CfwUITmX.js",

@@ -146,6 +146,51 @@ class Product extends Model implements HasMedia
         return $query->where('status', 'active');
     }
 
+    public function scopeWithFlavorIds($query, array $flavorIds)
+    {
+        $ids = array_values(array_filter(array_map('intval', $flavorIds)));
+
+        if ($ids === []) {
+            return $query;
+        }
+
+        return $query->whereHas('flavors', fn ($q) => $q->active()->whereIn('flavors.id', $ids));
+    }
+
+    public function scopeWithWeightValueIds($query, array $weightIds)
+    {
+        $ids = array_values(array_filter(array_map('intval', $weightIds)));
+
+        if ($ids === []) {
+            return $query;
+        }
+
+        return $query->whereHas('variants', function ($v) use ($ids) {
+            $v->active()->whereHas('selections', fn ($s) => $s
+                ->whereIn('variant_option_value_id', $ids)
+                ->whereHas('type', fn ($t) => $t->where('slug', 'weight')));
+        });
+    }
+
+    public function scopePriceInRange($query, ?float $min, ?float $max)
+    {
+        if ($min === null && $max === null) {
+            return $query;
+        }
+
+        return $query->where(function ($q) use ($min, $max) {
+            $q->whereHas('variants', function ($v) use ($min, $max) {
+                $v->active()
+                    ->when($min !== null, fn ($q) => $q->where('price', '>=', $min))
+                    ->when($max !== null, fn ($q) => $q->where('price', '<=', $max));
+            })->orWhere(function ($q) use ($min, $max) {
+                $q->whereDoesntHave('variants', fn ($v) => $v->active())
+                    ->when($min !== null, fn ($q) => $q->where('price', '>=', $min))
+                    ->when($max !== null, fn ($q) => $q->where('price', '<=', $max));
+            });
+        });
+    }
+
     public function scopeHighlight($query)
     {
         return $query->where('is_highlight', true)->active()->orderBy('homepage_sort_order');

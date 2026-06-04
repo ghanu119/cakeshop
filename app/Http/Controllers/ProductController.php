@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ListProductsRequest;
 use App\Models\Category;
 use App\Models\Product;
 use App\Services\ProductService;
@@ -15,13 +16,22 @@ class ProductController extends Controller
         private ProductVariantService $productVariantService
     ) {}
 
-    public function index(): View
+    public function index(ListProductsRequest $request): View
     {
-        $products = $this->productService->listForHomepage(request());
+        $products = $this->productService->listForHomepage($request);
         $categories = Category::active()->orderBy('sort_order')->get();
-        $priceRange = Product::active()->selectRaw('MIN(price) as min_price, MAX(price) as max_price')->first();
+        $priceRange = $this->productService->catalogPriceRange();
+        $filterOptions = $this->productService->filterOptions();
+        $filterFlavors = $filterOptions['flavors'];
+        $filterWeights = $filterOptions['weights'];
 
-        return view('products.index', compact('products', 'categories', 'priceRange'));
+        return view('products.index', compact(
+            'products',
+            'categories',
+            'priceRange',
+            'filterFlavors',
+            'filterWeights',
+        ));
     }
 
     public function show(string $slug): View

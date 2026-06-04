@@ -18,46 +18,12 @@
         <div class="mb-12 rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
             <h2 class="mb-6 text-xl font-semibold text-gray-900">{{ __('Filter Products') }}</h2>
             <form method="get" action="{{ route('products.index') }}" class="space-y-4" id="product-filters">
-                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                    <label for="search" class="mb-2 block text-sm font-medium text-gray-700">{{ __('Search') }}</label>
-                    <input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="{{ __('Search by name or ingredients...') }}" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 placeholder:text-gray-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
-                </div>
-                <div>
-                    <label for="category_id" class="mb-2 block text-sm font-medium text-gray-700">{{ __('Category') }}</label>
-                    <select name="category_id" id="category_id" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
-                        <option value="">{{ __('All Categories') }}</option>
-                        @foreach($categories as $cat)
-                            <option value="{{ $cat->id }}" @selected(request('category_id') == $cat->id)>{{ $cat->name_en }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                @if($priceRange && $priceRange->min_price !== null)
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700">{{ __('Price range') }}</label>
-                    <div class="flex items-center gap-2">
-                        <input type="number" name="price_min" id="price_min" value="{{ request('price_min') }}" min="{{ $priceRange->min_price }}" max="{{ $priceRange->max_price }}" step="1" placeholder="{{ __('Min') }}" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
-                        <span class="text-gray-400">–</span>
-                        <input type="number" name="price_max" id="price_max" value="{{ request('price_max') }}" min="{{ $priceRange->min_price }}" max="{{ $priceRange->max_price }}" step="1" placeholder="{{ __('Max') }}" class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
-                    </div>
-                </div>
-                @endif
-                <div>
-                    <label for="sort" class="mb-2 block text-sm font-medium text-gray-700">{{ __('Sort By') }}</label>
-                    <select name="sort" id="sort" class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20">
-                        <option value="name_asc" @selected(request('sort') === 'name_asc')>{{ __('Name A–Z') }}</option>
-                        <option value="name_desc" @selected(request('sort') === 'name_desc')>{{ __('Name Z–A') }}</option>
-                        <option value="price_asc" @selected(request('sort') === 'price_asc')>{{ __('Price: Low to High') }}</option>
-                        <option value="price_desc" @selected(request('sort') === 'price_desc')>{{ __('Price: High to Low') }}</option>
-                        <option value="newest" @selected(request('sort') === 'newest')>{{ __('Newest First') }}</option>
-                    </select>
-                </div>
-                </div>
+                @include('products.partials._filters-fields')
                 <div class="flex flex-wrap items-center gap-3">
                     <button type="submit" class="rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-semibold text-white transition-all duration-200 hover:from-amber-600 hover:to-orange-600 hover:shadow-lg">
                         {{ __('Apply Filters') }}
                     </button>
-                    @if(request()->hasAny(['search', 'category_id', 'sort', 'price_min', 'price_max']))
+                    @if(request()->hasAny(['search', 'category_id', 'sort', 'price_min', 'price_max', 'flavor_ids', 'weight_ids']))
                     <a href="{{ route('products.index') }}" class="rounded-lg border border-gray-300 bg-white px-5 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50">{{ __('Clear') }}</a>
                     @endif
                 </div>
@@ -65,7 +31,7 @@
         </div>
 
         {{-- Results Count --}}
-        @if(request()->hasAny(['search', 'category_id', 'sort', 'price_min', 'price_max']))
+        @if(request()->hasAny(['search', 'category_id', 'sort', 'price_min', 'price_max', 'flavor_ids', 'weight_ids']))
             <div class="mb-6 text-sm text-gray-600">
                 {{ __('Showing') }} <span class="font-semibold text-gray-900">{{ $products->total() }}</span> {{ __('products') }}
             </div>
