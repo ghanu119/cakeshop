@@ -13,6 +13,15 @@ use Illuminate\Support\Str;
 
 class ProductService
 {
+    private const ADMIN_SORTABLE_COLUMNS = [
+        'name_en',
+        'category',
+        'price',
+        'status',
+        'show_on_homepage',
+        'updated_at',
+    ];
+
     public function __construct(
         private ProductVariantService $productVariantService
     ) {}
@@ -38,7 +47,29 @@ class ProductService
             $query->where('status', $request->input('status'));
         }
 
-        return $query->orderBy('name_en')->paginate(15)->withQueryString();
+        $this->applyAdminListSorting($query, $request);
+
+        return $query->paginate(15)->withQueryString();
+    }
+
+    private function applyAdminListSorting(Builder $query, Request $request): void
+    {
+        $sort = $request->input('sort', 'name_en');
+        $direction = strtolower((string) $request->input('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
+
+        if (! in_array($sort, self::ADMIN_SORTABLE_COLUMNS, true)) {
+            $sort = 'name_en';
+        }
+
+        if ($sort === 'category') {
+            $query->leftJoin('categories', 'categories.id', '=', 'products.category_id')
+                ->select('products.*')
+                ->orderBy('categories.name_en', $direction);
+
+            return;
+        }
+
+        $query->orderBy($sort, $direction);
     }
 
     public function listForHomepage(Request $request): LengthAwarePaginator

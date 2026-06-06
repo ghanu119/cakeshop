@@ -3,6 +3,10 @@
 @section('title', __('Products'))
 
 @section('content')
+    @php
+        $tz = settings('timezone') ?? 'Asia/Kolkata';
+    @endphp
+
     <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{ __('Products') }}</h1>
         @can('products.create')
@@ -14,6 +18,12 @@
 
     <x-card class="mb-6">
         <form method="get" action="{{ route('admin.products.index') }}" class="flex flex-wrap items-end gap-4">
+            @if(request('sort'))
+                <input type="hidden" name="sort" value="{{ request('sort') }}" />
+            @endif
+            @if(request('direction'))
+                <input type="hidden" name="direction" value="{{ request('direction') }}" />
+            @endif
             <div class="min-w-[200px] flex-1">
                 <label for="search" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Search by name') }}</label>
                 <x-input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="{{ __('Search…') }}" class="block w-full" />
@@ -38,7 +48,7 @@
             <button type="submit" class="rounded-lg bg-gray-800 px-4 py-2 font-medium text-white transition duration-200 hover:bg-gray-700">
                 {{ __('Filter') }}
             </button>
-            @if(request()->hasAny(['search', 'category_id', 'status']))
+            @if(request()->hasAny(['search', 'category_id', 'status', 'sort', 'direction']))
                 <a href="{{ route('admin.products.index') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 transition duration-200 hover:bg-gray-50">
                     {{ __('Reset') }}
                 </a>
@@ -46,14 +56,29 @@
         </form>
     </x-card>
 
+    @if($products->total() > 0)
+        <p class="mb-3 text-sm text-gray-600">
+            @if($products->hasPages())
+                {{ __('Showing :from–:to of :total products', [
+                    'from' => $products->firstItem(),
+                    'to' => $products->lastItem(),
+                    'total' => $products->total(),
+                ]) }}
+            @else
+                {{ trans_choice(':count product|:count products', $products->total(), ['count' => $products->total()]) }}
+            @endif
+        </p>
+    @endif
+
     <x-card :padding="false">
         <x-table.wrapper>
             <x-table.header>
-                <x-table.th>{{ __('Name') }}</x-table.th>
-                <x-table.th>{{ __('Category') }}</x-table.th>
-                <x-table.th>{{ __('Price') }}</x-table.th>
-                <x-table.th>{{ __('Status') }}</x-table.th>
-                <x-table.th>{{ __('Homepage') }}</x-table.th>
+                <x-table.sortable-th column="name_en">{{ __('Name') }}</x-table.sortable-th>
+                <x-table.sortable-th column="category">{{ __('Category') }}</x-table.sortable-th>
+                <x-table.sortable-th column="price">{{ __('Price') }}</x-table.sortable-th>
+                <x-table.sortable-th column="status">{{ __('Status') }}</x-table.sortable-th>
+                <x-table.sortable-th column="show_on_homepage">{{ __('Homepage') }}</x-table.sortable-th>
+                <x-table.sortable-th column="updated_at">{{ __('Last modified') }}</x-table.sortable-th>
                 <x-table.th class="text-right">{{ __('Actions') }}</x-table.th>
             </x-table.header>
             <x-table.body>
@@ -77,6 +102,9 @@
                                 —
                             @endif
                         </x-table.cell>
+                        <x-table.cell class="whitespace-nowrap text-sm text-gray-600">
+                            {{ $product->updated_at?->setTimezone($tz)->format('d M Y H:i') ?? '—' }}
+                        </x-table.cell>
                         <x-table.cell class="text-right">
                             @can('products.update')
                                 <a href="{{ route('admin.products.edit', $product) }}" class="text-gray-600 hover:text-gray-900">{{ __('Edit') }}</a>
@@ -93,7 +121,7 @@
                     </x-table.row>
                 @empty
                     <x-table.row>
-                        <x-table.cell colspan="6" class="text-center text-gray-500">{{ __('No products found.') }}</x-table.cell>
+                        <x-table.cell colspan="7" class="text-center text-gray-500">{{ __('No products found.') }}</x-table.cell>
                     </x-table.row>
                 @endforelse
             </x-table.body>
