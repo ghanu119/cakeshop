@@ -1,6 +1,22 @@
 import $ from 'jquery';
+import 'slick-carousel';
 import 'magnific-popup/dist/jquery.magnific-popup';
 import 'magnific-popup/dist/magnific-popup.css';
+
+function getSlickInstance($slider) {
+    const element = $slider.get(0);
+    return element?.slick ?? null;
+}
+
+function callSlickMethod($slider, method, ...args) {
+    const instance = getSlickInstance($slider);
+    if (!instance || typeof instance[method] !== 'function') {
+        return false;
+    }
+
+    instance[method](...args);
+    return true;
+}
 
 function parseGalleryItems($root) {
     const raw = $root.attr('data-gallery-items');
@@ -131,9 +147,15 @@ function initProductGallery() {
             return;
         }
 
-        $main.on('init', function () {
+        if ($main.hasClass('slick-initialized')) {
+            return;
+        }
+
+        $main.on('init', function (_event, slick) {
             initProductGalleryShell($gallery);
-            $main.slick('setPosition');
+            if (slick && typeof slick.setPosition === 'function') {
+                slick.setPosition();
+            }
         });
 
         $main.slick({
@@ -157,12 +179,16 @@ function initProductGallery() {
             $thumbs.find('.product-gallery-thumb').removeClass('is-active border-amber-500').addClass('border-transparent');
             $thumbs.find(`[data-slide="${normalizedIndex}"]`).addClass('is-active border-amber-500').removeClass('border-transparent');
             syncProductGalleryLayout($gallery);
-            $main.slick('setPosition');
+            if (slick && typeof slick.setPosition === 'function') {
+                slick.setPosition();
+            }
         });
 
         $thumbs.on('click', '[data-slide]', function () {
             const index = parseInt($(this).data('slide'), 10);
-            $main.slick('slickGoTo', index);
+            if (!Number.isNaN(index)) {
+                callSlickMethod($main, 'slickGoTo', index);
+            }
         });
     });
 
@@ -174,9 +200,7 @@ function initProductGallery() {
                 const $root = $(this);
                 syncProductGalleryLayout($root);
                 const $slider = $root.find('.js-product-gallery-main');
-                if ($slider.hasClass('slick-initialized')) {
-                    $slider.slick('setPosition');
-                }
+                callSlickMethod($slider, 'setPosition');
             });
         }, 150);
     });
@@ -201,7 +225,7 @@ function initCardSliders() {
         const $slider = $(this);
         const slideCount = $slider.children('.product-card-slide').length;
 
-        if (slideCount <= 1) {
+        if (slideCount <= 1 || $slider.hasClass('slick-initialized')) {
             return;
         }
 
@@ -209,9 +233,9 @@ function initCardSliders() {
         const $dots = $media.find('.product-card-dot');
         let dragged = false;
 
-        $slider.on('init', function () {
+        $slider.on('init', function (_event, slick) {
             $media.addClass('is-card-slider-ready');
-            syncCardDots($slider, 0);
+            syncCardDots($slider, slick?.currentSlide ?? 0);
         });
 
         $slider.slick({
@@ -241,12 +265,12 @@ function initCardSliders() {
             syncCardDots($slider, normalizedIndex);
         });
 
-        $dots.on('click', function (e) {
+        $dots.off('click.productCardDot').on('click.productCardDot', function (e) {
             e.preventDefault();
             e.stopPropagation();
             const index = parseInt($(this).data('slide'), 10);
             if (!Number.isNaN(index)) {
-                $slider.slick('slickGoTo', index);
+                callSlickMethod($slider, 'slickGoTo', index);
             }
         });
 
@@ -270,6 +294,11 @@ function initCardSliders() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    initProductGallery();
+    try {
+        initProductGallery();
+    } catch (error) {
+        console.error('Product gallery initialization failed', error);
+    }
+
     initCardSliders();
 });

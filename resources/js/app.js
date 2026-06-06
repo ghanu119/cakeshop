@@ -1,7 +1,6 @@
 import './bootstrap';
 import './product-variant-picker';
 import './flavor-picker';
-import './product-gallery';
 
 import $ from 'jquery';
 window.$ = window.jQuery = $;
@@ -12,6 +11,8 @@ import 'aos/dist/aos.css';
 import 'slick-carousel';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
+
+import './product-gallery';
 
 document.addEventListener('DOMContentLoaded', function () {
     AOS.init({

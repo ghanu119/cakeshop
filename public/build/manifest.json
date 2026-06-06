@@ -42,7 +42,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DCSPfoEW.css",
+    "file": "assets/app-CDd7RLNZ.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -79,14 +79,14 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-BId_en9b.js",
+    "file": "assets/app-iyBxhCMF.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
       "resources/js/admin.js",
-      "resources/js/product-gallery.js",
       "_jquery-BZOalPbs.js",
+      "resources/js/product-gallery.js",
       "_index-C0Zqfgkc.js"
     ],
     "css": [
@@ -135,7 +135,7 @@
     ]
   },
   "resources/js/product-gallery.js": {
-    "file": "assets/product-gallery-CfwUITmX.js",
+    "file": "assets/product-gallery-WvNcrod5.js",
     "name": "product-gallery",
     "src": "resources/js/product-gallery.js",
     "isEntry": true,
