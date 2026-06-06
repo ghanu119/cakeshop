@@ -1,4 +1,11 @@
 {
+  "_bootstrap-Du_iHytD.js": {
+    "file": "assets/bootstrap-Du_iHytD.js",
+    "name": "bootstrap",
+    "imports": [
+      "_index-C0Zqfgkc.js"
+    ]
+  },
   "_index-C0Zqfgkc.js": {
     "file": "assets/index-C0Zqfgkc.js",
     "name": "index"
@@ -42,7 +49,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CDd7RLNZ.css",
+    "file": "assets/app-DsDtkpSU.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -70,21 +77,23 @@
     ]
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-Du_iHytD.js",
+    "file": "assets/admin-BsgQ1YH0.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true,
     "imports": [
+      "_bootstrap-Du_iHytD.js",
+      "resources/js/order-status-form.js",
       "_index-C0Zqfgkc.js"
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-iyBxhCMF.js",
+    "file": "assets/app-ClVkjDsH.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
-      "resources/js/admin.js",
+      "_bootstrap-Du_iHytD.js",
       "_jquery-BZOalPbs.js",
       "resources/js/product-gallery.js",
       "_index-C0Zqfgkc.js"
@@ -119,10 +128,13 @@
     "isEntry": true
   },
   "resources/js/order-status-form.js": {
-    "file": "assets/order-status-form-tfVTC-O7.js",
+    "file": "assets/order-status-form-Fvj9JAH8.js",
     "name": "order-status-form",
     "src": "resources/js/order-status-form.js",
-    "isEntry": true
+    "isEntry": true,
+    "css": [
+      "assets/order-status-form-BuZ9JEVh.css"
+    ]
   },
   "resources/js/product-filters-select2.js": {
     "file": "assets/product-filters-select2-DFsY-Ugn.js",

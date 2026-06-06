@@ -31,6 +31,11 @@
         action="{{ $statusFormAction }}{{ !empty($fromKitchen) ? '?from=kitchen' : '' }}"
         class="flex w-full flex-col gap-3 md:w-auto md:items-end"
         data-order-status-form
+        data-initial-order-status="{{ $order->order_status }}"
+        data-status-confirm-title="{{ __('Change order status?') }}"
+        data-status-confirm-message="{{ __('Are you sure you want to change the order status to :status?') }}"
+        data-status-confirm-yes="{{ __('Yes, update') }}"
+        data-status-confirm-no="{{ __('Cancel') }}"
         @if($canSetPreparationTime) data-allow-preparation="true" @endif
     >
         @csrf
@@ -116,7 +121,4 @@
     </form>
 </div>
 
-@push('scripts')
-    @vite(['resources/js/order-status-form.js'])
-@endpush
 @endif

@@ -1,3 +1,5 @@
+import { confirmAction } from './admin-swal';
+
 document.addEventListener('DOMContentLoaded', function () {
     const form = document.querySelector('[data-order-status-form]');
     if (!form) {
@@ -12,6 +14,16 @@ document.addEventListener('DOMContentLoaded', function () {
     const submittingLabel = form.querySelector('[data-submitting-label]');
 
     const allowPreparation = form.hasAttribute('data-allow-preparation');
+
+    function disableSubmitButton() {
+        if (!submitBtn) {
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitLabel?.classList.add('hidden');
+        submittingLabel?.classList.remove('hidden');
+    }
 
     function togglePreparationPanel() {
         if (!allowPreparation) {
@@ -37,12 +49,43 @@ document.addEventListener('DOMContentLoaded', function () {
     select?.addEventListener('change', togglePreparationPanel);
     togglePreparationPanel();
 
-    form.addEventListener('submit', function () {
-        if (!submitBtn) {
+    form.addEventListener('submit', function (event) {
+        if (form.dataset.statusConfirmed === 'true') {
+            disableSubmitButton();
             return;
         }
-        submitBtn.disabled = true;
-        submitLabel?.classList.add('hidden');
-        submittingLabel?.classList.remove('hidden');
+
+        const initialStatus = form.dataset.initialOrderStatus;
+        const selectedStatus = select?.value;
+
+        if (initialStatus && selectedStatus && selectedStatus !== initialStatus) {
+            event.preventDefault();
+            event.stopImmediatePropagation();
+
+            const selectedLabel = select.options[select.selectedIndex]?.text?.trim() || selectedStatus;
+            const template =
+                form.dataset.statusConfirmMessage ||
+                'Are you sure you want to change the order status to :status?';
+            const message = template.replace(':status', selectedLabel);
+
+            confirmAction({
+                title: form.dataset.statusConfirmTitle || 'Change order status?',
+                text: message,
+                confirmText: form.dataset.statusConfirmYes || 'Yes, update',
+                cancelText: form.dataset.statusConfirmNo || 'Cancel',
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return;
+                }
+
+                form.dataset.statusConfirmed = 'true';
+                disableSubmitButton();
+                form.requestSubmit();
+            });
+
+            return;
+        }
+
+        disableSubmitButton();
     });
 });

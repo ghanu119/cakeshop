@@ -24,10 +24,20 @@
                     </div>
                 </div>
                 @can('orders.update')
-                    <form method="post" action="{{ route('admin.orders.verify-payment', $order) }}" class="shrink-0">
+                    <form
+                        method="post"
+                        action="{{ route('admin.orders.verify-payment', $order) }}"
+                        class="shrink-0"
+                        data-verify-payment-form
+                        data-confirm-title="{{ __('Verify payment?') }}"
+                        data-confirm-message="{{ __('Are you sure you want to verify payment for this order?') }}"
+                        data-confirm-yes="{{ __('Yes, verify') }}"
+                        data-confirm-no="{{ __('Cancel') }}"
+                    >
                         @csrf
-                        <button type="submit" class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700">
-                            {{ __('Verify Payment') }}
+                        <button type="submit" class="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-amber-700 disabled:cursor-not-allowed disabled:opacity-70">
+                            <span data-submit-label>{{ __('Verify Payment') }}</span>
+                            <span data-submitting-label class="hidden">{{ __('Verifying...') }}</span>
                         </button>
                     </form>
                 @endcan

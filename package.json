@@ -22,6 +22,7 @@
         "jquery": "3.7.1",
         "magnific-popup": "^1.1.0",
         "select2": "^4.0.13",
-        "slick-carousel": "^1.8.1"
+        "slick-carousel": "^1.8.1",
+        "sweetalert2": "^11.26.25"
     }
 }
