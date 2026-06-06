@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Setting;
+use App\Models\SiteSetting;
 use Illuminate\Database\Seeder;
 
 class SettingSeeder extends Seeder
@@ -10,14 +11,15 @@ class SettingSeeder extends Seeder
     public function run(): void
     {
         $items = [
-            'site_name' => 'Sweet Delights',
-            'address' => '123 Bakery Lane, Near Central Market, City – 400001',
-            'contact' => '+91 98765 43210',
-            'admin_email' => 'admin@sweetdelights.example.com',
+            'site_name' => 'Better Buns',
+            'theme' => 'better-buns',
+            'address' => 'B/H Asopalav Triangle Opp Matuki Restaurant Punit Nagar 80 Ft road Rajkot, Gujarat, Rajkot, Gujarat 360004',
+            'contact' => '+918347991910',
+            'admin_email' => 'admin@betterbuns.example.com',
             'currency' => 'INR',
             'timezone' => 'Asia/Kolkata',
             'facebook_url' => 'https://www.facebook.com/',
-            'instagram_url' => 'https://www.instagram.com/',
+            'instagram_url' => 'https://www.instagram.com/better_buns_live_bakery/',
             'twitter_url' => 'https://twitter.com/',
             'payment_instructions' => 'Please pay via UPI to the number shown, or transfer to our bank account. Mention your order ID in the payment note.',
             'payment_submit_instructions' => 'Share your transaction/UPI reference number, amount paid, and time of payment. You may upload a screenshot of the success screen.',
@@ -32,5 +34,14 @@ class SettingSeeder extends Seeder
         }
 
         Setting::flushCache();
+
+        $logoPath = public_path('images/logo.jpg');
+        if (is_file($logoPath)) {
+            $siteSetting = SiteSetting::firstOrCreate([]);
+            $siteSetting->clearMediaCollection('logo');
+            $siteSetting->addMedia($logoPath)->preservingOriginal()->toMediaCollection('logo');
+            $siteSetting->clearMediaCollection('header_icon');
+            $siteSetting->addMedia($logoPath)->preservingOriginal()->toMediaCollection('header_icon');
+        }
     }
 }
