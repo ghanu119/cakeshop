@@ -109,6 +109,10 @@ class OrderProcessingTest extends TestCase
 
         $response->assertOk();
         $response->assertDontSee($order->order_no, false);
+
+        $upcomingResponse = $this->actingAs($admin)->get(route('admin.kitchen.orders.upcoming'));
+        $upcomingResponse->assertOk();
+        $upcomingResponse->assertSee($order->order_no, false);
     }
 
     public function test_kitchen_user_cannot_set_processing_or_preparation_time(): void

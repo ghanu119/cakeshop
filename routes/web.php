@@ -59,6 +59,8 @@ Route::middleware(['auth', 'verified', 'role:Admin|Kitchen'])->group(function ()
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::middleware(['permission:orders.view'])->group(function () {
+            Route::get('kitchen/orders/upcoming', [KitchenOrderController::class, 'upcomingIndex'])->name('kitchen.orders.upcoming');
+            Route::get('kitchen/orders/upcoming/{order}', [KitchenOrderController::class, 'upcomingShow'])->name('kitchen.orders.upcoming.show');
             Route::get('kitchen/orders', [KitchenOrderController::class, 'index'])->name('kitchen.orders.index');
             Route::get('kitchen/orders/{order}', [KitchenOrderController::class, 'show'])->name('kitchen.orders.show');
         });

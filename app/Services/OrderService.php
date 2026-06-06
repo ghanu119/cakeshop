@@ -6,11 +6,13 @@ use App\Models\Order;
 use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
+    public const KITCHEN_UPCOMING_PREVIEW_LIMIT = 6;
     public function __construct(
         private ProductVariantService $productVariantService
     ) {}
@@ -47,8 +49,41 @@ class OrderService
     public function listForKitchen(): LengthAwarePaginator
     {
         return Order::query()
-            ->with(['product'])
-            ->visibleToKitchen()
+            ->with(['product.media'])
+            ->kitchenTodayQueue()
+            ->orderBy('delivery_at')
+            ->paginate(20);
+    }
+
+    public function listKitchenTodayForDashboard(): Collection
+    {
+        return Order::query()
+            ->with(['product.media'])
+            ->kitchenTodayQueue()
+            ->orderBy('preparation_at')
+            ->get();
+    }
+
+    public function listKitchenUpcomingPreview(int $limit = self::KITCHEN_UPCOMING_PREVIEW_LIMIT): Collection
+    {
+        return Order::query()
+            ->with(['product.media'])
+            ->kitchenUpcoming()
+            ->orderBy('delivery_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function countKitchenUpcoming(): int
+    {
+        return Order::query()->kitchenUpcoming()->count();
+    }
+
+    public function listKitchenUpcoming(): LengthAwarePaginator
+    {
+        return Order::query()
+            ->with(['product.media'])
+            ->kitchenUpcoming()
             ->orderBy('delivery_at')
             ->paginate(20);
     }

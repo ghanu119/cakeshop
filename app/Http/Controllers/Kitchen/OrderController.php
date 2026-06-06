@@ -22,6 +22,13 @@ class OrderController extends Controller
         return view('kitchen.orders.index', compact('orders'));
     }
 
+    public function upcomingIndex(): View
+    {
+        $orders = $this->orderService->listKitchenUpcoming();
+
+        return view('kitchen.orders.upcoming', compact('orders'));
+    }
+
     /**
      * Show order details (no payment info) for a today's order. Only orders visible to kitchen are allowed.
      */
@@ -30,22 +37,48 @@ class OrderController extends Controller
         $order = Order::query()
             ->with(['product.media'])
             ->where('id', $order->id)
-            ->visibleToKitchen()
+            ->kitchenTodayQueue()
             ->firstOrFail();
 
         $preparationRules = $this->orderService->preparationAtRules($order);
 
-        return view('kitchen.orders.show', compact('order', 'preparationRules'));
+        return view('kitchen.orders.show', [
+            'order' => $order,
+            'preparationRules' => $preparationRules,
+            'readOnly' => false,
+        ]);
+    }
+
+    public function upcomingShow(Order $order): View
+    {
+        $order = Order::query()
+            ->with(['product.media'])
+            ->where('id', $order->id)
+            ->kitchenUpcoming()
+            ->firstOrFail();
+
+        $preparationRules = $this->orderService->preparationAtRules($order);
+
+        return view('kitchen.orders.show', [
+            'order' => $order,
+            'preparationRules' => $preparationRules,
+            'readOnly' => true,
+        ]);
     }
 
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order): RedirectResponse
     {
         $order = Order::query()
             ->where('id', $order->id)
-            ->visibleToKitchen()
+            ->kitchenTodayQueue()
             ->firstOrFail();
 
         $this->authorize('update', $order);
+
+        if (! $order->canKitchenUpdateStatus()) {
+            return redirect()->route('admin.kitchen.orders.show', $order)
+                ->with('error', __('You can only update the status of today\'s processing orders.'));
+        }
 
         if (! $order->isPaymentVerified()) {
             return redirect()->route('admin.kitchen.orders.show', $order)
@@ -64,7 +97,7 @@ class OrderController extends Controller
 
         $stillOnKitchenQueue = Order::query()
             ->whereKey($order->id)
-            ->visibleToKitchen()
+            ->kitchenTodayQueue()
             ->exists();
 
         if (! $stillOnKitchenQueue) {

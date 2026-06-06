@@ -205,25 +205,134 @@ class Order extends Model implements HasMedia
         return $this->preparation_at !== null;
     }
 
-    public function scopeVisibleToKitchen($query): void
+    public static function shopTimezone(): string
     {
-        $query->where('payment_status', 'verified')
-            ->where('order_status', 'processing')
-            ->whereNotNull('preparation_at');
+        return settings('timezone') ?? 'Asia/Kolkata';
+    }
 
-        $timezone = settings('timezone') ?? 'Asia/Kolkata';
+    /**
+     * @return array{start: \Carbon\Carbon, end: \Carbon\Carbon, now: \Carbon\Carbon}
+     */
+    public static function todayBoundsInShopTz(): array
+    {
+        $timezone = self::shopTimezone();
         $nowShop = Carbon::now($timezone);
-        $todayStartUtc = $nowShop->copy()->startOfDay()->utc();
-        $todayEndUtc = $nowShop->copy()->endOfDay()->utc();
 
-        $query->whereBetween('delivery_at', [$todayStartUtc, $todayEndUtc]);
+        return [
+            'start' => $nowShop->copy()->startOfDay()->utc(),
+            'end' => $nowShop->copy()->endOfDay()->utc(),
+            'now' => $nowShop,
+        ];
+    }
 
+    public function scopePaymentVerified($query): void
+    {
+        $query->where('payment_status', 'verified');
+    }
+
+    public function scopeDeliveryToday($query): void
+    {
+        $bounds = self::todayBoundsInShopTz();
+        $query->whereBetween('delivery_at', [$bounds['start'], $bounds['end']]);
+    }
+
+    public function scopeDeliveryUpcoming($query): void
+    {
+        $bounds = self::todayBoundsInShopTz();
+        $query->where('delivery_at', '>', $bounds['end']);
+    }
+
+    public function scopeKitchenTodayQueue($query): void
+    {
+        $query->paymentVerified()
+            ->where('order_status', 'processing')
+            ->whereNotNull('preparation_at')
+            ->deliveryToday();
+
+        $bounds = self::todayBoundsInShopTz();
         $leadHours = settings('kitchen_lead_hours');
         if ($leadHours !== null && $leadHours !== '') {
-            $leadHours = (int) $leadHours;
-            $visibleUntilUtc = $nowShop->copy()->addHours($leadHours)->utc();
+            $visibleUntilUtc = $bounds['now']->copy()->addHours((int) $leadHours)->utc();
             $query->where('delivery_at', '<=', $visibleUntilUtc);
         }
+    }
+
+    public function scopeKitchenUpcoming($query): void
+    {
+        $query->paymentVerified()->deliveryUpcoming();
+    }
+
+    public function scopeVisibleToKitchen($query): void
+    {
+        $query->kitchenTodayQueue();
+    }
+
+    public function isDeliveryToday(): bool
+    {
+        if (! $this->delivery_at) {
+            return false;
+        }
+
+        $bounds = self::todayBoundsInShopTz();
+
+        return $this->delivery_at->between($bounds['start'], $bounds['end']);
+    }
+
+    public function isKitchenActionable(): bool
+    {
+        if (! $this->isPaymentVerified()
+            || ! $this->isProcessing()
+            || ! $this->hasPreparationDeadline()
+            || ! $this->isDeliveryToday()) {
+            return false;
+        }
+
+        $leadHours = settings('kitchen_lead_hours');
+        if ($leadHours === null || $leadHours === '') {
+            return true;
+        }
+
+        $bounds = self::todayBoundsInShopTz();
+        $visibleUntilUtc = $bounds['now']->copy()->addHours((int) $leadHours)->utc();
+
+        return $this->delivery_at <= $visibleUntilUtc;
+    }
+
+    public function canKitchenUpdateStatus(): bool
+    {
+        return $this->isKitchenActionable();
+    }
+
+    public function daysUntilDelivery(): ?int
+    {
+        if (! $this->delivery_at) {
+            return null;
+        }
+
+        $tz = self::shopTimezone();
+        $today = Carbon::now($tz)->startOfDay();
+        $deliveryDay = $this->delivery_at->copy()->setTimezone($tz)->startOfDay();
+
+        return max(0, (int) $today->diffInDays($deliveryDay, false));
+    }
+
+    public function daysUntilDeliveryLabel(): string
+    {
+        $days = $this->daysUntilDelivery();
+
+        if ($days === null) {
+            return '—';
+        }
+
+        if ($days === 0) {
+            return __('Today');
+        }
+
+        if ($days === 1) {
+            return __('1 day left');
+        }
+
+        return __(':count days left', ['count' => $days]);
     }
 
     public function isPaymentVerified(): bool

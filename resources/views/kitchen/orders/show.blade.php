@@ -1,22 +1,31 @@
 @extends('layouts.admin')
 
-@section('title', __("Today's order") . ' #' . $order->order_no)
+@section('title', ($readOnly ? __('Upcoming order') : __("Today's order")) . ' #' . $order->order_no)
 
 @section('content')
     @php
+        $readOnly = $readOnly ?? false;
         $tz = settings('timezone') ?? 'Asia/Kolkata';
         $orderedAt = $order->ordered_at?->setTimezone($tz);
         $deliveryAt = $order->delivery_at?->setTimezone($tz);
         $paymentPending = !$order->isPaymentVerified();
+        $backRoute = $readOnly ? route('admin.kitchen.orders.upcoming') : route('admin.kitchen.orders.index');
+        $backLabel = $readOnly ? __('Back to Upcoming Orders') : __("Back to Today's Orders");
     @endphp
 
     <div class="mx-auto max-w-6xl">
         {{-- Page Header --}}
         <div class="mb-6">
-            <a href="{{ route('admin.kitchen.orders.index') }}" class="mb-4 inline-flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-gray-700">
+            <a href="{{ $backRoute }}" class="mb-4 inline-flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-gray-700">
                 <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                {{ __("Back to Today's Orders") }}
+                {{ $backLabel }}
             </a>
+
+            @if($readOnly)
+                <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    {{ __('Read-only — status can be updated on the delivery day when the order is set to Processing.') }}
+                </div>
+            @endif
             
             <div class="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                 <div>
@@ -35,20 +44,27 @@
                             {{ __('Payment Pending') }}
                         </span>
                     @else
-                        @can('orders.update')
-                            @include('admin.orders.partials._status-form', [
-                                'order' => $order,
-                                'preparationRules' => $preparationRules,
-                                'statusFormAction' => route('admin.kitchen.orders.update-status', $order),
-                                'canSetPreparationTime' => auth()->user()->hasRole('Admin'),
-                                'paymentBadge' => 'verified',
-                            ])
-                        @else
+                        @if($readOnly)
                             <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 {{ __('Payment Verified') }}
                             </span>
-                        @endcan
+                        @else
+                            @can('orders.update')
+                                @include('admin.orders.partials._status-form', [
+                                    'order' => $order,
+                                    'preparationRules' => $preparationRules,
+                                    'statusFormAction' => route('admin.kitchen.orders.update-status', $order),
+                                    'canSetPreparationTime' => auth()->user()->hasRole('Admin'),
+                                    'paymentBadge' => 'verified',
+                                ])
+                            @else
+                                <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
+                                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                    {{ __('Payment Verified') }}
+                                </span>
+                            @endcan
+                        @endif
                     @endif
                 </div>
             </div>
@@ -58,10 +74,12 @@
             {{-- Left Column (Main Details) --}}
             <div class="space-y-6 lg:col-span-8">
                 
-                @include('admin.orders.partials._preparation-highlight', ['order' => $order, 'tz' => $tz])
+                @if(!$readOnly)
+                    @include('admin.orders.partials._preparation-highlight', ['order' => $order, 'tz' => $tz])
+                @endif
 
                 @role('Admin')
-                    {{-- Delivery Highlight (admin only on kitchen view) --}}
+                    {{-- Scheduled delivery (admin only) --}}
                     <div class="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 p-6 shadow-sm">
                         <div>
                             <p class="mb-1 text-sm font-bold uppercase tracking-wider text-indigo-600">{{ __('Scheduled Delivery') }}</p>
