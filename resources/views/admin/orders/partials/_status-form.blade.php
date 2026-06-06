@@ -1,5 +1,6 @@
 @php
     $canSetPreparationTime = $canSetPreparationTime ?? auth()->user()->hasRole('Admin');
+    $paymentBadge = $paymentBadge ?? null;
     $tz = $preparationRules['timezone'];
     $prepMin = $preparationRules['min']->format('Y-m-d\TH:i');
     $prepMax = $preparationRules['max']?->format('Y-m-d\TH:i');
@@ -11,54 +12,71 @@
 @endphp
 
 @if($order->isStatusLocked())
-    <span class="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-sm font-semibold text-teal-800 shadow-sm">
-        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-        {{ __('Delivered') }}
-    </span>
+    <div class="flex flex-wrap items-center justify-end gap-3">
+        @if($paymentBadge === 'verified')
+            <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                {{ __('Payment Verified') }}
+            </span>
+        @endif
+        <span class="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-sm font-semibold text-teal-800 shadow-sm">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            {{ __('Delivered') }}
+        </span>
+    </div>
 @else
 <div id="order-status" class="w-full md:w-auto">
     <form
         method="post"
         action="{{ $statusFormAction }}{{ !empty($fromKitchen) ? '?from=kitchen' : '' }}"
-        class="flex flex-col items-stretch gap-3 sm:items-end"
+        class="flex w-full flex-col gap-3 md:w-auto md:items-end"
         data-order-status-form
         @if($canSetPreparationTime) data-allow-preparation="true" @endif
     >
         @csrf
 
-        <div class="flex flex-wrap items-center gap-2">
-            @if(!$canSetPreparationTime)
-                <span class="inline-flex items-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold capitalize text-blue-800">
-                    {{ __($order->order_status) }}
+        <div class="flex flex-wrap items-center justify-end gap-3">
+            @if($paymentBadge === 'verified')
+                <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    {{ __('Payment Verified') }}
                 </span>
             @endif
-            <select
-                name="order_status"
-                data-order-status-select
-                class="block w-44 cursor-pointer rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-            >
-                @if($canSetPreparationTime)
-                    <option value="pending" @selected($currentStatus === 'pending')>{{ __('Pending') }}</option>
-                    <option value="processing" @selected($currentStatus === 'processing')>{{ __('Processing') }}</option>
-                    <option value="completed" @selected($currentStatus === 'completed')>{{ __('Completed') }}</option>
-                    @if($showDeliveredOption)
-                        <option value="delivered" @selected($currentStatus === 'delivered')>{{ __('Delivered') }}</option>
-                    @endif
-                    <option value="cancelled" @selected($currentStatus === 'cancelled')>{{ __('Cancelled') }}</option>
-                @else
-                    @foreach($kitchenStatusOptions as $status)
-                        <option value="{{ $status }}" @selected($currentStatus === $status)>{{ __(ucfirst($status)) }}</option>
-                    @endforeach
+
+            <div class="flex flex-wrap items-center gap-2">
+                @if(!$canSetPreparationTime)
+                    <span class="inline-flex items-center rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-semibold capitalize text-blue-800">
+                        {{ __($order->order_status) }}
+                    </span>
                 @endif
-            </select>
-            <button
-                type="submit"
-                data-order-status-submit
-                class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-70"
-            >
-                <span data-submit-label>{{ __('Update') }}</span>
-                <span data-submitting-label class="hidden">{{ __('Updating...') }}</span>
-            </button>
+                <select
+                    name="order_status"
+                    data-order-status-select
+                    class="block w-44 cursor-pointer rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-sm font-medium text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                    @if($canSetPreparationTime)
+                        <option value="pending" @selected($currentStatus === 'pending')>{{ __('Pending') }}</option>
+                        <option value="processing" @selected($currentStatus === 'processing')>{{ __('Processing') }}</option>
+                        <option value="completed" @selected($currentStatus === 'completed')>{{ __('Completed') }}</option>
+                        @if($showDeliveredOption)
+                            <option value="delivered" @selected($currentStatus === 'delivered')>{{ __('Delivered') }}</option>
+                        @endif
+                        <option value="cancelled" @selected($currentStatus === 'cancelled')>{{ __('Cancelled') }}</option>
+                    @else
+                        @foreach($kitchenStatusOptions as $status)
+                            <option value="{{ $status }}" @selected($currentStatus === $status)>{{ __(ucfirst($status)) }}</option>
+                        @endforeach
+                    @endif
+                </select>
+                <button
+                    type="submit"
+                    data-order-status-submit
+                    class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                    <span data-submit-label>{{ __('Update') }}</span>
+                    <span data-submitting-label class="hidden">{{ __('Updating...') }}</span>
+                </button>
+            </div>
         </div>
 
         @if($canSetPreparationTime)

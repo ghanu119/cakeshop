@@ -41,7 +41,7 @@
                 {{ __('Back to Orders') }}
             </a>
             
-            <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div class="flex flex-col justify-between gap-4 md:flex-row md:items-start">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-gray-900">
                         {{ __('Order') }} <span class="font-normal text-gray-500">#{{ $order->order_no }}</span>
@@ -50,27 +50,28 @@
                         {{ __('Placed on') }} {{ $orderedAt?->format('M d, Y \a\t h:i A') }}
                     </p>
                 </div>
-                
-                <div class="flex flex-wrap items-center gap-3">
-                    @if(!$paymentPending)
-                        <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                            {{ __('Payment Verified') }}
+
+                <div class="w-full shrink-0 md:w-auto">
+                    @if($paymentPending)
+                        <span class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700 shadow-sm">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ __('Payment Pending') }}
                         </span>
-                        
+                    @else
                         @can('orders.update')
                             @include('admin.orders.partials._status-form', [
                                 'order' => $order,
                                 'preparationRules' => $preparationRules,
                                 'statusFormAction' => route('admin.orders.update-status', $order),
                                 'fromKitchen' => request()->query('from') === 'kitchen',
+                                'paymentBadge' => 'verified',
                             ])
+                        @else
+                            <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
+                                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                {{ __('Payment Verified') }}
+                            </span>
                         @endcan
-                    @else
-                        <span class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700 shadow-sm">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            {{ __('Payment Pending') }}
-                        </span>
                     @endif
                 </div>
             </div>
