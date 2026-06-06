@@ -18,8 +18,8 @@
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <a href="{{ route('admin.orders.index', ['delivery_today' => 1]) }}" class="group rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm ring-1 ring-black/[0.03] transition hover:border-orange-200 hover:shadow-md">
             <div class="flex items-start justify-between gap-3">
-                <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
-                    <svg class="size-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
+                    <svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
                 </div>
                 @if($stats['awaitingVerification'] > 0)
                     <span class="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold uppercase text-amber-700">{{ $stats['awaitingVerification'] }} {{ __('verify') }}</span>
@@ -31,8 +31,8 @@
 
         <a href="{{ route('admin.kitchen.orders.index') }}" class="group rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm ring-1 ring-black/[0.03] transition hover:border-orange-200 hover:shadow-md">
             <div class="flex items-start justify-between gap-3">
-                <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-                    <svg class="size-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                    <svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"/></svg>
                 </div>
                 <span class="text-[10px] font-bold uppercase tracking-wide {{ $inKitchenOverdueCount > 0 ? 'text-red-500' : 'text-emerald-600' }}">
                     {{ $inKitchenOverdueCount > 0 ? __('Needs attention') : __('Active now') }}
@@ -44,8 +44,8 @@
 
         <div class="rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm ring-1 ring-black/[0.03]">
             <div class="flex items-start justify-between gap-3">
-                <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
-                    <svg class="size-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
+                    <svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                 </div>
                 <span class="text-[10px] font-bold uppercase tracking-wide text-gray-400">{{ __('Live tracking') }}</span>
             </div>
@@ -55,8 +55,8 @@
 
         <a href="{{ route('admin.orders.index') }}" class="group rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm ring-1 ring-black/[0.03] transition hover:border-orange-200 hover:shadow-md">
             <div class="flex items-start justify-between gap-3">
-                <div class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
-                    <svg class="size-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 7l-8 4-8-4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-slate-600">
+                    <svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M20 7l-8 4-8-4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 </div>
                 <span class="text-[10px] font-bold uppercase tracking-wide text-gray-400">{{ __('Weekly goal') }}</span>
             </div>
@@ -65,23 +65,27 @@
         </a>
     </div>
 
-    @if($productsCount !== null || $categoriesCount !== null)
-        <div class="flex flex-wrap items-center gap-2">
-            @if($productsCount !== null)
-                <a href="{{ route('admin.products.index') }}" class="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm hover:border-orange-200 hover:text-orange-700">
-                    {{ __('Products') }} <span class="font-bold text-gray-900">{{ $productsCount }}</span>
-                </a>
-            @endif
-            @if($categoriesCount !== null)
-                <a href="{{ route('admin.categories.index') }}" class="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm hover:border-orange-200 hover:text-orange-700">
-                    {{ __('Categories') }} <span class="font-bold text-gray-900">{{ $categoriesCount }}</span>
-                </a>
-            @endif
-            <a href="{{ route('admin.kitchen.orders.index') }}" class="rounded-full bg-orange-500 px-3 py-1 text-xs font-bold text-white shadow-sm hover:bg-orange-600">
-                {{ __('Kitchen view') }} →
+    {{-- Quick links --}}
+    <div class="flex flex-wrap items-center gap-2">
+        @if($productsCount !== null)
+            <a href="{{ route('admin.products.index') }}" class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:border-orange-200 hover:text-orange-700">
+                {{ __('Products') }}
+                <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-bold tabular-nums text-gray-900">{{ $productsCount }}</span>
             </a>
-        </div>
-    @endif
+        @endif
+        @if($categoriesCount !== null)
+            <a href="{{ route('admin.categories.index') }}" class="inline-flex items-center gap-1.5 rounded-full border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition hover:border-orange-200 hover:text-orange-700">
+                {{ __('Categories') }}
+                <span class="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-bold tabular-nums text-gray-900">{{ $categoriesCount }}</span>
+            </a>
+        @endif
+        <a href="{{ route('admin.kitchen.orders.index') }}" class="inline-flex items-center gap-1.5 rounded-full border-2 border-orange-500 bg-orange-100 px-4 py-2 text-sm font-bold text-orange-900 shadow-sm transition hover:border-orange-600 hover:bg-orange-200">
+            {{ __('Kitchen queue') }}
+            @if($stats['inKitchen'] > 0)
+                <span class="rounded-full border border-orange-600 bg-white px-2 py-0.5 text-xs font-black tabular-nums text-orange-700">{{ $stats['inKitchen'] }}</span>
+            @endif
+        </a>
+    </div>
 
     {{-- Today's deliveries — full width --}}
     <section class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm ring-1 ring-black/[0.03]">
@@ -132,8 +136,8 @@
             @endif
         @else
             <div class="px-6 py-16 text-center">
-                <div class="mx-auto mb-3 flex size-14 items-center justify-center rounded-2xl bg-orange-50 text-orange-400">
-                    <svg class="size-7 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <div class="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-orange-50 text-orange-400">
+                    <svg class="h-7 w-7 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </div>
                 <p class="font-semibold text-gray-900">{{ __('No deliveries today') }}</p>
                 <p class="mt-1 text-sm text-gray-500">{{ __('Your schedule is clear for now.') }}</p>
@@ -253,8 +257,8 @@
                 </section>
             @else
                 <div class="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 shadow-sm">
-                    <div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                        <svg class="size-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                     </div>
                     <div>
                         <p class="text-sm font-bold text-emerald-900">{{ __('Payments up to date') }}</p>
@@ -268,9 +272,9 @@
     {{-- FAB --}}
     <a
         href="{{ route('admin.orders.index') }}"
-        class="fixed bottom-8 right-8 z-40 flex size-14 items-center justify-center rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/30 transition hover:scale-105 hover:bg-orange-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
+        class="fixed bottom-8 right-8 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-orange-500 text-white shadow-lg shadow-orange-500/30 transition hover:scale-105 hover:bg-orange-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
         title="{{ __('All orders') }}"
     >
-        <svg class="size-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        <svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
     </a>
 </div>

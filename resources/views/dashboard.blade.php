@@ -22,8 +22,8 @@
         @if(auth()->user()->hasRole('Kitchen') || $adminDashboard !== null)
             @php $dashboardDate = now(settings('timezone') ?? 'Asia/Kolkata')->format('l, j F'); @endphp
             <div class="inline-flex items-center gap-2.5 rounded-2xl border border-gray-200 bg-white py-2 pl-2 pr-4 shadow-sm ring-1 ring-black/[0.04]">
-                <div class="flex size-8 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
-                    <svg class="size-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
+                    <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                 </div>
                 <span class="text-sm font-semibold text-gray-800">{{ $dashboardDate }}</span>
             </div>

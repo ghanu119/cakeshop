@@ -13,7 +13,7 @@
     href="{{ route($orderShowRoute, $order) }}"
     class="group flex items-center gap-3 px-4 py-3 transition hover:bg-orange-50/60 {{ $prepOverdue ? 'bg-red-50/40' : '' }}"
 >
-    <div class="relative size-11 shrink-0 overflow-hidden rounded-lg bg-gray-100 ring-1 ring-black/5">
+    <div class="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg bg-gray-100 ring-1 ring-black/5">
         @if($thumbUrl)
             <img src="{{ $thumbUrl }}" alt="" class="h-full w-full object-cover" />
         @else
