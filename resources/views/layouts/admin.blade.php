@@ -17,14 +17,14 @@
         @vite(['resources/css/app.css', 'resources/js/admin.js'])
     </head>
     <body class="bg-gray-50 font-sans antialiased text-gray-900">
-        <div class="flex min-h-screen">
-            <!-- Sidebar -->
-            <aside class="sticky top-0 flex h-screen w-64 shrink-0 flex-col border-r border-gray-200 bg-white">
-                <div class="border-b border-gray-100 bg-gray-50/50 px-5 py-5">
+        <div class="min-h-screen">
+            <!-- Sidebar: fixed header + footer, scrollable nav -->
+            <aside class="admin-sidebar shrink-0 border-r border-gray-200 bg-white">
+                <div class="shrink-0 border-b border-gray-100 bg-gray-50/50 px-5 py-5">
                     <a href="{{ route('admin.dashboard') }}" class="text-lg font-semibold tracking-tight text-gray-900">{{ config('app.name') }}</a>
                     <p class="mt-0.5 text-xs font-medium uppercase tracking-wider text-gray-400">Admin</p>
                 </div>
-                <nav class="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
+                <nav class="admin-sidebar__nav space-y-0.5 px-3 py-4">
                     <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition duration-200 {{ request()->routeIs('admin.dashboard') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
                         Dashboard
@@ -94,7 +94,7 @@
                     </a>
                     @endcan
                 </nav>
-                <div class="border-t border-gray-100 px-3 py-4 space-y-1">
+                <div class="shrink-0 border-t border-gray-100 bg-white px-3 py-4 space-y-1">
                     <a href="{{ route('admin.profile.edit') }}" class="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-gray-600 transition duration-200 hover:bg-gray-50 hover:text-gray-900">
                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                         Profile
@@ -109,7 +109,7 @@
                 </div>
             </aside>
 
-            <main class="min-w-0 flex-1 py-8 px-4 sm:px-6 lg:px-8">
+            <main class="admin-main py-8 px-4 sm:px-6 lg:px-8">
                 @if (session('status'))
                     <div class="mb-6 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('status') }}</div>
                 @endif
