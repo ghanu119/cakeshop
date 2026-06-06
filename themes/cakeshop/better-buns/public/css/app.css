@@ -197,6 +197,14 @@ footer {
 .order-product-gallery--compact .order-product-gallery__thumb:hover {
     border-color: rgba(241, 140, 22, 0.6) !important;
 }
+.product-card-body {
+    padding-bottom: 1.25rem;
+}
+@media (min-width: 640px) {
+    .product-card-body {
+        padding-bottom: 1.5rem;
+    }
+}
 .product-card-media {
     touch-action: pan-y pinch-zoom;
 }

@@ -82,7 +82,7 @@
             </div>
         @endif
     </div>
-    <a href="{{ $productUrl }}" class="flex min-h-0 flex-1 flex-col px-6 pt-5 pb-8 sm:px-8 sm:pb-10">
+    <a href="{{ $productUrl }}" class="product-card-body flex min-h-0 flex-1 flex-col px-6 pt-4 sm:px-8">
         @if($product->category)
             <div class="mb-3 flex items-center gap-1">
                 <svg class="h-3 w-3 shrink-0 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
