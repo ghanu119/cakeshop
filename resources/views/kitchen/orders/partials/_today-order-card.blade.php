@@ -6,10 +6,11 @@
     $images = $product ? $product->orderedProductImages() : collect();
     $primary = $images->first();
     $thumbUrl = $primary ? $product->productImageUrl($primary, 'medium') : null;
+    $orderShowRoute = $orderShowRoute ?? 'admin.kitchen.orders.show';
 @endphp
 
 <a
-    href="{{ route('admin.kitchen.orders.show', $order) }}"
+    href="{{ route($orderShowRoute, $order) }}"
     class="group flex flex-col overflow-hidden rounded-2xl border bg-white shadow-sm transition duration-200 hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {{ $prepOverdue ? 'border-red-200 ring-2 ring-red-100' : 'border-gray-200 hover:border-indigo-200' }}"
 >
     <div class="relative aspect-[5/4] w-full overflow-hidden bg-gradient-to-br from-gray-100 to-gray-50">

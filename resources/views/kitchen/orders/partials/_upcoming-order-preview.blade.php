@@ -16,10 +16,11 @@
         $days !== null && $days <= 5 => 'border-l-4 border-l-indigo-400',
         default => 'border-l-4 border-l-transparent',
     };
+    $orderShowRoute = $orderShowRoute ?? 'admin.kitchen.orders.upcoming.show';
 @endphp
 
 <a
-    href="{{ route('admin.kitchen.orders.upcoming.show', $order) }}"
+    href="{{ route($orderShowRoute, $order) }}"
     class="group block rounded-xl border border-gray-100 bg-white p-3 shadow-sm transition duration-200 hover:border-indigo-200 hover:bg-indigo-50/30 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 {{ $borderAccent }}"
 >
     <div class="flex gap-3">

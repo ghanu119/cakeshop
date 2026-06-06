@@ -225,6 +225,20 @@ class Order extends Model implements HasMedia
         ];
     }
 
+    /**
+     * @return array{start: \Carbon\Carbon, end: \Carbon\Carbon}
+     */
+    public static function weekBoundsInShopTz(): array
+    {
+        $timezone = self::shopTimezone();
+        $nowShop = Carbon::now($timezone);
+
+        return [
+            'start' => $nowShop->copy()->startOfWeek()->utc(),
+            'end' => $nowShop->copy()->endOfWeek()->utc(),
+        ];
+    }
+
     public function scopePaymentVerified($query): void
     {
         $query->where('payment_status', 'verified');
@@ -260,6 +274,23 @@ class Order extends Model implements HasMedia
     public function scopeKitchenUpcoming($query): void
     {
         $query->paymentVerified()->deliveryUpcoming();
+    }
+
+    public function scopeAwaitingPaymentVerification($query): void
+    {
+        $query->where('payment_status', 'pending')
+            ->where(function ($q) {
+                $q->whereNotNull('payment_reference')
+                    ->orWhereNotNull('payment_amount')
+                    ->orWhereNotNull('payment_made_at')
+                    ->orWhereHas('media', fn ($m) => $m->where('collection_name', 'payment_proof'));
+            });
+    }
+
+    public function scopeOrderedThisWeek($query): void
+    {
+        $bounds = self::weekBoundsInShopTz();
+        $query->whereBetween('ordered_at', [$bounds['start'], $bounds['end']]);
     }
 
     public function scopeVisibleToKitchen($query): void

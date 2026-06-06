@@ -13,6 +13,14 @@ use Illuminate\Validation\ValidationException;
 class OrderService
 {
     public const KITCHEN_UPCOMING_PREVIEW_LIMIT = 6;
+
+    public const ADMIN_TODAY_DELIVERY_PREVIEW_LIMIT = 8;
+
+    public const ADMIN_UPCOMING_PREVIEW_LIMIT = 6;
+
+    public const ADMIN_PAYMENT_REVIEW_PREVIEW_LIMIT = 5;
+
+    public const ADMIN_IN_KITCHEN_PREVIEW_LIMIT = 4;
     public function __construct(
         private ProductVariantService $productVariantService
     ) {}
@@ -41,6 +49,12 @@ class OrderService
         }
         if ($request->filled('to_date')) {
             $query->whereDate('ordered_at', '<=', $request->input('to_date'));
+        }
+        if ($request->boolean('delivery_today')) {
+            $query->deliveryToday();
+        }
+        if ($request->boolean('awaiting_payment_verification')) {
+            $query->awaitingPaymentVerification();
         }
 
         return $query->orderByDesc('ordered_at')->paginate(15)->withQueryString();
@@ -86,6 +100,84 @@ class OrderService
             ->kitchenUpcoming()
             ->orderBy('delivery_at')
             ->paginate(20);
+    }
+
+    public function listAdminTodayDeliveriesPreview(int $limit = self::ADMIN_TODAY_DELIVERY_PREVIEW_LIMIT): Collection
+    {
+        return Order::query()
+            ->with(['product.media'])
+            ->deliveryToday()
+            ->orderBy('delivery_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function countAdminTodayDeliveries(): int
+    {
+        return Order::query()->deliveryToday()->count();
+    }
+
+    public function listAdminUpcomingPreview(int $limit = self::ADMIN_UPCOMING_PREVIEW_LIMIT): Collection
+    {
+        return Order::query()
+            ->with(['product.media'])
+            ->deliveryUpcoming()
+            ->orderBy('delivery_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function countAdminUpcoming(): int
+    {
+        return Order::query()->deliveryUpcoming()->count();
+    }
+
+    public function listAdminPaymentReviewPreview(int $limit = self::ADMIN_PAYMENT_REVIEW_PREVIEW_LIMIT): Collection
+    {
+        return Order::query()
+            ->with(['product', 'media'])
+            ->awaitingPaymentVerification()
+            ->orderBy('payment_made_at')
+            ->orderBy('ordered_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    public function countAdminPaymentReview(): int
+    {
+        return Order::query()->awaitingPaymentVerification()->count();
+    }
+
+    public function listAdminRecentOrders(int $limit = 5): Collection
+    {
+        return Order::query()
+            ->with(['product'])
+            ->orderByDesc('ordered_at')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * @return array{
+     *     deliveriesToday: int,
+     *     inKitchen: int,
+     *     awaitingVerification: int,
+     *     revenueToday: float,
+     *     ordersThisWeek: int
+     * }
+     */
+    public function adminDashboardStats(): array
+    {
+        return [
+            'deliveriesToday' => Order::query()->deliveryToday()->count(),
+            'inKitchen' => Order::query()->kitchenTodayQueue()->count(),
+            'awaitingVerification' => Order::query()->awaitingPaymentVerification()->count(),
+            'revenueToday' => (float) Order::query()
+                ->deliveryToday()
+                ->paymentVerified()
+                ->sum('amount'),
+            'ordersThisWeek' => Order::query()->orderedThisWeek()->count(),
+        ];
     }
 
     public function createOrder(Product $product, array $data): Order

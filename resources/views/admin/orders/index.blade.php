@@ -40,10 +40,21 @@
                 <label for="to_date" class="mb-1 block text-sm font-medium text-gray-700">{{ __('To date') }}</label>
                 <x-input type="date" name="to_date" id="to_date" value="{{ request('to_date') }}" class="block w-full" />
             </div>
+            <div class="flex flex-col gap-2">
+                <span class="text-sm font-medium text-gray-700">{{ __('Quick filters') }}</span>
+                <label class="inline-flex items-center gap-2 text-sm text-gray-600">
+                    <input type="checkbox" name="delivery_today" value="1" @checked(request()->boolean('delivery_today')) class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                    {{ __('Delivery today') }}
+                </label>
+                <label class="inline-flex items-center gap-2 text-sm text-gray-600">
+                    <input type="checkbox" name="awaiting_payment_verification" value="1" @checked(request()->boolean('awaiting_payment_verification')) class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" />
+                    {{ __('Awaiting payment verification') }}
+                </label>
+            </div>
             <button type="submit" class="rounded-lg bg-gray-800 px-4 py-2 font-medium text-white transition duration-200 hover:bg-gray-700">
                 {{ __('Filter') }}
             </button>
-            @if(request()->hasAny(['search', 'order_status', 'payment_status', 'from_date', 'to_date']))
+            @if(request()->hasAny(['search', 'order_status', 'payment_status', 'from_date', 'to_date', 'delivery_today', 'awaiting_payment_verification']))
                 <a href="{{ route('admin.orders.index') }}" class="rounded-lg border border-gray-300 bg-white px-4 py-2 font-medium text-gray-700 transition duration-200 hover:bg-gray-50">
                     {{ __('Reset') }}
                 </a>
