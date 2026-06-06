@@ -103,6 +103,7 @@ class OrderFlavorTest extends TestCase
             'guest_name' => 'Test Customer',
             'guest_phone' => '9876543210',
             'quantity' => 1,
+            'fulfillment_type' => 'takeaway',
             'delivery_at' => $delivery,
         ];
     }

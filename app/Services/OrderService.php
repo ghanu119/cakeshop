@@ -24,7 +24,7 @@ class OrderService
             $query->where(function ($q) use ($term) {
                 $q->where('guest_phone', 'like', "%{$term}%")
                     ->orWhere('guest_name', 'like', "%{$term}%")
-                    ->orWhere('uuid', 'like', "%{$term}%")
+                    ->orWhere('order_no', 'like', "%{$term}%")
                     ->orWhere('flavor_name', 'like', "%{$term}%");
             });
         }

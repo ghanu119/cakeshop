@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', __('Order') . ' #' . Str::limit($order->uuid, 8))
+@section('title', __('Order') . ' #' . $order->order_no)
 
 @section('content')
     @php
@@ -44,7 +44,7 @@
             <div class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
                 <div>
                     <h1 class="text-2xl font-bold tracking-tight text-gray-900">
-                        {{ __('Order') }} <span class="font-normal text-gray-500">#{{ Str::limit($order->uuid, 8) }}</span>
+                        {{ __('Order') }} <span class="font-normal text-gray-500">#{{ $order->order_no }}</span>
                     </h1>
                     <p class="mt-1 text-sm text-gray-500">
                         {{ __('Placed on') }} {{ $orderedAt?->format('M d, Y \a\t h:i A') }}

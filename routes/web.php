@@ -41,13 +41,13 @@ Route::get('robots.txt', [\App\Http\Controllers\RobotsController::class, 'index'
 Route::prefix('order')->name('order.')->group(function () {
     Route::get('product/{product}', [OrderController::class, 'placeForm'])->name('place');
     Route::post('product/{product}', [OrderController::class, 'place'])->name('store');
-    Route::get('confirm/{uuid}', [OrderController::class, 'confirm'])->name('confirm');
+    Route::get('confirm/{order}', [OrderController::class, 'confirm'])->name('confirm');
     Route::get('history', [OrderController::class, 'historyForm'])->name('history');
     Route::post('history', [OrderController::class, 'historySearch'])->name('history.search');
-    Route::get('submit-payment/{uuid}', [OrderController::class, 'submitPaymentForm'])->name('submit-payment');
+    Route::get('submit-payment/{order}', [OrderController::class, 'submitPaymentForm'])->name('submit-payment');
     Route::get('submit-payment', [OrderController::class, 'submitPaymentForm'])->name('submit-payment.enter');
     Route::post('submit-payment', [OrderController::class, 'submitPaymentLookup'])->name('submit-payment.lookup');
-    Route::post('submit-payment/{uuid}', [OrderController::class, 'submitPayment'])->name('submit-payment.store');
+    Route::post('submit-payment/{order}', [OrderController::class, 'submitPayment'])->name('submit-payment.store');
 });
 
 Route::middleware(['auth'])->group(function () {

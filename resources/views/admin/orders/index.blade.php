@@ -10,7 +10,7 @@
     <x-card class="mb-6">
         <form method="get" action="{{ route('admin.orders.index') }}" class="flex flex-wrap items-end gap-4">
             <div class="min-w-[200px] flex-1">
-                <label for="search" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Search (phone, name, UUID)') }}</label>
+                <label for="search" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Search (phone, name, order no)') }}</label>
                 <x-input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="{{ __('Search…') }}" class="block w-full" />
             </div>
             <div class="w-40">
@@ -54,7 +54,7 @@
     <x-card :padding="false">
         <x-table.wrapper>
             <x-table.header>
-                <x-table.th>{{ __('UUID') }}</x-table.th>
+                <x-table.th>{{ __('Order no') }}</x-table.th>
                 <x-table.th>{{ __('Guest') }}</x-table.th>
                 <x-table.th>{{ __('Product') }}</x-table.th>
                 @role('Admin')
@@ -72,7 +72,7 @@
                 @endphp
                 @forelse($orders as $order)
                     <x-table.row>
-                        <x-table.cell class="font-mono text-sm">{{ $order->uuid }}</x-table.cell>
+                        <x-table.cell class="font-mono text-sm">{{ $order->order_no }}</x-table.cell>
                         <x-table.cell>
                             <div>{{ $order->guest_name }}</div>
                             <div class="text-sm text-gray-500">{{ $order->guest_phone }}</div>

@@ -72,7 +72,7 @@ class OrderProcessingTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
 
         $response->assertOk();
-        $response->assertSee($order->uuid, false);
+        $response->assertSee($order->order_no, false);
     }
 
     public function test_pending_order_with_today_delivery_not_on_kitchen_index(): void
@@ -83,7 +83,7 @@ class OrderProcessingTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
 
         $response->assertOk();
-        $response->assertDontSee($order->uuid, false);
+        $response->assertDontSee($order->order_no, false);
     }
 
     public function test_processing_order_with_tomorrow_delivery_not_on_kitchen_index(): void
@@ -108,7 +108,7 @@ class OrderProcessingTest extends TestCase
         $response = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
 
         $response->assertOk();
-        $response->assertDontSee($order->uuid, false);
+        $response->assertDontSee($order->order_no, false);
     }
 
     public function test_kitchen_user_cannot_set_processing_or_preparation_time(): void
@@ -237,7 +237,7 @@ class OrderProcessingTest extends TestCase
         $this->assertSame('completed', $order->order_status);
 
         $response = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
-        $response->assertDontSee($order->uuid, false);
+        $response->assertDontSee($order->order_no, false);
     }
 
     private function adminUser(): User

@@ -31,7 +31,7 @@
             <div class="bg-stone-50 px-6 sm:px-10 py-6 border-b border-stone-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                     <p class="text-xs font-bold text-stone-400 uppercase tracking-wider mb-1">{{ __('Order Reference') }}</p>
-                    <p class="text-lg sm:text-xl font-mono font-bold text-stone-800 break-all">{{ $order->uuid }}</p>
+                    <p class="text-lg sm:text-xl font-mono font-bold text-stone-800 break-all">{{ $order->order_no }}</p>
                 </div>
                 <div class="flex flex-wrap gap-2 shrink-0">
                     <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider 

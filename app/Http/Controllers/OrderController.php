@@ -67,7 +67,7 @@ class OrderController extends Controller
         }
         $recentDuplicate = $duplicateQuery->first();
         if ($recentDuplicate) {
-            return redirect()->route('order.confirm', ['uuid' => $recentDuplicate->uuid])
+            return redirect()->route('order.confirm', $recentDuplicate)
                 ->with('status', __('Your order was already received. You can view or submit payment details below.'));
         }
 
@@ -83,23 +83,21 @@ class OrderController extends Controller
             }
         }
 
-        return redirect()->route('order.confirm', ['uuid' => $order->uuid]);
+        return redirect()->route('order.confirm', $order);
     }
 
-    public function confirm(string $uuid): View|RedirectResponse
+    public function confirm(Order $order): View|RedirectResponse
     {
-        $order = Order::where('uuid', $uuid)->firstOrFail();
         $order->load(['product' => fn ($q) => $q->withTrashed(), 'product.media', 'media']);
 
         return view('order.confirm', compact('order'));
     }
 
-    public function submitPaymentForm(?string $uuid = null): View|RedirectResponse
+    public function submitPaymentForm(?Order $order = null): View|RedirectResponse
     {
-        if ($uuid === null) {
+        if ($order === null) {
             return view('order.submit-payment-lookup');
         }
-        $order = Order::where('uuid', $uuid)->firstOrFail();
         $order->load('media');
 
         return view('order.submit-payment', compact('order'));
@@ -108,20 +106,19 @@ class OrderController extends Controller
     public function submitPaymentLookup(Request $request): RedirectResponse
     {
         $request->validate([
-            'uuid' => ['required', 'string'],
+            'order_no' => ['required', 'string'],
             'phone' => ['required', 'string'],
         ]);
-        $order = Order::where('uuid', $request->input('uuid'))->first();
+        $order = Order::where('order_no', $request->input('order_no'))->first();
         if (! $order || $order->guest_phone !== $request->input('phone')) {
             return back()->withErrors(['phone' => __('The order reference or phone number does not match our records.')])->withInput();
         }
 
-        return redirect()->route('order.submit-payment', ['uuid' => $order->uuid]);
+        return redirect()->route('order.submit-payment', $order);
     }
 
-    public function submitPayment(SubmitPaymentDetailsRequest $request, string $uuid): RedirectResponse
+    public function submitPayment(SubmitPaymentDetailsRequest $request, Order $order): RedirectResponse
     {
-        $order = Order::where('uuid', $uuid)->firstOrFail();
         $isUpdate = $order->hasPaymentDetailsSubmitted();
         $data = $request->validated();
         $this->orderService->submitPaymentDetails($order, $data);
@@ -135,7 +132,7 @@ class OrderController extends Controller
             ? __('Payment details updated. We will verify and update your order shortly.')
             : __('Payment details submitted. We will verify and update your order shortly.');
 
-        return redirect()->route('order.confirm', ['uuid' => $order->uuid])
+        return redirect()->route('order.confirm', $order)
             ->with('status', $statusMessage);
     }
 

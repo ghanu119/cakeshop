@@ -2,15 +2,16 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Order;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SubmitPaymentDetailsRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $uuid = $this->route('uuid');
-        $order = $uuid ? \App\Models\Order::where('uuid', $uuid)->first() : null;
-        return $order && $order->guest_phone === $this->input('phone');
+        $order = $this->route('order');
+
+        return $order instanceof Order && $order->guest_phone === $this->input('phone');
     }
 
     public function rules(): array

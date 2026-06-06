@@ -8,7 +8,7 @@
     <h1 class="mb-6 text-3xl font-bold tracking-tight text-gray-900">{{ __('Order confirmed') }}</h1>
 
     <x-card class="mb-6">
-        <p class="mb-2 text-lg font-medium text-gray-900">{{ __('Order reference') }}: <span class="font-mono">{{ $order->uuid }}</span></p>
+        <p class="mb-2 text-lg font-medium text-gray-900">{{ __('Order reference') }}: <span class="font-mono">{{ $order->order_no }}</span></p>
         <p class="mb-4 text-gray-600">{{ __('Keep this reference for payment and tracking.') }}</p>
         <p class="mb-2">
             {{ __('Product') }}:

@@ -1,7 +1,7 @@
 @component('mail::message')
 # {{ __('New order') }}
 
-{{ __('Order reference') }}: **{{ $order->uuid }}**
+{{ __('Order reference') }}: **{{ $order->order_no }}**
 
 - {{ __('Guest') }}: {{ $order->guest_name }} ({{ $order->guest_phone }})
 - {{ __('Product') }}: {{ $order->displayProductName() }}

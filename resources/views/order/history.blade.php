@@ -32,14 +32,14 @@
                         <div>
                             <p class="font-medium text-gray-900">{{ $order->displayProductName() }}</p>
                             @include('order.partials._order-options', ['order' => $order])
-                            <p class="text-sm text-gray-500">{{ __('Reference') }}: <span class="font-mono">{{ $order->uuid }}</span></p>
+                            <p class="text-sm text-gray-500">{{ __('Reference') }}: <span class="font-mono">{{ $order->order_no }}</span></p>
                             <p class="text-sm text-gray-600">{{ __('Ordered') }}: {{ $order->ordered_at?->format('d M Y H:i') }} · {{ __('Amount') }}: ₹ {{ number_format($order->amount, 2) }}</p>
                             <div class="mt-2 flex flex-wrap gap-2">
                                 <x-badge :variant="$order->payment_status === 'verified' ? 'success' : 'warning'">{{ $order->payment_status === 'verified' ? __('Payment verified') : __('Payment pending') }}</x-badge>
                                 <x-badge variant="default">{{ ucfirst($order->order_status ?? 'pending') }}</x-badge>
                             </div>
                         </div>
-                        <a href="{{ route('order.confirm', ['uuid' => $order->uuid]) }}" class="inline-flex shrink-0 items-center rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-700">
+                        <a href="{{ route('order.confirm', $order) }}" class="inline-flex shrink-0 items-center rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-gray-700">
                             {{ __('View order') }}
                         </a>
                     </x-card>

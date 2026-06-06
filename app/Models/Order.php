@@ -45,6 +45,7 @@ class Order extends Model implements HasMedia
 
     protected $fillable = [
         'uuid',
+        'order_no',
         'user_id',
         'guest_name',
         'guest_email',
@@ -90,6 +91,11 @@ class Order extends Model implements HasMedia
         ];
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'uuid';
+    }
+
     protected static function booted(): void
     {
         static::creating(function (Order $order) {
@@ -98,6 +104,9 @@ class Order extends Model implements HasMedia
             }
             if (empty($order->ordered_at)) {
                 $order->ordered_at = now();
+            }
+            if (empty($order->order_no)) {
+                $order->order_no = app(\App\Services\OrderNumberService::class)->assignNext($order);
             }
         });
     }

@@ -20,7 +20,7 @@ class NewOrderNotification extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('New order') . ' #' . $this->order->uuid,
+            subject: __('New order') . ' #' . $this->order->order_no,
         );
     }
 

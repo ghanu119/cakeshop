@@ -19,7 +19,7 @@
             <div class="flex flex-col justify-between gap-4 border-b border-stone-100 bg-stone-50 px-6 py-6 sm:flex-row sm:items-center sm:px-10">
                 <div>
                     <p class="mb-1 text-xs font-bold uppercase tracking-wider text-stone-400">{{ __('Order Reference') }}</p>
-                    <p class="break-all font-mono text-lg font-bold text-stone-800 sm:text-xl">{{ $order->uuid }}</p>
+                    <p class="break-all font-mono text-lg font-bold text-stone-800 sm:text-xl">{{ $order->order_no }}</p>
                 </div>
                 <div class="flex shrink-0 flex-wrap gap-2">
                     <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider

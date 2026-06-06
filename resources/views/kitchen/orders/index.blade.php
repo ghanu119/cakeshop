@@ -13,7 +13,7 @@
     <x-card :padding="false">
         <x-table.wrapper>
             <x-table.header>
-                <x-table.th>{{ __('UUID') }}</x-table.th>
+                <x-table.th>{{ __('Order no') }}</x-table.th>
                 <x-table.th>{{ __('Guest') }}</x-table.th>
                 <x-table.th>{{ __('Product') }}</x-table.th>
                 <x-table.th>{{ __('Quantity') }}</x-table.th>
@@ -27,7 +27,7 @@
             <x-table.body>
                 @forelse($orders as $order)
                     <x-table.row>
-                        <x-table.cell class="font-mono text-sm">{{ $order->uuid }}</x-table.cell>
+                        <x-table.cell class="font-mono text-sm">{{ $order->order_no }}</x-table.cell>
                         <x-table.cell>
                             <div>{{ $order->guest_name }}</div>
                             <div class="text-sm text-gray-500">{{ $order->guest_phone }}</div>

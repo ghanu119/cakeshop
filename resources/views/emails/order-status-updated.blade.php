@@ -1,7 +1,7 @@
 @component('mail::message')
 # {{ __('Order status updated') }}
 
-{{ __('Order reference') }}: **{{ $order->uuid }}**
+{{ __('Order reference') }}: **{{ $order->order_no }}**
 
 {{ __('Current status') }}: **{{ $order->order_status }}**
 

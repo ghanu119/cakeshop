@@ -68,7 +68,7 @@
 
         <p class="mt-6 text-sm text-stone-600 text-center sm:text-left">
             {{ __('Need to correct something? You can update your payment details.') }}
-            <a href="{{ route('order.submit-payment', ['uuid' => $order->uuid]) }}" class="font-semibold text-blue-700 hover:text-blue-900 underline underline-offset-2">
+            <a href="{{ route('order.submit-payment', $order) }}" class="font-semibold text-blue-700 hover:text-blue-900 underline underline-offset-2">
                 {{ __('Update payment details') }}
             </a>
         </p>
@@ -105,7 +105,7 @@
             <p class="text-sm font-medium text-stone-600 mb-4">
                 {!! nl2br(e(settings('payment_submit_instructions') ?? __('Already paid? Share your transaction details and screenshot with us.'))) !!}
             </p>
-            <a href="{{ route('order.submit-payment', ['uuid' => $order->uuid]) }}" class="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-4 font-bold text-white shadow-[0_8px_20px_rgb(217,119,6,0.25)] hover:shadow-[0_12px_25px_rgb(217,119,6,0.35)] hover:-translate-y-0.5 transition-all text-lg gap-2">
+            <a href="{{ route('order.submit-payment', $order) }}" class="inline-flex w-full items-center justify-center rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-4 font-bold text-white shadow-[0_8px_20px_rgb(217,119,6,0.25)] hover:shadow-[0_12px_25px_rgb(217,119,6,0.35)] hover:-translate-y-0.5 transition-all text-lg gap-2">
                 {{ __('Submit payment details') }}
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
             </a>

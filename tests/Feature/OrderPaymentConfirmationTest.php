@@ -16,12 +16,38 @@ class OrderPaymentConfirmationTest extends TestCase
     {
         $order = Order::factory()->create();
 
-        $response = $this->get(route('order.confirm', ['uuid' => $order->uuid]));
+        $response = $this->get(route('order.confirm', $order));
 
         $response->assertOk();
+        $response->assertSee($order->order_no, false);
         $response->assertSee(__('Payment required'), false);
         $response->assertSee(__('Submit payment details'), false);
         $response->assertDontSee(__('Payment details received'), false);
+    }
+
+    public function test_order_routes_use_uuid_not_order_no(): void
+    {
+        $order = Order::factory()->create();
+
+        $confirmUrl = route('order.confirm', $order);
+        $paymentUrl = route('order.submit-payment', $order);
+        $adminUrl = route('admin.orders.show', $order);
+
+        $this->assertStringContainsString($order->uuid, $confirmUrl);
+        $this->assertStringContainsString($order->uuid, $paymentUrl);
+        $this->assertStringContainsString($order->uuid, $adminUrl);
+        $this->assertStringNotContainsString($order->order_no, $confirmUrl);
+        $this->assertStringNotContainsString($order->order_no, $paymentUrl);
+        $this->assertStringNotContainsString($order->order_no, $adminUrl);
+    }
+
+    public function test_order_cannot_be_accessed_by_order_no_in_url(): void
+    {
+        $order = Order::factory()->create();
+
+        $response = $this->get('/order/confirm/'.$order->order_no);
+
+        $response->assertNotFound();
     }
 
     public function test_confirm_page_shows_awaiting_verification_after_payment_details_submitted(): void
@@ -31,7 +57,7 @@ class OrderPaymentConfirmationTest extends TestCase
             'payment_amount' => 749,
         ]);
 
-        $response = $this->get(route('order.confirm', ['uuid' => $order->uuid]));
+        $response = $this->get(route('order.confirm', $order));
 
         $response->assertOk();
         $response->assertSee(__('Awaiting verification'), false);
@@ -47,7 +73,7 @@ class OrderPaymentConfirmationTest extends TestCase
         Storage::fake('public');
         $order = Order::factory()->create();
 
-        $response = $this->post(route('order.submit-payment.store', ['uuid' => $order->uuid]), [
+        $response = $this->post(route('order.submit-payment.store', $order), [
             'phone' => $order->guest_phone,
             'payment_reference' => 'REF-999',
             'payment_amount' => $order->amount,
@@ -55,10 +81,10 @@ class OrderPaymentConfirmationTest extends TestCase
             'payment_proof' => UploadedFile::fake()->image('proof.jpg'),
         ]);
 
-        $response->assertRedirect(route('order.confirm', ['uuid' => $order->uuid]));
+        $response->assertRedirect(route('order.confirm', $order));
         $response->assertSessionHas('status');
 
-        $confirm = $this->get(route('order.confirm', ['uuid' => $order->uuid]));
+        $confirm = $this->get(route('order.confirm', $order));
         $confirm->assertOk();
         $confirm->assertSee(__('Payment details received'), false);
         $confirm->assertSee('REF-999', false);
@@ -71,7 +97,7 @@ class OrderPaymentConfirmationTest extends TestCase
             'fulfillment_type' => 'delivery',
         ]);
 
-        $response = $this->get(route('order.confirm', ['uuid' => $order->uuid]));
+        $response = $this->get(route('order.confirm', $order));
 
         $response->assertOk();
         $response->assertSee(__('Order type'), false);
@@ -87,7 +113,7 @@ class OrderPaymentConfirmationTest extends TestCase
             'delivery_address' => null,
         ]);
 
-        $response = $this->get(route('order.confirm', ['uuid' => $order->uuid]));
+        $response = $this->get(route('order.confirm', $order));
 
         $response->assertOk();
         $response->assertSee(__('Take away'), false);
@@ -98,7 +124,7 @@ class OrderPaymentConfirmationTest extends TestCase
     {
         $order = Order::factory()->verified()->create();
 
-        $response = $this->get(route('order.confirm', ['uuid' => $order->uuid]));
+        $response = $this->get(route('order.confirm', $order));
 
         $response->assertOk();
         $response->assertSee(__('Payment verified'), false);

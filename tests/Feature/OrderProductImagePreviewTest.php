@@ -79,7 +79,7 @@ class OrderProductImagePreviewTest extends TestCase
             'product_name' => $product->name_en,
         ]);
 
-        $response = $this->get(route('order.confirm', ['uuid' => $order->uuid]));
+        $response = $this->get(route('order.confirm', $order));
 
         $response->assertOk();
         $response->assertSee(__('Order Confirmed!'), false);
@@ -102,7 +102,7 @@ class OrderProductImagePreviewTest extends TestCase
 
         $product->delete();
 
-        $response = $this->get(route('order.confirm', ['uuid' => $order->uuid]));
+        $response = $this->get(route('order.confirm', $order));
 
         $response->assertOk();
         $response->assertSee($product->name_en, false);

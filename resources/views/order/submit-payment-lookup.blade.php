@@ -9,9 +9,9 @@
         <form method="post" action="{{ route('order.submit-payment.lookup') }}" class="space-y-4">
             @csrf
             <div>
-                <label for="uuid" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Order reference') }} *</label>
-                <x-input type="text" name="uuid" id="uuid" value="{{ old('uuid') }}" class="block w-full" placeholder="e.g. 550e8400-e29b-41d4-a716-446655440000" required />
-                @error('uuid')
+                <label for="order_no" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Order reference') }} *</label>
+                <x-input type="text" name="order_no" id="order_no" value="{{ old('order_no') }}" class="block w-full" placeholder="e.g. BB-20260606-001" required />
+                @error('order_no')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>

@@ -20,13 +20,13 @@
         @endif
 
         <x-card>
-            <p class="mb-4 text-gray-600">{{ __('Order') }}: <span class="font-mono">{{ $order->uuid }}</span></p>
+            <p class="mb-4 text-gray-600">{{ __('Order') }}: <span class="font-mono">{{ $order->order_no }}</span></p>
             <div class="mb-4 rounded-lg border border-gray-200 bg-gray-50 px-4 py-3 text-sm text-gray-700">
                 <p class="font-medium text-gray-900">{{ $order->displayProductName() }}</p>
                 @include('order.partials._order-options', ['order' => $order])
                 <p class="mt-1">{{ __('Amount') }}: ₹ {{ number_format($order->amount, 2) }}</p>
             </div>
-            <form method="post" action="{{ route('order.submit-payment.store', ['uuid' => $order->uuid]) }}" enctype="multipart/form-data" class="space-y-4">
+            <form method="post" action="{{ route('order.submit-payment.store', $order) }}" enctype="multipart/form-data" class="space-y-4">
                 @csrf
                 <input type="hidden" name="phone" value="{{ $order->guest_phone }}" />
                 <div>
@@ -67,7 +67,7 @@
         </x-card>
 
         <p class="mt-6 text-center text-sm text-gray-500">
-            <a href="{{ route('order.confirm', ['uuid' => $order->uuid]) }}" class="text-gray-600 hover:underline">{{ __('Back to order confirmation') }}</a>
+            <a href="{{ route('order.confirm', $order) }}" class="text-gray-600 hover:underline">{{ __('Back to order confirmation') }}</a>
         </p>
     </div>
 @endsection

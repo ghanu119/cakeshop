@@ -20,7 +20,7 @@ class OrderStatusUpdated extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: __('Order status updated') . ' #' . $this->order->uuid,
+            subject: __('Order status updated') . ' #' . $this->order->order_no,
         );
     }
 
