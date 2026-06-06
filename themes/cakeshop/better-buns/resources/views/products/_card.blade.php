@@ -20,11 +20,10 @@
         $weightLabels = $weightLabels->unique()->values();
     }
     $hasVariants = $weightLabels->isNotEmpty();
-    $flavorLabels = collect();
-    if ($product->relationLoaded('flavors')) {
-        $flavorLabels = $product->flavors->pluck('name_en')->filter()->values();
-    }
-    $hasFlavors = $flavorLabels->isNotEmpty();
+    $maxVisibleWeights = 3;
+    $visibleWeights = $weightLabels->take($maxVisibleWeights);
+    $hasMoreWeights = $weightLabels->count() > $maxVisibleWeights;
+    $availableInText = $visibleWeights->implode(', ') . ($hasMoreWeights ? ' ' . __('and more..') : '');
 @endphp
 <article class="group flex flex-col bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.12)] border border-amber-100/50 hover:border-amber-200 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden h-full">
     <div
@@ -83,28 +82,19 @@
             </div>
         @endif
     </div>
-    <a href="{{ $productUrl }}" class="flex flex-col flex-grow p-6 sm:p-8">
+    <a href="{{ $productUrl }}" class="flex min-h-0 flex-1 flex-col p-6 sm:p-8">
         @if($product->category)
             <p class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-2">{{ $product->category->name_en }}</p>
         @endif
         <h3 class="text-xl font-bold text-stone-900 mb-3 group-hover:text-amber-600 transition-colors line-clamp-1">{{ $product->name_en }}</h3>
-        @if($hasVariants)
-            <div class="mb-3 flex flex-wrap gap-1">
-                @foreach($weightLabels->take(5) as $label)
-                    <span class="inline-flex rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-800 border border-amber-200">{{ $label }}</span>
-                @endforeach
-            </div>
-        @endif
-        @if($hasFlavors)
-            <div class="mb-3 flex flex-wrap gap-1">
-                @foreach($flavorLabels->take(5) as $label)
-                    <span class="inline-flex rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-800 border border-rose-200">{{ $label }}</span>
-                @endforeach
-                @if($flavorLabels->count() > 5)
-                    <span class="inline-flex rounded-full bg-stone-100 px-2 py-0.5 text-[10px] font-bold text-stone-600 border border-stone-200">+{{ $flavorLabels->count() - 5 }}</span>
-                @endif
-            </div>
-        @endif
+        <div class="mb-3 min-h-5">
+            @if($hasVariants)
+                <p class="text-xs leading-5 text-stone-500 line-clamp-1">
+                    <span class="font-semibold text-stone-600">{{ __('Available in:') }}</span>
+                    {{ $availableInText }}
+                </p>
+            @endif
+        </div>
         @if($product->short_description)
             <p class="text-sm text-stone-500 mb-6 line-clamp-2 leading-relaxed flex-grow">{{ $product->short_description }}</p>
         @else

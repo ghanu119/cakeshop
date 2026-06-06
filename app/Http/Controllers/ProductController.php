@@ -58,14 +58,28 @@ class ProductController extends Controller
     }
 
     /**
+     * Relations needed for storefront product cards (matches homepage/catalog listings).
+     *
+     * @return array<string, mixed>
+     */
+    private function relatedProductCardRelations(): array
+    {
+        return [
+            'category',
+            'media',
+            'variants' => fn ($q) => $q->active()->orderBy('sort_order'),
+            'variants.selections.value',
+        ];
+    }
+
+    /**
      * Related products: same category (random), then fill up to limit with others if needed.
      */
     private function getRelatedProducts(Product $product, int $limit = 4)
     {
-        $related = Product::related($product, $limit)->with([
-            'media',
-            'flavors' => fn ($q) => $q->active()->orderByPivot('sort_order'),
-        ])->get();
+        $with = $this->relatedProductCardRelations();
+
+        $related = Product::related($product, $limit)->with($with)->get();
 
         if ($related->count() >= $limit) {
             return $related;
@@ -73,10 +87,7 @@ class ProductController extends Controller
 
         $excludeIds = $related->pluck('id')->all();
         $fill = Product::exceptIds($product, $excludeIds)
-            ->with([
-                'media',
-                'flavors' => fn ($q) => $q->active()->orderByPivot('sort_order'),
-            ])
+            ->with($with)
             ->limit($limit - $related->count())
             ->get();
 
