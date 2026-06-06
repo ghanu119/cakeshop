@@ -320,6 +320,26 @@ footer {
     background: var(--theme-section-mesh);
 }
 
+.catalog-product-grid > article {
+    height: 100%;
+}
+
+.catalog-filters-body {
+    padding-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+    .catalog-filters-body {
+        padding-bottom: 2.25rem;
+    }
+}
+
+@media (min-width: 1024px) {
+    .catalog-filters-body {
+        padding-bottom: 2.5rem;
+    }
+}
+
 /* Ingredients page */
 .ingredients-hero {
     background: var(--theme-section-mesh);

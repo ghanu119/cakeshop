@@ -82,11 +82,16 @@
             </div>
         @endif
     </div>
-    <a href="{{ $productUrl }}" class="flex min-h-0 flex-1 flex-col p-6 sm:p-8">
+    <a href="{{ $productUrl }}" class="flex min-h-0 flex-1 flex-col px-6 pt-5 pb-8 sm:px-8 sm:pb-10">
         @if($product->category)
-            <p class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-2">{{ $product->category->name_en }}</p>
+            <div class="mb-3 flex items-center gap-1">
+                <svg class="h-3 w-3 shrink-0 text-stone-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                </svg>
+                <span class="truncate text-[10px] font-medium leading-none text-stone-500">{{ $product->category->name_en }}</span>
+            </div>
         @endif
-        <h3 class="text-xl font-bold text-stone-900 mb-3 group-hover:text-amber-600 transition-colors line-clamp-1">{{ $product->name_en }}</h3>
+        <h3 class="mb-2 line-clamp-2 text-lg font-bold leading-snug text-stone-900 transition-colors group-hover:text-amber-600">{{ $product->name_en }}</h3>
         <div class="mb-3 min-h-5">
             @if($hasVariants)
                 <p class="text-xs leading-5 text-stone-500 line-clamp-1">
@@ -96,11 +101,11 @@
             @endif
         </div>
         @if($product->short_description)
-            <p class="text-sm text-stone-500 mb-6 line-clamp-2 leading-relaxed flex-grow">{{ $product->short_description }}</p>
+            <p class="mb-4 line-clamp-2 flex-grow text-sm leading-relaxed text-stone-500">{{ $product->short_description }}</p>
         @else
-            <div class="mb-6 flex-grow"></div>
+            <div class="mb-4 flex-grow"></div>
         @endif
-        <div class="mt-auto flex items-end justify-between border-t border-stone-100 pt-5">
+        <div class="mt-auto flex items-end justify-between border-t border-stone-100 pt-4">
             @php
                 $formattedPrice = number_format($product->price, 2);
                 [$wholePrice, $decimalPrice] = explode('.', $formattedPrice);
