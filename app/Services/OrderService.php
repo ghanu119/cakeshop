@@ -6,12 +6,24 @@ use App\Models\Order;
 use App\Models\Product;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class OrderService
 {
+    private const ADMIN_SORTABLE_COLUMNS = [
+        'order_no',
+        'guest_name',
+        'amount',
+        'payment_status',
+        'order_status',
+        'fulfillment_type',
+        'ordered_at',
+        'delivery_at',
+    ];
+
     public const KITCHEN_UPCOMING_PREVIEW_LIMIT = 6;
 
     public const ADMIN_TODAY_DELIVERY_PREVIEW_LIMIT = 8;
@@ -57,7 +69,22 @@ class OrderService
             $query->awaitingPaymentVerification();
         }
 
-        return $query->orderByDesc('ordered_at')->paginate(15)->withQueryString();
+        $this->applyAdminListSorting($query, $request);
+
+        return $query->paginate(15)->withQueryString();
+    }
+
+    private function applyAdminListSorting(Builder $query, Request $request): void
+    {
+        $sort = $request->input('sort', 'ordered_at');
+        $direction = strtolower((string) $request->input('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+
+        if (! in_array($sort, self::ADMIN_SORTABLE_COLUMNS, true)) {
+            $sort = 'ordered_at';
+            $direction = 'desc';
+        }
+
+        $query->orderBy($sort, $direction)->orderByDesc('id');
     }
 
     public function listForKitchen(): LengthAwarePaginator
