@@ -15,8 +15,6 @@ class StoreCategoryRequest extends FormRequest
     {
         return [
             'name_en' => ['required', 'string', 'max:255'],
-            'name_hi' => ['nullable', 'string', 'max:255'],
-            'name_gu' => ['nullable', 'string', 'max:255'],
             'status' => ['required', 'string', 'in:active,inactive'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
         ];

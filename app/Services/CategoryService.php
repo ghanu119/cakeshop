@@ -15,11 +15,7 @@ class CategoryService
 
         if ($request->filled('search')) {
             $term = $request->input('search');
-            $query->where(function ($q) use ($term) {
-                $q->where('name_en', 'like', "%{$term}%")
-                    ->orWhere('name_hi', 'like', "%{$term}%")
-                    ->orWhere('name_gu', 'like', "%{$term}%");
-            });
+            $query->where('name_en', 'like', "%{$term}%");
         }
 
         if ($request->filled('status')) {
@@ -34,8 +30,6 @@ class CategoryService
         $category = $category ?? new Category;
 
         $category->name_en = $data['name_en'];
-        $category->name_hi = $data['name_hi'] ?? null;
-        $category->name_gu = $data['name_gu'] ?? null;
         $category->status = $data['status'] ?? 'active';
         $category->sort_order = (int) ($data['sort_order'] ?? 0);
 

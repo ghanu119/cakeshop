@@ -18,8 +18,6 @@ class CategoryFactory extends Factory
         $name = fake()->unique()->words(2, true);
         return [
             'name_en' => $name,
-            'name_hi' => null,
-            'name_gu' => null,
             'slug' => Str::slug($name),
             'status' => 'active',
             'sort_order' => 0,

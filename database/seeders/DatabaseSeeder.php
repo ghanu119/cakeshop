@@ -11,16 +11,23 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $this->call([
+        $seeders = [
             RoleAndPermissionSeeder::class,
             UserSeeder::class,
             SettingSeeder::class,
             VariantOptionSeeder::class,
             FlavorSeeder::class,
             CategorySeeder::class,
-            ProductSeeder::class,
             FeatureSeeder::class,
             TestimonialSeeder::class,
-        ]);
+        ];
+
+        if (! app()->environment('production')) {
+            $seeders = array_merge($seeders, [
+                ProductSeeder::class,
+            ]);
+        }
+
+        $this->call($seeders);
     }
 }

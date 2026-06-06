@@ -21,7 +21,7 @@ class CategorySeeder extends Seeder
         foreach ($items as $item) {
             Category::firstOrCreate(
                 ['slug' => $item['slug']],
-                array_merge($item, ['name_hi' => null, 'name_gu' => null])
+                $item
             );
         }
     }
