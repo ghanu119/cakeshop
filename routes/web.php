@@ -42,6 +42,7 @@ Route::prefix('order')->name('order.')->group(function () {
     Route::get('product/{product}', [OrderController::class, 'placeForm'])->name('place');
     Route::post('product/{product}', [OrderController::class, 'place'])->name('store');
     Route::get('confirm/{order}', [OrderController::class, 'confirm'])->name('confirm');
+    Route::get('payment-qr/download', [OrderController::class, 'downloadPaymentQr'])->name('payment-qr.download');
     Route::get('history', [OrderController::class, 'historyForm'])->name('history');
     Route::post('history', [OrderController::class, 'historySearch'])->name('history.search');
     Route::get('submit-payment/{order}', [OrderController::class, 'submitPaymentForm'])->name('submit-payment');

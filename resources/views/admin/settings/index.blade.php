@@ -107,6 +107,11 @@
                     <p class="mt-1 text-sm text-gray-500">{{ __('Shown on the payment page after order is placed.') }}</p>
                 </div>
                 <div>
+                    <label for="payment_upi_id" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Payment UPI ID') }}</label>
+                    <x-input type="text" name="payment_upi_id" id="payment_upi_id" value="{{ old('payment_upi_id', $settings['payment_upi_id'] ?? '') }}" class="block w-full font-mono" placeholder="merchant@upi" />
+                    <p class="mt-1 text-sm text-gray-500">{{ __('UPI handle shown on order confirmation. Enables copy and mobile UPI app pay.') }}</p>
+                </div>
+                <div>
                     <label for="payment_instructions" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Payment instructions') }}</label>
                     <textarea name="payment_instructions" id="payment_instructions" rows="4" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">{{ old('payment_instructions', $settings['payment_instructions'] ?? '') }}</textarea>
                     <p class="mt-1 text-sm text-gray-500">{{ __('Shown to guest after placing order (e.g. QR, UPI ID, bank details).') }}</p>

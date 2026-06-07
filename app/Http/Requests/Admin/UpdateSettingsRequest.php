@@ -25,6 +25,7 @@ class UpdateSettingsRequest extends FormRequest
             'google_map_iframe' => ['nullable', 'string'],
             'opening_hours' => ['nullable', 'string'],
             'payment_instructions' => ['nullable', 'string'],
+            'payment_upi_id' => ['nullable', 'string', 'max:255'],
             'payment_submit_instructions' => ['nullable', 'string'],
             'currency' => ['nullable', 'string', 'max:10'],
             'timezone' => ['nullable', 'string', 'max:50'],

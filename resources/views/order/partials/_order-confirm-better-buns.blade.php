@@ -17,10 +17,7 @@
         <div class="mb-8 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
 
             <div class="flex flex-col justify-between gap-4 border-b border-stone-100 bg-stone-50 px-6 py-6 sm:flex-row sm:items-center sm:px-10">
-                <div>
-                    <p class="mb-1 text-xs font-bold uppercase tracking-wider text-stone-400">{{ __('Order Reference') }}</p>
-                    <p class="break-all font-mono text-lg font-bold text-stone-800 sm:text-xl">{{ $order->order_no }}</p>
-                </div>
+                @include('order.partials._order-reference', ['order' => $order, 'variant' => 'header'])
                 <div class="flex shrink-0 flex-wrap gap-2">
                     <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-bold uppercase tracking-wider
                         {{ match($order->order_status ?? 'pending') { 'completed' => 'bg-green-100 text-green-700', 'processing' => 'bg-blue-100 text-blue-700', 'cancelled' => 'bg-red-100 text-red-700', default => 'bg-amber-100 text-amber-700' } }}">
@@ -40,11 +37,11 @@
             <div class="border-b border-stone-100 p-6 sm:p-10">
                 <h3 class="mb-6 text-sm font-bold uppercase tracking-wider text-stone-400">{{ __('Order Summary') }}</h3>
 
-                <div class="order-summary-item mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
+                <div class="order-summary-item mb-8 flex flex-col gap-4">
                     @if($order->product)
                         @include('order.partials._order-product-gallery', ['product' => $order->product, 'compact' => true])
                     @else
-                        <div class="h-20 w-20 shrink-0 overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 shadow-sm sm:h-24 sm:w-24">
+                        <div class="mx-auto h-32 w-32 shrink-0 overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 shadow-sm">
                             <div class="flex h-full w-full items-center justify-center">
                                 <svg class="h-8 w-8 text-stone-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -53,9 +50,9 @@
                         </div>
                     @endif
 
-                    <div class="min-w-0 w-full flex-1">
-                        <div class="order-summary-item__header mb-3 flex flex-col gap-1 sm:mb-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-                            <h4 class="font-display text-base font-bold leading-snug text-stone-900 sm:min-w-0 sm:flex-1 sm:text-xl">
+                    <div class="min-w-0 w-full">
+                        <div class="order-summary-item__header mb-3 flex items-baseline justify-between gap-4 border-b border-stone-100 pb-3">
+                            <h4 class="font-display min-w-0 flex-1 text-lg font-bold leading-snug text-stone-900">
                                 @if($order->product && ! $order->product->trashed())
                                     <a href="{{ route('products.show', $order->product->slug) }}" class="transition-colors hover:text-amber-700 hover:underline">{{ $order->displayProductName() }}</a>
                                 @else
@@ -65,7 +62,7 @@
                                     @endif
                                 @endif
                             </h4>
-                            <p class="text-xl font-black tabular-nums text-stone-900 sm:shrink-0 sm:text-2xl">{{ $symbol }}{{ number_format($order->amount, 2) }}</p>
+                            <p class="shrink-0 text-xl font-black tabular-nums text-stone-900">{{ $symbol }}{{ number_format($order->amount, 2) }}</p>
                         </div>
                         <div class="space-y-1">
                             @include('order.partials._order-options', [

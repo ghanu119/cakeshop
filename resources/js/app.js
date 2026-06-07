@@ -13,6 +13,7 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
 import './product-gallery';
+import './order-confirm';
 
 document.addEventListener('DOMContentLoaded', function () {
     AOS.init({

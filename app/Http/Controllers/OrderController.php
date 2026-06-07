@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\SiteSetting;
 use App\Services\OrderService;
 use App\Services\ProductVariantService;
 use App\Http\Requests\PlaceOrderRequest;
@@ -11,6 +12,7 @@ use App\Http\Requests\SubmitPaymentDetailsRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class OrderController extends Controller
 {
@@ -83,7 +85,8 @@ class OrderController extends Controller
             }
         }
 
-        return redirect()->route('order.confirm', $order);
+        return redirect()->route('order.confirm', $order)
+            ->with('order_placed', true);
     }
 
     public function confirm(Order $order): View|RedirectResponse
@@ -91,6 +94,23 @@ class OrderController extends Controller
         $order->load(['product' => fn ($q) => $q->withTrashed(), 'product.media', 'media']);
 
         return view('order.confirm', compact('order'));
+    }
+
+    public function downloadPaymentQr(): BinaryFileResponse
+    {
+        $media = SiteSetting::first()?->getFirstMedia('payment_qr');
+
+        if ($media === null || ! is_file($media->getPath())) {
+            abort(404);
+        }
+
+        $extension = pathinfo($media->file_name, PATHINFO_EXTENSION) ?: 'jpg';
+
+        return response()->download(
+            $media->getPath(),
+            'payment-qr.'.$extension,
+            ['Content-Type' => $media->mime_type ?? 'image/jpeg']
+        );
     }
 
     public function submitPaymentForm(?Order $order = null): View|RedirectResponse

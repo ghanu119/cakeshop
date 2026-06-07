@@ -15,11 +15,11 @@
 
 @if($galleryImages->isNotEmpty())
     <div
-        class="js-product-gallery order-product-gallery {{ $compact ? 'order-product-gallery--compact flex w-full shrink-0 flex-col gap-2.5 sm:w-24 sm:gap-2' : '' }}"
+        class="js-product-gallery order-product-gallery {{ $compact ? 'order-product-gallery--compact flex w-full flex-col gap-3' : '' }}"
         data-gallery-items='@json($galleryLightboxItems)'
     >
         @if($compact)
-            <div class="order-product-gallery__main relative w-full overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 shadow-sm aspect-[5/4] sm:aspect-auto sm:h-24 sm:w-24">
+            <div class="order-product-gallery__main relative mx-auto w-full max-w-sm overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 shadow-sm aspect-[4/3]">
                 @php $primary = $galleryImages->first(); @endphp
                 <a
                     href="{{ $primary['large'] }}"
@@ -36,11 +36,11 @@
                 </a>
             </div>
             @if($galleryImages->count() > 1)
-                <div class="order-product-gallery__thumbs flex gap-2 overflow-x-auto pb-0.5 sm:flex-wrap sm:gap-1.5 sm:overflow-visible" role="list" aria-label="{{ __('Product images') }}">
+                <div class="order-product-gallery__thumbs mx-auto flex w-full max-w-sm justify-center gap-2 overflow-x-auto pb-0.5" role="list" aria-label="{{ __('Product images') }}">
                     @foreach($galleryImages as $index => $image)
                         <a
                             href="{{ $image['large'] }}"
-                            class="js-product-gallery-lightbox order-product-gallery__thumb {{ $index === 0 ? 'is-active' : '' }} h-14 w-14 shrink-0 overflow-hidden rounded-xl border-2 border-stone-200 sm:h-10 sm:w-10 sm:rounded-lg"
+                            class="js-product-gallery-lightbox order-product-gallery__thumb {{ $index === 0 ? 'is-active' : '' }} h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 border-stone-200"
                             data-gallery-index="{{ $index }}"
                             data-order-gallery-thumb="{{ $index }}"
                             data-medium-src="{{ $image['medium'] }}"

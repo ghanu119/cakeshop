@@ -29,6 +29,7 @@ class Setting extends Model
         'google_map_iframe' => null,
         'opening_hours' => null,
         'payment_instructions' => '',
+        'payment_upi_id' => '',
         'payment_submit_instructions' => 'Share your transaction/UPI reference number, amount paid, and time of payment. You may upload a screenshot of the success screen.',
         'currency' => 'INR',
         'timezone' => 'Asia/Kolkata',
