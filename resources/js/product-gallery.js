@@ -208,6 +208,56 @@ function initProductGallery() {
     });
 }
 
+function getCardMediaWidth($media) {
+    const $card = $media.closest('article');
+    const widths = [
+        $card.innerWidth(),
+        $media.parent().innerWidth(),
+    ];
+
+    for (const width of widths) {
+        if (width > 0 && width <= 2000) {
+            return width;
+        }
+    }
+
+    return 0;
+}
+
+function applyCardMediaBox($slider) {
+    const $media = $slider.closest('.product-card-media');
+    const width = getCardMediaWidth($media);
+
+    if (width <= 0) {
+        return;
+    }
+
+    const height = Math.round(width * 0.75);
+
+    $media.css({
+        paddingTop: '0',
+        width: '100%',
+        maxWidth: '100%',
+        height: `${height}px`,
+        '--card-media-height': `${height}px`,
+    });
+
+    $slider.css({
+        width: '100%',
+        maxWidth: '100%',
+        height: `${height}px`,
+    });
+
+    if ($slider.hasClass('slick-initialized')) {
+        $slider.find('.slick-list').css({
+            width: '100%',
+            maxWidth: '100%',
+            height: `${height}px`,
+        });
+        callSlickMethod($slider, 'setPosition');
+    }
+}
+
 function syncCardDots($slider, slideIndex) {
     const $media = $slider.closest('.product-card-media');
     const $dots = $media.find('.product-card-dot');
@@ -235,9 +285,12 @@ function initCardSliders() {
         const $dots = $media.find('.product-card-dot');
         let dragged = false;
 
+        applyCardMediaBox($slider);
+
         $slider.on('init', function (_event, slick) {
             $media.addClass('is-card-slider-ready');
             syncCardDots($slider, slick?.currentSlide ?? 0);
+            applyCardMediaBox($slider);
         });
 
         $slider.slick({
@@ -255,7 +308,8 @@ function initCardSliders() {
             adaptiveHeight: false,
             swipe: true,
             touchThreshold: 8,
-            fade: false,
+            fade: true,
+            cssEase: 'ease-out',
         });
 
         $slider.on('swipe', function () {
@@ -303,4 +357,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     initCardSliders();
+
+    let cardResizeTimer;
+    $(window).off('resize.productCardSlider').on('resize.productCardSlider', function () {
+        clearTimeout(cardResizeTimer);
+        cardResizeTimer = setTimeout(function () {
+            $('.js-product-card-slider').each(function () {
+                applyCardMediaBox($(this));
+            });
+        }, 150);
+    });
 });

@@ -25,19 +25,19 @@
     $hasMoreWeights = $weightLabels->count() > $maxVisibleWeights;
     $availableInText = $visibleWeights->implode(', ') . ($hasMoreWeights ? ' ' . __('and more..') : '');
 @endphp
-<article class="group flex flex-col bg-white rounded-3xl shadow-[0_4px_20px_rgb(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.12)] border border-amber-100/50 hover:border-amber-200 transition-all duration-500 hover:-translate-y-1.5 overflow-hidden h-full">
+<article class="group flex min-w-0 max-w-full flex-col overflow-hidden h-full rounded-3xl border border-amber-100/50 bg-white shadow-[0_4px_20px_rgb(0,0,0,0.03)] transition-all duration-500 hover:-translate-y-1.5 hover:border-amber-200 hover:shadow-[0_20px_40px_rgb(217,119,6,0.12)]">
     <div
-        class="product-card-media relative overflow-hidden aspect-[4/3] bg-stone-50"
+        class="product-card-media bg-stone-50"
         data-product-url="{{ $productUrl }}"
     >
         @if($cardImageCount > 1)
-            <div class="js-product-card-slider product-card-slider h-full w-full">
+            <div class="js-product-card-slider product-card-slider">
                 @foreach($cardImages as $index => $cardImgUrl)
-                    <div class="product-card-slide h-full">
+                    <div class="product-card-slide">
                         <img
                             src="{{ $cardImgUrl }}"
                             alt="{{ $product->name_en }}"
-                            class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                            class="product-card-media-img transition-transform duration-700 group-hover:scale-105"
                             loading="{{ $index === 0 ? 'eager' : 'lazy' }}"
                         />
                     </div>
@@ -60,11 +60,11 @@
                 @endforeach
             </div>
         @elseif($imgUrl)
-            <a href="{{ $productUrl }}" class="block h-full w-full" tabindex="-1" aria-hidden="true">
-                <img src="{{ $imgUrl }}" alt="{{ $product->name_en }}" class="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+            <a href="{{ $productUrl }}" class="product-card-media-cover block" tabindex="-1" aria-hidden="true">
+                <img src="{{ $imgUrl }}" alt="{{ $product->name_en }}" class="product-card-media-img transition-transform duration-700 group-hover:scale-105" />
             </a>
         @else
-            <a href="{{ $productUrl }}" class="flex h-full w-full items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50" tabindex="-1" aria-hidden="true">
+            <a href="{{ $productUrl }}" class="product-card-media-cover flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-50" tabindex="-1" aria-hidden="true">
                 <svg class="h-16 w-16 text-amber-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>

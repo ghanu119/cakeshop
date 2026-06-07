@@ -135,9 +135,9 @@
         <div class="mb-12 text-center">
             <h2 class="text-3xl font-bold text-stone-900 sm:text-4xl">{{ __('You might also love') }}</h2>
         </div>
-        <div class="grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <div class="related-products-grid grid items-stretch gap-6 sm:grid-cols-2 lg:grid-cols-4">
             @foreach($related as $p)
-                <div class="h-full min-h-0">
+                <div class="h-full min-h-0 min-w-0 overflow-hidden">
                     @include('products._card', ['product' => $p])
                 </div>
             @endforeach
