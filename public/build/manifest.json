@@ -49,7 +49,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CQ9mTdaC.css",
+    "file": "assets/app-V7TmFMGB.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -88,7 +88,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-ClVkjDsH.js",
+    "file": "assets/app-B2g7eYA7.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -147,7 +147,7 @@
     ]
   },
   "resources/js/product-gallery.js": {
-    "file": "assets/product-gallery-WvNcrod5.js",
+    "file": "assets/product-gallery-DYm8fEmC.js",
     "name": "product-gallery",
     "src": "resources/js/product-gallery.js",
     "isEntry": true,

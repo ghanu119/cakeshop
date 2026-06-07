@@ -15,11 +15,11 @@
 
 @if($galleryImages->isNotEmpty())
     <div
-        class="js-product-gallery order-product-gallery {{ $compact ? 'order-product-gallery--compact shrink-0 flex flex-col gap-2' : '' }}"
+        class="js-product-gallery order-product-gallery {{ $compact ? 'order-product-gallery--compact flex w-full shrink-0 flex-col gap-2.5 sm:w-24 sm:gap-2' : '' }}"
         data-gallery-items='@json($galleryLightboxItems)'
     >
         @if($compact)
-            <div class="order-product-gallery__main w-20 h-20 sm:w-24 sm:h-24 rounded-2xl overflow-hidden shadow-sm bg-stone-100 border border-stone-200">
+            <div class="order-product-gallery__main relative w-full overflow-hidden rounded-2xl border border-stone-200 bg-stone-100 shadow-sm aspect-[5/4] sm:aspect-auto sm:h-24 sm:w-24">
                 @php $primary = $galleryImages->first(); @endphp
                 <a
                     href="{{ $primary['large'] }}"
@@ -36,15 +36,17 @@
                 </a>
             </div>
             @if($galleryImages->count() > 1)
-                <div class="order-product-gallery__thumbs flex max-w-[6rem] gap-1 overflow-x-auto pb-0.5 sm:max-w-[6.5rem]">
+                <div class="order-product-gallery__thumbs flex gap-2 overflow-x-auto pb-0.5 sm:flex-wrap sm:gap-1.5 sm:overflow-visible" role="list" aria-label="{{ __('Product images') }}">
                     @foreach($galleryImages as $index => $image)
                         <a
                             href="{{ $image['large'] }}"
-                            class="js-product-gallery-lightbox order-product-gallery__thumb aspect-square w-10 shrink-0 overflow-hidden rounded-lg border-2 {{ $index === 0 ? 'border-amber-500' : 'border-transparent' }}"
+                            class="js-product-gallery-lightbox order-product-gallery__thumb {{ $index === 0 ? 'is-active' : '' }} h-14 w-14 shrink-0 overflow-hidden rounded-xl border-2 border-stone-200 sm:h-10 sm:w-10 sm:rounded-lg"
                             data-gallery-index="{{ $index }}"
                             data-order-gallery-thumb="{{ $index }}"
                             data-medium-src="{{ $image['medium'] }}"
+                            role="listitem"
                             aria-label="{{ __('View image :n', ['n' => $index + 1]) }}"
+                            @if($index === 0) aria-current="true" @endif
                         >
                             <img src="{{ $image['thumb'] }}" alt="" class="h-full w-full object-cover" />
                         </a>

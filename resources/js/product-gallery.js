@@ -120,8 +120,8 @@ function initOrderCompactGallery($gallery) {
             }
         }
 
-        $gallery.find('[data-order-gallery-thumb]').removeClass('border-amber-500').addClass('border-transparent');
-        $thumb.removeClass('border-transparent').addClass('border-amber-500');
+        $gallery.find('[data-order-gallery-thumb]').removeClass('is-active').removeAttr('aria-current');
+        $thumb.addClass('is-active').attr('aria-current', 'true');
     });
 }
 
@@ -134,11 +134,13 @@ function initProductGallery() {
     $roots.each(function () {
         const $gallery = $(this);
         bindLightbox($gallery);
-        initProductGalleryShell($gallery);
 
         if ($gallery.hasClass('order-product-gallery--compact')) {
             initOrderCompactGallery($gallery);
+            return;
         }
+
+        initProductGalleryShell($gallery);
 
         const $main = $gallery.find('.js-product-gallery-main');
         const $thumbs = $gallery.parent().find('.js-product-gallery-thumbs');

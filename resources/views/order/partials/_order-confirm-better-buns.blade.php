@@ -40,7 +40,7 @@
             <div class="border-b border-stone-100 p-6 sm:p-10">
                 <h3 class="mb-6 text-sm font-bold uppercase tracking-wider text-stone-400">{{ __('Order Summary') }}</h3>
 
-                <div class="mb-8 flex items-start gap-5">
+                <div class="order-summary-item mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
                     @if($order->product)
                         @include('order.partials._order-product-gallery', ['product' => $order->product, 'compact' => true])
                     @else
@@ -53,30 +53,31 @@
                         </div>
                     @endif
 
-                    <div class="min-w-0 flex-1">
-                        <h4 class="font-display mb-1 text-lg font-bold leading-tight text-stone-900 sm:text-xl">
-                            @if($order->product && ! $order->product->trashed())
-                                <a href="{{ route('products.show', $order->product->slug) }}" class="transition-colors hover:text-amber-700 hover:underline">{{ $order->displayProductName() }}</a>
-                            @else
-                                <span>{{ $order->displayProductName() }}</span>
-                                @if($order->product?->trashed())
-                                    <span class="text-sm font-normal text-stone-500">({{ __('no longer available') }})</span>
+                    <div class="min-w-0 w-full flex-1">
+                        <div class="order-summary-item__header mb-3 flex flex-col gap-1 sm:mb-2 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+                            <h4 class="font-display text-base font-bold leading-snug text-stone-900 sm:min-w-0 sm:flex-1 sm:text-xl">
+                                @if($order->product && ! $order->product->trashed())
+                                    <a href="{{ route('products.show', $order->product->slug) }}" class="transition-colors hover:text-amber-700 hover:underline">{{ $order->displayProductName() }}</a>
+                                @else
+                                    <span>{{ $order->displayProductName() }}</span>
+                                    @if($order->product?->trashed())
+                                        <span class="text-sm font-normal text-stone-500">({{ __('no longer available') }})</span>
+                                    @endif
                                 @endif
+                            </h4>
+                            <p class="text-xl font-black tabular-nums text-stone-900 sm:shrink-0 sm:text-2xl">{{ $symbol }}{{ number_format($order->amount, 2) }}</p>
+                        </div>
+                        <div class="space-y-1">
+                            @include('order.partials._order-options', [
+                                'order' => $order,
+                                'weightClass' => 'text-sm font-semibold text-amber-700',
+                                'flavorClass' => 'text-sm font-semibold text-rose-700',
+                            ])
+                            <p class="text-sm font-medium text-stone-500">{{ __('Quantity') }}: {{ $order->quantity }}</p>
+                            @if($order->unit_price !== null)
+                                <p class="text-sm text-stone-500">{{ __('Unit price') }}: {{ $symbol }}{{ number_format($order->displayUnitPrice(), 2) }}</p>
                             @endif
-                        </h4>
-                        @include('order.partials._order-options', [
-                            'order' => $order,
-                            'weightClass' => 'mb-1 text-sm font-semibold text-amber-700',
-                            'flavorClass' => 'mb-1 text-sm font-semibold text-rose-700',
-                        ])
-                        <p class="text-sm font-medium text-stone-500">{{ __('Quantity') }}: {{ $order->quantity }}</p>
-                        @if($order->unit_price !== null)
-                            <p class="text-sm text-stone-500">{{ __('Unit price') }}: {{ $symbol }}{{ number_format($order->displayUnitPrice(), 2) }}</p>
-                        @endif
-                    </div>
-
-                    <div class="shrink-0 text-right">
-                        <p class="text-xl font-black text-stone-900 sm:text-2xl">{{ $symbol }}{{ number_format($order->amount, 2) }}</p>
+                        </div>
                     </div>
                 </div>
 
