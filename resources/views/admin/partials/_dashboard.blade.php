@@ -215,7 +215,7 @@
             {{-- Upcoming --}}
             <section class="overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-sm ring-1 ring-black/[0.03]">
                 <div class="flex items-center justify-between border-b border-gray-100 px-4 py-3.5 sm:px-5">
-                    <h2 class="text-sm font-black uppercase tracking-tight text-gray-900">{{ __('Upcoming') }}</h2>
+                    <h2 class="text-sm font-black uppercase tracking-tight text-gray-900">{{ __('Upcoming Delivery') }}</h2>
                     @if($upcomingTotal > 0)
                         <span class="rounded-full bg-gray-100 px-2.5 py-0.5 text-[10px] font-black uppercase text-gray-600">{{ $upcomingTotal }} {{ __('scheduled') }}</span>
                     @endif

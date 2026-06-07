@@ -256,24 +256,29 @@ class Order extends Model implements HasMedia
         $query->where('delivery_at', '>', $bounds['end']);
     }
 
+    public function scopePreparedByUpcoming($query): void
+    {
+        $bounds = self::todayBoundsInShopTz();
+        $query->where('preparation_at', '>', $bounds['end']);
+    }
+
     public function scopeKitchenTodayQueue($query): void
     {
         $query->paymentVerified()
             ->where('order_status', 'processing')
-            ->whereNotNull('preparation_at')
-            ->deliveryToday();
+            ->whereNotNull('preparation_at');
 
         $bounds = self::todayBoundsInShopTz();
         $leadHours = settings('kitchen_lead_hours');
         if ($leadHours !== null && $leadHours !== '') {
             $visibleUntilUtc = $bounds['now']->copy()->addHours((int) $leadHours)->utc();
-            $query->where('delivery_at', '<=', $visibleUntilUtc);
+            $query->where('preparation_at', '<=', $visibleUntilUtc);
         }
     }
 
     public function scopeKitchenUpcoming($query): void
     {
-        $query->paymentVerified()->deliveryUpcoming();
+        $query->paymentVerified()->where('order_status', 'pending');
     }
 
     public function scopeAwaitingPaymentVerification($query): void
@@ -313,8 +318,7 @@ class Order extends Model implements HasMedia
     {
         if (! $this->isPaymentVerified()
             || ! $this->isProcessing()
-            || ! $this->hasPreparationDeadline()
-            || ! $this->isDeliveryToday()) {
+            || ! $this->hasPreparationDeadline()) {
             return false;
         }
 
@@ -324,9 +328,11 @@ class Order extends Model implements HasMedia
         }
 
         $bounds = self::todayBoundsInShopTz();
-        $visibleUntilUtc = $bounds['now']->copy()->addHours((int) $leadHours)->utc();
 
-        return $this->delivery_at <= $visibleUntilUtc;
+        return $bounds['now'] <= $this->preparation_at;
+
+        // $visibleUntilUtc = $bounds['now']->copy()->addHours((int) $leadHours)->utc();
+        // return $this->delivery_at <= $visibleUntilUtc;
     }
 
     public function canKitchenUpdateStatus(): bool

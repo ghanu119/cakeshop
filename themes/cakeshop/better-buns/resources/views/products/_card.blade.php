@@ -91,7 +91,12 @@
                 <span class="truncate text-[10px] font-medium leading-none text-stone-500">{{ $product->category->name_en }}</span>
             </div>
         @endif
-        <h3 class="mb-2 line-clamp-2 text-lg font-bold leading-snug text-stone-900 transition-colors group-hover:text-amber-600">{{ $product->name_en }}</h3>
+        <h3 class="mb-2 line-clamp-2 text-lg font-bold leading-snug text-stone-900 transition-colors group-hover:text-amber-600 truncate">{{ $product->name_en }}</h3>
+        @if($product->short_description)
+            <p class="mb-4 line-clamp-2 flex-grow text-sm leading-relaxed text-stone-500">{{ $product->short_description }}</p>
+        @else
+            <div class="mb-4 flex-grow"></div>
+        @endif
         <div class="mb-3 min-h-5">
             @if($hasVariants)
                 <p class="text-xs leading-5 text-stone-500 line-clamp-1">
@@ -100,11 +105,6 @@
                 </p>
             @endif
         </div>
-        @if($product->short_description)
-            <p class="mb-4 line-clamp-2 flex-grow text-sm leading-relaxed text-stone-500">{{ $product->short_description }}</p>
-        @else
-            <div class="mb-4 flex-grow"></div>
-        @endif
         <div class="mt-auto flex items-end justify-between border-t border-stone-100 pt-4">
             @php
                 $formattedPrice = number_format($product->price, 2);

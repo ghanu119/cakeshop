@@ -3,10 +3,11 @@
 @section('title', __('Products') . ' – ' . (settings('site_name') ?: config('app.name')))
 
 @section('content')
+
 {{-- Page Header --}}
 <section class="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-12 lg:py-16">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">{{ __('Our Products') }}</h1>
+        <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">{{ __('Our Products 123') }}</h1>
         <p class="mt-4 text-xl text-gray-600">{{ __('Browse our complete collection of delicious cakes') }}</p>
     </div>
 </section>

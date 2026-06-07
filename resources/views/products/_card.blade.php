@@ -28,7 +28,7 @@
         <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
     </div>
     <div class="p-6">
-        <h3 class="text-xl font-display font-bold text-stone-900 mb-2 group-hover:text-amber-600 transition-colors line-clamp-1">{{ $product->name_en }}</h3>
+        <h3 class="text-xl font-display font-bold text-stone-900 mb-2 group-hover:text-amber-600 transition-colors line-clamp-1 text-ellipsis">{{ $product->name_en }} csadmckasudv</h3>
         @if($product->short_description)
             <p class="text-sm text-stone-600 mb-4 line-clamp-2 leading-relaxed">{{ $product->short_description }}</p>
         @endif
