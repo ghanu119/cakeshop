@@ -14,7 +14,7 @@ class SettingSeeder extends Seeder
             'site_name' => 'Better Buns',
             'theme' => 'better-buns',
             'address' => 'B/H Asopalav Triangle Opp Matuki Restaurant Punit Nagar 80 Ft road Rajkot, Gujarat, Rajkot, Gujarat 360004',
-            'contact' => '+918347991910',
+            'contact' => '+91 9558517748',
             'admin_email' => 'admin@betterbuns.example.com',
             'currency' => 'INR',
             'timezone' => 'Asia/Kolkata',
