@@ -123,8 +123,11 @@ class OrderController extends Controller
             'order_no' => ['required', 'string'],
             'phone' => ['required', 'string'],
         ]);
-        $order = Order::where('order_no', $request->input('order_no'))->first();
-        if (! $order || $order->guest_phone !== $request->input('phone')) {
+        $order = $this->findOrderByReferenceAndPhone(
+            $request->input('order_no'),
+            $request->input('phone')
+        );
+        if ($order === null) {
             return back()->withErrors(['phone' => __('The order reference or phone number does not match our records.')])->withInput();
         }
 
@@ -160,20 +163,35 @@ class OrderController extends Controller
     public function historySearch(Request $request): View|RedirectResponse
     {
         $request->validate([
-            'phone' => ['required', 'string', 'min:6'],
+            'order_no' => ['required', 'string'],
+            'phone' => ['required', 'string'],
         ]);
-        $phone = $request->input('phone');
-        $normalized = preg_replace('/\D/', '', $phone);
-        if (strlen($normalized) < 6) {
-            return back()->withErrors(['phone' => __('Please enter at least 6 digits.')])->withInput();
+        $order = $this->findOrderByReferenceAndPhone(
+            $request->input('order_no'),
+            $request->input('phone')
+        );
+        if ($order === null) {
+            return back()->withErrors(['phone' => __('The order reference or phone number does not match our records.')])->withInput();
         }
-        $orders = Order::query()
-            ->with(['product' => fn ($q) => $q->withTrashed()])
-            ->whereRaw('REPLACE(REPLACE(REPLACE(guest_phone, " ", ""), "-", ""), "+", "") LIKE ?', ['%' . $normalized . '%'])
-            ->orderByDesc('ordered_at')
-            ->limit(50)
-            ->get();
 
-        return view('order.history', ['orders' => $orders, 'phone' => $phone]);
+        return view('order.history', [
+            'order' => $order,
+            'phone' => $request->input('phone'),
+            'order_no' => $request->input('order_no'),
+        ]);
+    }
+
+    private function findOrderByReferenceAndPhone(string $orderNo, string $phone): ?Order
+    {
+        $order = Order::query()
+            ->with(['product' => fn ($q) => $q->withTrashed()])
+            ->where('order_no', $orderNo)
+            ->first();
+
+        if ($order === null || $order->guest_phone !== $phone) {
+            return null;
+        }
+
+        return $order;
     }
 }

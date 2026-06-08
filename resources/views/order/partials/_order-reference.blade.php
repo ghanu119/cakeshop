@@ -36,7 +36,7 @@
             'font-medium' => $variant === 'header',
         ])>
             {{ __('Copy and save this order number to track status and view order details later.') }}
-            <a href="{{ route('order.history') }}" class="font-semibold underline underline-offset-2 hover:text-amber-950">{{ __('Look up orders by phone') }}</a>
+            <a href="{{ route('order.history') }}" class="font-semibold underline underline-offset-2 hover:text-amber-950">{{ __('Look up your order') }}</a>
         </p>
     @elseif($variant === 'card')
         <p class="mt-2 text-sm text-gray-600">{{ __('Keep this reference for payment and tracking.') }}</p>
