@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Models\Order;
+use App\Services\OrderNotificationService;
 use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -12,7 +13,8 @@ use Illuminate\View\View;
 class OrderController extends Controller
 {
     public function __construct(
-        private OrderService $orderService
+        private OrderService $orderService,
+        private OrderNotificationService $orderNotificationService
     ) {}
 
     public function index(): View
@@ -37,6 +39,8 @@ class OrderController extends Controller
         $this->authorize('update', $order);
         $this->orderService->verifyPayment($order);
 
+        $this->orderNotificationService->notifyPaymentVerified($order->fresh());
+
         return redirect()->route('admin.orders.show', $order)->with('status', __('Payment verified.'));
     }
 
@@ -47,21 +51,17 @@ class OrderController extends Controller
                 ->with('error', __('Payment must be verified before you can change the order status.'));
         }
 
+        $previousStatus = $order->order_status;
+
         $this->orderService->updateOrderStatus(
             $order,
             $request->validated('order_status'),
             $request->validated('preparation_at')
         );
 
-        if ($order->guest_email) {
-            try {
-                \Illuminate\Support\Facades\Mail::to($order->guest_email)->send(
-                    new \App\Mail\OrderStatusUpdated($order)
-                );
-            } catch (\Throwable $e) {
-                report($e);
-            }
-        }
+        $order->refresh();
+
+        $this->orderNotificationService->notifyStatusUpdated($order, $previousStatus);
 
         $redirect = request()->query('from') === 'kitchen'
             ? route('admin.kitchen.orders.index')

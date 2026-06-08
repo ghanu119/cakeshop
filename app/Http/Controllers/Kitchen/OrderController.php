@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Kitchen;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Models\Order;
+use App\Services\OrderNotificationService;
 use App\Services\OrderService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -12,7 +13,8 @@ use Illuminate\View\View;
 class OrderController extends Controller
 {
     public function __construct(
-        private OrderService $orderService
+        private OrderService $orderService,
+        private OrderNotificationService $orderNotificationService
     ) {}
 
     public function index(): View
@@ -86,6 +88,7 @@ class OrderController extends Controller
         }
 
         $newStatus = $request->validated('order_status');
+        $previousStatus = $order->order_status;
 
         $this->orderService->updateOrderStatus(
             $order,
@@ -94,6 +97,8 @@ class OrderController extends Controller
         );
 
         $order->refresh();
+
+        $this->orderNotificationService->notifyStatusUpdated($order, $previousStatus);
 
         $stillOnKitchenQueue = Order::query()
             ->whereKey($order->id)

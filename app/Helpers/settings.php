@@ -26,3 +26,25 @@ if (! function_exists('header_icon_url')) {
         return $url ?: null;
     }
 }
+
+if (! function_exists('branding_logo_url')) {
+    /**
+     * Absolute URL for the brand logo, suitable for email clients.
+     */
+    function branding_logo_url(): ?string
+    {
+        $url = header_icon_url();
+
+        return $url ? url($url) : null;
+    }
+}
+
+if (! function_exists('site_display_name')) {
+    /**
+     * Human-readable site name for emails and UI.
+     */
+    function site_display_name(): string
+    {
+        return settings('site_name') ?: config('app.name');
+    }
+}

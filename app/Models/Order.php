@@ -427,4 +427,53 @@ class Order extends Model implements HasMedia
             default => __('Take away'),
         };
     }
+
+    public function orderStatusLabel(): string
+    {
+        return match ($this->order_status) {
+            'processing' => __('Processing'),
+            'completed' => __('Completed'),
+            'cancelled' => __('Cancelled'),
+            'delivered' => __('Delivered'),
+            default => __('Pending'),
+        };
+    }
+
+    public function paymentStatusLabel(): string
+    {
+        return $this->paymentStatusBadgeLabel();
+    }
+
+    public function customerOrderUrl(): string
+    {
+        return route('order.confirm', $this);
+    }
+
+    public function adminOrderUrl(): string
+    {
+        return route('admin.orders.show', $this);
+    }
+
+    public function orderStatusBadgeVariant(): string
+    {
+        return match ($this->order_status) {
+            'completed', 'delivered' => 'success',
+            'processing' => 'primary',
+            'cancelled' => 'danger',
+            default => 'warning',
+        };
+    }
+
+    public function paymentStatusBadgeVariant(): string
+    {
+        if ($this->isPaymentVerified()) {
+            return 'success';
+        }
+
+        if ($this->hasPaymentDetailsSubmitted()) {
+            return 'primary';
+        }
+
+        return 'warning';
+    }
 }

@@ -92,6 +92,7 @@ class MessageOnCakeLimitTest extends TestCase
 
         return [
             'guest_name' => 'Test Guest',
+            'guest_email' => 'customer@example.com',
             'guest_phone' => '9876543210',
             'quantity' => 1,
             'delivery_at' => $delivery,

@@ -65,8 +65,8 @@
                 @error('guest_phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
             <div>
-                <label for="guest_email" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Email') }}</label>
-                <x-input type="email" name="guest_email" id="guest_email" value="{{ old('guest_email') }}" class="block w-full" />
+                <label for="guest_email" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Email') }} <span class="text-red-500">*</span></label>
+                <x-input type="email" name="guest_email" id="guest_email" value="{{ old('guest_email') }}" class="block w-full" required />
                 @error('guest_email')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
             @if(uses_better_buns_checkout())

@@ -10,7 +10,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class NewOrderNotification extends Mailable
+class PaymentVerifiedNotification extends Mailable
 {
     use Queueable, SerializesModels, UsesBranding;
 
@@ -20,13 +20,13 @@ class NewOrderNotification extends Mailable
 
     public function envelope(): Envelope
     {
-        return $this->brandedEnvelope(__('New order').' #'.$this->order->order_no);
+        return $this->brandedEnvelope(__('Payment verified').' #'.$this->order->order_no);
     }
 
     public function content(): Content
     {
         return new Content(
-            view: 'emails.new-order',
+            view: 'emails.payment-verified',
             with: $this->brandingViewData(),
         );
     }

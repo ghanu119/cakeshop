@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\SiteSetting;
 use App\Services\OrderService;
 use App\Services\ProductVariantService;
+use App\Services\OrderNotificationService;
 use App\Http\Requests\PlaceOrderRequest;
 use App\Http\Requests\SubmitPaymentDetailsRequest;
 use Illuminate\Http\RedirectResponse;
@@ -18,7 +19,8 @@ class OrderController extends Controller
 {
     public function __construct(
         private OrderService $orderService,
-        private ProductVariantService $productVariantService
+        private ProductVariantService $productVariantService,
+        private OrderNotificationService $orderNotificationService
     ) {}
 
     public function placeForm(Product $product): View
@@ -75,15 +77,7 @@ class OrderController extends Controller
 
         $order = $this->orderService->createOrder($product, $validated);
 
-        $adminEmail = settings('admin_email');
-        if ($adminEmail) {
-            try {
-                $order->load('product');
-                \Illuminate\Support\Facades\Mail::to($adminEmail)->send(new \App\Mail\NewOrderNotification($order));
-            } catch (\Throwable $e) {
-                report($e);
-            }
-        }
+        $this->orderNotificationService->notifyOrderPlaced($order);
 
         return redirect()->route('order.confirm', $order)
             ->with('order_placed', true);
@@ -147,6 +141,8 @@ class OrderController extends Controller
             $order->addMediaFromRequest('payment_proof')
                 ->toMediaCollection('payment_proof');
         }
+
+        $this->orderNotificationService->notifyPaymentSubmitted($order, $isUpdate);
 
         $statusMessage = $isUpdate
             ? __('Payment details updated. We will verify and update your order shortly.')

@@ -29,7 +29,7 @@ class PlaceOrderRequest extends FormRequest
 
         $rules = [
             'guest_name' => ['required', 'string', 'max:255'],
-            'guest_email' => ['nullable', 'email'],
+            'guest_email' => ['required', 'email', 'max:255'],
             'guest_phone' => ['required', 'string', 'max:50'],
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
             'message_on_cake' => ['nullable', 'string', 'max:'.$messageMax],

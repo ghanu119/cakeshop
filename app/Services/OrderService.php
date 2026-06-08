@@ -211,7 +211,7 @@ class OrderService
     {
         $order = new Order;
         $order->guest_name = $data['guest_name'];
-        $order->guest_email = $data['guest_email'] ?? null;
+        $order->guest_email = $data['guest_email'];
         $order->guest_phone = $data['guest_phone'];
         $order->product_id = $product->id;
         $order->product_name = $product->name_en;
