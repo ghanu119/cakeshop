@@ -142,7 +142,7 @@ function updatePushButtonState({ subscribed = false } = {}) {
         labels.forEach((label) => {
             label.textContent = 'Alerts blocked';
         });
-        updatePushDeviceStatus('Notifications are blocked in Chrome. Open site settings for cakeshop.test → Notifications → Allow.', 'error');
+        updatePushDeviceStatus(`Notifications are blocked in Chrome. Open site settings for ${location.hostname} → Notifications → Allow.`, 'error');
         return;
     }
 
@@ -150,7 +150,7 @@ function updatePushButtonState({ subscribed = false } = {}) {
         labels.forEach((label) => {
             label.textContent = 'Browser alerts on';
         });
-        updatePushDeviceStatus('Registered. Tab open = in-app toast + sound. Tab closed/minimized = Windows popup.', 'success');
+        updatePushDeviceStatus('Registered. Tab open = Windows popup + in-app toast. Tab minimized = Windows popup from background.', 'success');
         return;
     }
 
@@ -158,7 +158,7 @@ function updatePushButtonState({ subscribed = false } = {}) {
         labels.forEach((label) => {
             label.textContent = 'Finish setup';
         });
-        updatePushDeviceStatus('Permission granted — click the button once more to finish registering this device.', 'warning');
+        updatePushDeviceStatus('Chrome permission is on, but this device is not registered yet. Click the button once to finish.', 'warning');
         return;
     }
 
@@ -170,6 +170,36 @@ function updatePushButtonState({ subscribed = false } = {}) {
 
 function isTabVisible() {
     return document.visibilityState === 'visible';
+}
+
+function showOsNotificationFromPage(item) {
+    if (!canUseBrowserAlerts() || Notification.permission !== 'granted' || typeof Notification === 'undefined') {
+        return false;
+    }
+
+    try {
+        const tag = item?.id ? `staff-${item.id}` : 'staff-alert';
+        const notification = new Notification(item?.title ?? 'Notification', {
+            body: item?.message ?? '',
+            icon: '/favicon.ico',
+            tag,
+        });
+
+        notification.onclick = () => {
+            window.focus();
+            const url = item?.url;
+            if (url && url !== '#') {
+                window.location.href = url;
+            }
+            notification.close();
+        };
+
+        return true;
+    } catch (error) {
+        console.warn('OS notification failed', error);
+
+        return false;
+    }
 }
 
 function parseInstant(value) {
@@ -651,12 +681,21 @@ async function subscribePushAlerts({ prompt = false } = {}) {
         const registration = await navigator.serviceWorker.register('/sw.js');
         await registration.update().catch(() => undefined);
         await navigator.serviceWorker.ready;
+        const applicationServerKey = urlBase64ToUint8Array(vapidKey);
         let subscription = await registration.pushManager.getSubscription();
+
+        if (subscription) {
+            const existingKey = subscription.options?.applicationServerKey;
+            if (existingKey && !applicationServerKeysMatch(existingKey, applicationServerKey)) {
+                await subscription.unsubscribe();
+                subscription = null;
+            }
+        }
 
         if (!subscription) {
             subscription = await registration.pushManager.subscribe({
                 userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(vapidKey),
+                applicationServerKey,
             });
         }
 
@@ -722,6 +761,23 @@ async function sendTestPushAlert() {
 
     const result = await adminApi('post', routes.pushTest);
 
+    if (result.ok) {
+        const osShown = showOsNotificationFromPage({
+            id: 'test-alert',
+            title: 'Test order alert',
+            message: 'Browser notifications are working on this device.',
+            url: window.__httpsAdminUrl ?? '/admin/dashboard',
+        });
+
+        if (!osShown) {
+            showAdminToast('Push sent, but no Windows popup appeared. Check Windows Focus Assist and Chrome notification settings for this site.', {
+                variant: 'warning',
+                duration: 10000,
+            });
+            return;
+        }
+    }
+
     showAdminToast(result.message ?? 'Test sent.', {
         variant: result.ok ? 'success' : 'error',
         duration: 8000,
@@ -746,23 +802,38 @@ async function ensurePushRegistered() {
     }
 
     const serverStatus = await fetchPushSubscriptionStatus();
+    const browserSubscribed = await isPushSubscribed();
 
-    if (serverStatus.subscribed) {
+    if (serverStatus.subscribed && browserSubscribed) {
+        const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+        const subscription = registration ? await registration.pushManager.getSubscription() : null;
+        const existingKey = subscription?.options?.applicationServerKey;
+        const expectedKey = urlBase64ToUint8Array(window.__webPushPublicKey);
+
+        if (subscription && existingKey && !applicationServerKeysMatch(existingKey, expectedKey)) {
+            await subscribePushAlerts({ prompt: false });
+            const status = await fetchPushSubscriptionStatus();
+            updatePushButtonState({ subscribed: status.subscribed });
+            return;
+        }
+
         updatePushButtonState({ subscribed: true });
         hidePushPermissionBanner();
         return;
     }
 
     if (Notification.permission === 'granted') {
-        await subscribePushAlerts({ prompt: false });
+        const registered = await subscribePushAlerts({ prompt: false });
         const status = await fetchPushSubscriptionStatus();
         updatePushButtonState({ subscribed: status.subscribed });
 
         if (!status.subscribed) {
-            showAdminToast('Click Allow browser notifications to finish registering this device.', {
-                variant: 'warning',
-                duration: 9000,
-            });
+            showAdminToast(
+                registered
+                    ? 'Could not save browser registration. Click Enable browser alerts again.'
+                    : 'Chrome allows notifications, but this device still needs one click on Enable browser alerts to finish setup.',
+                { variant: 'warning', duration: 9000 }
+            );
         }
         return;
     }
@@ -781,7 +852,41 @@ async function ensurePushRegistered() {
         showPushPermissionBanner();
     }
 
-    updatePushButtonState();
+    updatePushButtonState({ subscribed: serverStatus.subscribed && browserSubscribed });
+}
+
+function applicationServerKeysMatch(existingKey, expectedKey) {
+    if (!existingKey || !expectedKey) {
+        return false;
+    }
+
+    const existingBytes = existingKey instanceof ArrayBuffer
+        ? new Uint8Array(existingKey)
+        : new Uint8Array(existingKey);
+
+    if (existingBytes.length !== expectedKey.length) {
+        return false;
+    }
+
+    for (let i = 0; i < existingBytes.length; i += 1) {
+        if (existingBytes[i] !== expectedKey[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function watchNotificationPermission() {
+    if (!navigator.permissions?.query) {
+        return;
+    }
+
+    navigator.permissions.query({ name: 'notifications' }).then((status) => {
+        status.onchange = () => {
+            void ensurePushRegistered();
+        };
+    }).catch(() => undefined);
 }
 
 function urlBase64ToUint8Array(base64String) {
@@ -838,7 +943,8 @@ function initBellUi() {
     document.querySelector('[data-push-banner-allow]')?.addEventListener('click', async () => {
         hidePushPermissionBanner();
         await subscribePushAlerts({ prompt: true });
-        updatePushButtonState({ subscribed: await isPushSubscribed() });
+        const status = await fetchPushSubscriptionStatus();
+        updatePushButtonState({ subscribed: status.subscribed });
     });
 
     document.querySelector('[data-push-banner-dismiss]')?.addEventListener('click', () => {
@@ -891,6 +997,7 @@ function handleIncomingNotificationItem(item) {
 
     if (isTabVisible()) {
         toastNotificationItem(item, { force: true });
+        showOsNotificationFromPage(item);
     }
 
     refreshUnreadCount();
@@ -911,9 +1018,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initEcho();
     startCountPolling();
     void syncNotificationListWithBadge();
-    void ensurePushRegistered();
     initServiceWorkerMessages();
-    updatePushButtonState();
+    watchNotificationPermission();
+    void ensurePushRegistered();
 
     document.addEventListener('visibilitychange', () => {
         if (isTabVisible()) {

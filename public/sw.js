@@ -1,4 +1,4 @@
-const SW_VERSION = '2';
+const SW_VERSION = '4';
 
 function safeAdminUrl(rawUrl) {
     try {
@@ -95,11 +95,15 @@ self.addEventListener('push', (event) => {
                 clients.forEach((client) => {
                     client.postMessage({ type: 'staff-notification', payload: messagePayload });
                 });
-
-                return undefined;
             }
 
-            return self.registration.showNotification(title, options);
+            // Tab hidden/minimized: service worker shows the OS popup.
+            // Tab visible: admin-notifications.js shows it via new Notification().
+            if (!hasVisibleClient) {
+                return self.registration.showNotification(title, options);
+            }
+
+            return undefined;
         })
     );
 });

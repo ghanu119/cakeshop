@@ -159,13 +159,20 @@ class NotificationController extends Controller
                 );
             }
 
-            app(StaffWebPushService::class)->sendNow($user, [
+            $result = app(StaffWebPushService::class)->sendNow($user, [
                 'title' => __('Test order alert'),
-                'body' => __('Browser notifications are working. Close this tab and you should still see popups for new orders.'),
+                'body' => __('Browser notifications are working on this device.'),
                 'url' => StaffNotificationUrl::sanitize(route('admin.dashboard')),
             ]);
 
-            return ApiResponse::success(null, __('Test sent. With this tab open you will only see the in-app alert. Minimize or close the tab to confirm the Windows popup.'));
+            if (! $result['sent']) {
+                return ApiResponse::error(
+                    $result['error'] ?? __('Could not send test notification. Please try again.'),
+                    422
+                );
+            }
+
+            return ApiResponse::success(null, __('Test sent. A Windows popup should appear now — look at the bottom-right corner of your screen, not only the green toast in the page.'));
         } catch (AuthorizationException $e) {
             return ApiResponse::error($e->getMessage(), 403);
         } catch (Throwable $e) {

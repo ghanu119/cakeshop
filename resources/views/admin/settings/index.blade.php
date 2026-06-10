@@ -278,7 +278,7 @@
             <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
                 <div>
                     <h2 class="mb-1 text-xl font-semibold text-gray-900">{{ __('Browser alerts on this device') }}</h2>
-                    <p class="text-sm text-gray-500">{{ __('Tab open: in-app toast and sound. Tab closed or minimized: Windows popup. Each admin/kitchen device must be set up once on HTTPS.') }}</p>
+                    <p class="text-sm text-gray-500">{{ __('Tab open: Windows popup plus in-app toast. Tab minimized: Windows popup from the background service.') }}</p>
                 </div>
                 <span
                     data-push-device-status-badge
@@ -317,8 +317,7 @@
                     <ol class="list-decimal space-y-2 pl-5 text-sm text-gray-600">
                         <li>{{ __('Click “Allow browser notifications”.') }}</li>
                         <li>{{ __('When Chrome asks, choose Allow.') }}</li>
-                        <li>{{ __('Click “Send test alert” — with the tab open you only see the in-app message.') }}</li>
-                        <li>{{ __('Close or minimize this tab, click “Send test alert” again, and confirm the Windows popup appears.') }}</li>
+                        <li>{{ __('Click “Send test alert” — a Windows popup should appear immediately (not only the green toast at the bottom).') }}</li>
                     </ol>
                 </div>
             @elseif ($browserPushFlagOn)
