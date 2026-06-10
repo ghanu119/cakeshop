@@ -23,8 +23,12 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Admin',
                 'password' => Hash::make(self::SEED_PASSWORD),
+                'email_verified_at' => now(),
             ]
         );
+        if ($admin->email_verified_at === null) {
+            $admin->forceFill(['email_verified_at' => now()])->save();
+        }
         if (! $admin->hasRole('Admin')) {
             $admin->assignRole('Admin');
         }
@@ -34,8 +38,12 @@ class UserSeeder extends Seeder
             [
                 'name' => 'Kitchen',
                 'password' => Hash::make(self::SEED_PASSWORD),
+                'email_verified_at' => now(),
             ]
         );
+        if ($kitchen->email_verified_at === null) {
+            $kitchen->forceFill(['email_verified_at' => now()])->save();
+        }
         if (! $kitchen->hasRole('Kitchen')) {
             $kitchen->assignRole('Kitchen');
         }

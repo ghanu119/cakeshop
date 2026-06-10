@@ -63,6 +63,10 @@ class OrderController extends Controller
 
         $this->orderNotificationService->notifyStatusUpdated($order, $previousStatus);
 
+        if (Order::query()->whereKey($order->id)->kitchenTodayQueue()->exists()) {
+            $this->orderNotificationService->notifyKitchenOrderQueued($order);
+        }
+
         $redirect = request()->query('from') === 'kitchen'
             ? route('admin.kitchen.orders.index')
             : route('admin.orders.show', $order);

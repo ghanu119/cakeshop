@@ -1,6 +1,10 @@
 {
-  "_bootstrap-Du_iHytD.js": {
-    "file": "assets/bootstrap-Du_iHytD.js",
+  "__commonjsHelpers-CqkleIqs.js": {
+    "file": "assets/_commonjsHelpers-CqkleIqs.js",
+    "name": "_commonjsHelpers"
+  },
+  "_bootstrap-BZN5sx2X.js": {
+    "file": "assets/bootstrap-BZN5sx2X.js",
     "name": "bootstrap",
     "imports": [
       "_index-C0Zqfgkc.js"
@@ -10,19 +14,23 @@
     "file": "assets/index-C0Zqfgkc.js",
     "name": "index"
   },
-  "_jquery-BZOalPbs.js": {
-    "file": "assets/jquery-BZOalPbs.js",
-    "name": "jquery"
+  "_jquery-BI420F6r.js": {
+    "file": "assets/jquery-BI420F6r.js",
+    "name": "jquery",
+    "imports": [
+      "__commonjsHelpers-CqkleIqs.js"
+    ]
   },
   "_select2-Cw2tYcCP.css": {
     "file": "assets/select2-Cw2tYcCP.css",
     "src": "_select2-Cw2tYcCP.css"
   },
-  "_select2.min-D8qBNHDr.js": {
-    "file": "assets/select2.min-D8qBNHDr.js",
+  "_select2.min-BL6F0sia.js": {
+    "file": "assets/select2.min-BL6F0sia.js",
     "name": "select2.min",
     "imports": [
-      "_jquery-BZOalPbs.js"
+      "__commonjsHelpers-CqkleIqs.js",
+      "_jquery-BI420F6r.js"
     ],
     "css": [
       "assets/select2-Cw2tYcCP.css"
@@ -49,7 +57,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DJbpEKgI.css",
+    "file": "assets/app-DWebn6qv.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -67,34 +75,37 @@
     ]
   },
   "resources/js/admin-select2.js": {
-    "file": "assets/admin-select2-BnWoMGJF.js",
+    "file": "assets/admin-select2-DKfxae9P.js",
     "name": "admin-select2",
     "src": "resources/js/admin-select2.js",
     "isEntry": true,
     "imports": [
-      "_jquery-BZOalPbs.js",
-      "_select2.min-D8qBNHDr.js"
+      "_jquery-BI420F6r.js",
+      "_select2.min-BL6F0sia.js",
+      "__commonjsHelpers-CqkleIqs.js"
     ]
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-BsgQ1YH0.js",
+    "file": "assets/admin-SRjlvhtf.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true,
     "imports": [
-      "_bootstrap-Du_iHytD.js",
+      "_bootstrap-BZN5sx2X.js",
       "resources/js/order-status-form.js",
-      "_index-C0Zqfgkc.js"
+      "_index-C0Zqfgkc.js",
+      "__commonjsHelpers-CqkleIqs.js"
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-BNqN4Pcs.js",
+    "file": "assets/app-CH0Wv2Rm.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
-      "_bootstrap-Du_iHytD.js",
-      "_jquery-BZOalPbs.js",
+      "_bootstrap-BZN5sx2X.js",
+      "_jquery-BI420F6r.js",
+      "__commonjsHelpers-CqkleIqs.js",
       "resources/js/product-gallery.js",
       "_index-C0Zqfgkc.js"
     ],
@@ -137,22 +148,24 @@
     ]
   },
   "resources/js/product-filters-select2.js": {
-    "file": "assets/product-filters-select2-DFsY-Ugn.js",
+    "file": "assets/product-filters-select2-CBnsIB12.js",
     "name": "product-filters-select2",
     "src": "resources/js/product-filters-select2.js",
     "isEntry": true,
     "imports": [
-      "_jquery-BZOalPbs.js",
-      "_select2.min-D8qBNHDr.js"
+      "_jquery-BI420F6r.js",
+      "_select2.min-BL6F0sia.js",
+      "__commonjsHelpers-CqkleIqs.js"
     ]
   },
   "resources/js/product-gallery.js": {
-    "file": "assets/product-gallery-Bwzgl8jP.js",
+    "file": "assets/product-gallery-BPjRMAT7.js",
     "name": "product-gallery",
     "src": "resources/js/product-gallery.js",
     "isEntry": true,
     "imports": [
-      "_jquery-BZOalPbs.js"
+      "_jquery-BI420F6r.js",
+      "__commonjsHelpers-CqkleIqs.js"
     ],
     "css": [
       "assets/product-gallery-DDmNB4Vk.css"

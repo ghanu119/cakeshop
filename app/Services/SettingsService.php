@@ -7,16 +7,48 @@ use Illuminate\Http\Request;
 
 class SettingsService
 {
+    public function __construct(
+        private WebPushVapidService $webPushVapidService
+    ) {}
+
     public function updateFromRequest(Request $request): void
     {
-        $keys = array_keys(Setting::DEFAULTS);
+        $plainKeys = array_diff(array_keys(Setting::DEFAULTS), Setting::ENCRYPTED_KEYS);
 
-        foreach ($keys as $key) {
+        foreach ($plainKeys as $key) {
+            if (! $request->has($key)) {
+                continue;
+            }
+
             $value = $request->input($key);
+
+            if ($key === 'notifications_enabled' || $key === 'notifications_web_push_enabled') {
+                $enabled = $request->boolean($key) ? '1' : '0';
+                Setting::set($key, $enabled);
+
+                if ($key === 'notifications_enabled' && $enabled === '1') {
+                    Setting::set('notifications_web_push_enabled', '1');
+                    $this->webPushVapidService->ensureKeysProvisioned();
+                }
+
+                if ($key === 'notifications_web_push_enabled' && $enabled === '1') {
+                    $this->webPushVapidService->ensureKeysProvisioned();
+                }
+
+                continue;
+            }
+
             if ($value === '' || $value === null) {
                 $value = array_key_exists($key, Setting::DEFAULTS) ? Setting::DEFAULTS[$key] : null;
             }
+
             Setting::set($key, $value);
+        }
+
+        foreach (Setting::ENCRYPTED_KEYS as $key) {
+            if ($request->filled($key)) {
+                Setting::setEncrypted($key, $request->input($key));
+            }
         }
 
         Setting::flushCache();

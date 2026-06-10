@@ -1,0 +1,1 @@
+import{$ as t}from"./jquery-BI420F6r.js";import{s as o}from"./select2.min-BL6F0sia.js";import"./_commonjsHelpers-CqkleIqs.js";o(t);document.addEventListener("DOMContentLoaded",function(){const e=t("#flavor_ids");e.length&&e.select2({width:"100%",placeholder:"Select flavors…",allowClear:!0,dropdownParent:e.parent()})});

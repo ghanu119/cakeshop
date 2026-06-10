@@ -49,6 +49,10 @@ class UserService
 
         if (isset($data['roles'])) {
             $user->syncRoles($data['roles']);
+
+            if ($user->hasAnyRole(['Admin', 'Kitchen']) && $user->email_verified_at === null) {
+                $user->forceFill(['email_verified_at' => now()])->save();
+            }
         }
 
         return $user;

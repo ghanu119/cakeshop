@@ -159,6 +159,181 @@
             </div>
         </x-card>
 
+        @can('settings.manage')
+        <x-card>
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h2 class="text-xl font-semibold text-gray-900">{{ __('Real-time notifications') }}</h2>
+                    <p class="mt-1 text-sm text-gray-500">{{ __('Configure in-app alerts for admin and kitchen staff. Pusher credentials are encrypted in the database.') }}</p>
+                </div>
+                @php
+                    $pusherConfigured = \App\Models\Setting::isPusherConfigured();
+                    $notificationsOn = ($settings['notifications_enabled'] ?? '1') === '1';
+                    $pusherIdSaved = \App\Models\Setting::hasEncryptedValue('pusher_app_id');
+                    $pusherKeySaved = \App\Models\Setting::hasEncryptedValue('pusher_app_key');
+                    $pusherSecretSaved = \App\Models\Setting::hasEncryptedValue('pusher_app_secret');
+                    $pusherClusterSaved = \App\Models\Setting::hasEncryptedValue('pusher_app_cluster');
+                    $pusherCluster = \App\Models\Setting::getPusherCluster();
+                @endphp
+                <div class="text-right">
+                    <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $notificationsOn && $pusherConfigured ? 'bg-emerald-100 text-emerald-800' : ($notificationsOn ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600') }}">
+                        {{ $notificationsOn && $pusherConfigured ? __('Ready') : ($notificationsOn ? __('Setup needed') : __('Disabled')) }}
+                    </span>
+                    @if ($notificationsOn && $pusherConfigured)
+                        <p class="mt-1 text-xs text-emerald-700">{{ __('All Pusher credentials are saved.') }}</p>
+                    @elseif ($notificationsOn)
+                        <p class="mt-1 text-xs text-amber-700">{{ __('Enter the four Pusher values below.') }}</p>
+                    @endif
+                </div>
+            </div>
+            <div class="space-y-4">
+                <label class="flex items-center gap-3">
+                    <input type="hidden" name="notifications_enabled" value="0">
+                    <input type="checkbox" name="notifications_enabled" value="1" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" {{ old('notifications_enabled', $settings['notifications_enabled'] ?? '1') == '1' ? 'checked' : '' }}>
+                    <span class="text-sm font-medium text-gray-700">{{ __('Enable in-app notifications') }}</span>
+                </label>
+                <label class="flex items-center gap-3">
+                    <input type="hidden" name="notifications_web_push_enabled" value="0">
+                    <input type="checkbox" name="notifications_web_push_enabled" value="1" class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500" {{ old('notifications_web_push_enabled', $settings['notifications_web_push_enabled'] ?? '0') == '1' ? 'checked' : '' }}>
+                    <span class="text-sm font-medium text-gray-700">{{ __('Enable browser push alerts') }}</span>
+                </label>
+                <p class="text-xs text-gray-500">{{ __('Delivers notifications when the browser is closed. Signing keys are created automatically in the background — no extra setup required.') }}</p>
+
+                @if ($pusherConfigured)
+                    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">
+                        <p class="font-medium">{{ __('Your Pusher credentials are stored securely.') }}</p>
+                        <p class="mt-1 text-emerald-800">{{ __('Empty fields below are normal — they stay blank so secrets are not shown again. Only type here if you want to replace a value.') }}</p>
+                        <ul class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs font-medium text-emerald-800">
+                            <li>{{ $pusherIdSaved ? '✓' : '○' }} {{ __('App ID') }}</li>
+                            <li>{{ $pusherKeySaved ? '✓' : '○' }} {{ __('App Key') }}</li>
+                            <li>{{ $pusherSecretSaved ? '✓' : '○' }} {{ __('App Secret') }}</li>
+                            <li>{{ $pusherClusterSaved ? '✓' : '○' }} {{ __('Cluster') }}: <span class="font-mono">{{ $pusherCluster }}</span></li>
+                        </ul>
+                    </div>
+                @else
+                    <div class="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                        <p class="font-medium">{{ __('Pusher credentials required') }}</p>
+                        <p class="mt-1">{{ __('Copy App ID, Key, Secret, and Cluster from your app at pusher.com, then save this page.') }}</p>
+                    </div>
+                @endif
+
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <div class="mb-1 flex items-center justify-between gap-2">
+                            <label for="pusher_app_id" class="text-sm font-medium text-gray-700">{{ __('Pusher App ID') }}</label>
+                            <span class="text-xs font-medium {{ $pusherIdSaved ? 'text-emerald-600' : 'text-amber-600' }}">{{ $pusherIdSaved ? __('Saved') : __('Required') }}</span>
+                        </div>
+                        <x-input type="password" name="pusher_app_id" id="pusher_app_id" placeholder="{{ $pusherIdSaved ? __('Leave blank to keep saved value') : __('Paste App ID from pusher.com') }}" class="block w-full font-mono" autocomplete="new-password" />
+                    </div>
+                    <div>
+                        <div class="mb-1 flex items-center justify-between gap-2">
+                            <label for="pusher_app_key" class="text-sm font-medium text-gray-700">{{ __('Pusher App Key') }}</label>
+                            <span class="text-xs font-medium {{ $pusherKeySaved ? 'text-emerald-600' : 'text-amber-600' }}">{{ $pusherKeySaved ? __('Saved') : __('Required') }}</span>
+                        </div>
+                        <x-input type="password" name="pusher_app_key" id="pusher_app_key" placeholder="{{ $pusherKeySaved ? __('Leave blank to keep saved value') : __('Paste App Key from pusher.com') }}" class="block w-full font-mono" autocomplete="new-password" />
+                    </div>
+                    <div>
+                        <div class="mb-1 flex items-center justify-between gap-2">
+                            <label for="pusher_app_secret" class="text-sm font-medium text-gray-700">{{ __('Pusher App Secret') }}</label>
+                            <span class="text-xs font-medium {{ $pusherSecretSaved ? 'text-emerald-600' : 'text-amber-600' }}">{{ $pusherSecretSaved ? __('Saved') : __('Required') }}</span>
+                        </div>
+                        <x-input type="password" name="pusher_app_secret" id="pusher_app_secret" placeholder="{{ $pusherSecretSaved ? __('Leave blank to keep saved value') : __('Paste App Secret from pusher.com') }}" class="block w-full font-mono" autocomplete="new-password" />
+                    </div>
+                    <div>
+                        <div class="mb-1 flex items-center justify-between gap-2">
+                            <label for="pusher_app_cluster" class="text-sm font-medium text-gray-700">{{ __('Pusher Cluster') }}</label>
+                            <span class="text-xs font-medium {{ $pusherClusterSaved ? 'text-emerald-600' : 'text-amber-600' }}">
+                                {{ $pusherClusterSaved ? __('Saved') : __('Required') }}
+                                @if ($pusherClusterSaved)
+                                    <span class="font-mono text-gray-500">({{ $pusherCluster }})</span>
+                                @endif
+                            </span>
+                        </div>
+                        <x-input type="text" name="pusher_app_cluster" id="pusher_app_cluster" placeholder="{{ $pusherClusterSaved ? __('Leave blank to keep :cluster', ['cluster' => $pusherCluster]) : __('e.g. ap2') }}" class="block w-full font-mono" autocomplete="off" />
+                    </div>
+                </div>
+                <button
+                    type="button"
+                    data-test-pusher
+                    data-test-pusher-url="{{ route('admin.settings.test-pusher') }}"
+                    class="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50"
+                    @disabled(! $pusherConfigured)
+                >
+                    {{ __('Test Pusher connection') }}
+                </button>
+                @unless ($pusherConfigured)
+                    <p class="text-xs text-gray-500">{{ __('Save your credentials first, then test the connection.') }}</p>
+                @endunless
+                <p class="text-xs text-gray-500">{{ __('Get free Pusher credentials at pusher.com.') }}</p>
+            </div>
+        </x-card>
+        @endcan
+
+        @php
+            $browserPushGloballyOn = \App\Models\Setting::isWebPushEnabled();
+            $browserPushFlagOn = ($settings['notifications_web_push_enabled'] ?? '0') === '1';
+            $httpsDashboard = preg_replace('#^http:#i', 'https:', route('admin.dashboard'));
+        @endphp
+        <x-card>
+            <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                    <h2 class="mb-1 text-xl font-semibold text-gray-900">{{ __('Browser alerts on this device') }}</h2>
+                    <p class="text-sm text-gray-500">{{ __('Tab open: in-app toast and sound. Tab closed or minimized: Windows popup. Each admin/kitchen device must be set up once on HTTPS.') }}</p>
+                </div>
+                <span
+                    data-push-device-status-badge
+                    class="rounded-full px-3 py-1 text-xs font-semibold {{ $browserPushGloballyOn ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600' }}"
+                >
+                    {{ $browserPushGloballyOn ? __('Setup needed on this device') : __('Disabled in settings') }}
+                </span>
+            </div>
+
+            @if ($browserPushGloballyOn)
+                <div class="space-y-4">
+                    <div class="rounded-lg border border-indigo-100 bg-indigo-50 px-4 py-3 text-sm text-indigo-950">
+                        <p class="font-medium">{{ __('Use HTTPS for browser alerts') }}</p>
+                        <p class="mt-1">{{ __('Open the admin at') }} <a href="{{ $httpsDashboard }}" class="font-semibold underline">{{ $httpsDashboard }}</a> {{ __('then complete the steps below.') }}</p>
+                    </div>
+
+                    <p data-push-device-status class="text-sm text-gray-700">{{ __('Checking this browser…') }}</p>
+
+                    <div class="flex flex-wrap gap-3">
+                        <button
+                            type="button"
+                            data-enable-push
+                            class="inline-flex rounded-lg border border-indigo-200 bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
+                        >
+                            <span data-enable-push-label>{{ __('Allow browser notifications') }}</span>
+                        </button>
+                        <button
+                            type="button"
+                            data-test-push
+                            class="hidden inline-flex rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50"
+                        >
+                            {{ __('Send test alert') }}
+                        </button>
+                    </div>
+
+                    <ol class="list-decimal space-y-2 pl-5 text-sm text-gray-600">
+                        <li>{{ __('Click “Allow browser notifications”.') }}</li>
+                        <li>{{ __('When Chrome asks, choose Allow.') }}</li>
+                        <li>{{ __('Click “Send test alert” — with the tab open you only see the in-app message.') }}</li>
+                        <li>{{ __('Close or minimize this tab, click “Send test alert” again, and confirm the Windows popup appears.') }}</li>
+                    </ol>
+                </div>
+            @elseif ($browserPushFlagOn)
+                <p class="text-sm text-amber-800">{{ __('Browser push is enabled in settings but signing keys are still being prepared. Click Save settings above once, then refresh this page.') }}</p>
+            @else
+                <p class="text-sm text-gray-600">
+                    @can('settings.manage')
+                        {{ __('Check “Enable browser push alerts” in Real-time notifications above, then click Save settings.') }}
+                    @else
+                        {{ __('Ask an admin to enable browser push alerts in Settings → Real-time notifications.') }}
+                    @endcan
+                </p>
+            @endif
+        </x-card>
+
         <x-card>
             <h2 class="mb-2 text-xl font-semibold text-gray-900">{{ __('Cake weights') }}</h2>
             <p class="mb-4 text-sm text-gray-500">{{ __('Set the weight sizes customers can pick (250 gm, 500 gm, 1 KG, etc.). You set the price for each weight on every product.') }}</p>

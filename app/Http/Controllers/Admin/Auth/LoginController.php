@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -46,6 +47,11 @@ class LoginController extends Controller
         $request->session()->regenerate();
 
         $user = Auth::user();
+
+        if ($user->email_verified_at === null) {
+            $user->forceFill(['email_verified_at' => now()])->save();
+        }
+
         if (! $user->hasRole('Admin') && ! $user->hasRole('Kitchen')) {
             Auth::logout();
             $request->session()->invalidate();
@@ -54,6 +60,10 @@ class LoginController extends Controller
             throw ValidationException::withMessages([
                 'email' => [__('You do not have access to the admin area.')],
             ]);
+        }
+
+        if (Setting::isWebPushEnabled()) {
+            $request->session()->put('prompt_staff_push', true);
         }
 
         return redirect()->intended(route('admin.dashboard'));

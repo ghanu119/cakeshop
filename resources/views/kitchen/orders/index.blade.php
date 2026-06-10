@@ -6,7 +6,7 @@
     @php
         $tz = settings('timezone') ?? 'Asia/Kolkata';
     @endphp
-    <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <header data-highlight-target="kitchen_today" class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between {{ in_array('kitchen_today', ($unreadHighlightTargets ?? collect())->toArray(), true) ? 'notification-highlight rounded-2xl px-4 py-3' : '' }}">
         <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{ __("Today's orders") }}</h1>
     </header>
 

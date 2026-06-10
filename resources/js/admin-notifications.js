@@ -1,0 +1,926 @@
+import { adminApi } from './admin-api';
+import { unlockNotificationSound, playNewOrderSound } from './admin-notification-sound';
+import { clearAdminToasts, showAdminToast } from './admin-toast';
+import { createAdminEcho } from './echo';
+
+const POLL_INTERVAL_MS = 10000;
+const COUNT_POLL_INTERVAL_MS = 5000;
+const ORDER_SOUND_TYPES = new Set(['new_order', 'kitchen_order_queued_today', 'kitchen_payment_verified_today']);
+const routes = window.__notificationRoutes ?? {};
+
+let pageLoadMs = Date.now();
+let echo = null;
+let pollTimer = null;
+let countPollTimer = null;
+let connectTimeout = null;
+let lastSince = null;
+let lastUnreadCount = null;
+let fetchErrorShown = false;
+let disconnectWarningShown = false;
+let wasLiveConnected = false;
+const liveToastedIds = new Set();
+
+const CONNECT_TIMEOUT_MS = 12000;
+const PUSH_BANNER_DISMISS_KEY = 'staff_push_banner_dismissed';
+
+function isAdminHttp() {
+    return location.protocol === 'http:' && /\.(test|localhost)$/i.test(location.hostname);
+}
+
+function httpsAdminUrl() {
+    return window.__httpsAdminUrl
+        || `https://${location.hostname}${location.pathname}${location.search}${location.hash}`;
+}
+
+function redirectToHttpsAdmin() {
+    if (!isAdminHttp()) {
+        return false;
+    }
+
+    location.replace(httpsAdminUrl());
+
+    return true;
+}
+
+function canUseBrowserAlerts() {
+    return window.isSecureContext === true && !isAdminHttp();
+}
+
+async function isPushSubscribed() {
+    if (!canUseBrowserAlerts() || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+        return false;
+    }
+
+    try {
+        const registration = await navigator.serviceWorker.getRegistration('/sw.js');
+
+        if (!registration) {
+            return false;
+        }
+
+        const subscription = await registration.pushManager.getSubscription();
+
+        return subscription !== null;
+    } catch (error) {
+        console.warn('Could not read push subscription', error);
+
+        return false;
+    }
+}
+
+function showPushPermissionBanner() {
+    const banner = document.querySelector('[data-push-permission-banner]');
+    if (!banner || localStorage.getItem(PUSH_BANNER_DISMISS_KEY) === '1') {
+        return;
+    }
+
+    banner.classList.remove('hidden');
+    banner.classList.add('flex');
+}
+
+function hidePushPermissionBanner() {
+    const banner = document.querySelector('[data-push-permission-banner]');
+    if (!banner) {
+        return;
+    }
+
+    banner.classList.add('hidden');
+    banner.classList.remove('flex');
+}
+
+function updatePushDeviceStatus(message, tone = 'neutral') {
+    const statusEl = document.querySelector('[data-push-device-status]');
+    const badgeEl = document.querySelector('[data-push-device-status-badge]');
+
+    if (statusEl) {
+        statusEl.textContent = message;
+    }
+
+    if (!badgeEl) {
+        return;
+    }
+
+    badgeEl.classList.remove('bg-emerald-100', 'text-emerald-800', 'bg-amber-100', 'text-amber-800', 'bg-red-100', 'text-red-800', 'bg-gray-100', 'text-gray-600');
+
+    if (tone === 'success') {
+        badgeEl.textContent = 'Ready on this device';
+        badgeEl.classList.add('bg-emerald-100', 'text-emerald-800');
+    } else if (tone === 'warning') {
+        badgeEl.textContent = 'Setup needed on this device';
+        badgeEl.classList.add('bg-amber-100', 'text-amber-800');
+    } else if (tone === 'error') {
+        badgeEl.textContent = 'Blocked in browser';
+        badgeEl.classList.add('bg-red-100', 'text-red-800');
+    } else {
+        badgeEl.textContent = 'Setup needed on this device';
+        badgeEl.classList.add('bg-amber-100', 'text-amber-800');
+    }
+}
+
+function updatePushButtonState({ subscribed = false } = {}) {
+    const buttons = document.querySelectorAll('[data-enable-push]');
+    const labels = document.querySelectorAll('[data-enable-push-label]');
+    const testButtons = document.querySelectorAll('[data-test-push]');
+
+    if (!buttons.length || !labels.length) {
+        return;
+    }
+
+    testButtons.forEach((testButton) => {
+        testButton.classList.toggle('hidden', !subscribed);
+    });
+
+    if (!canUseBrowserAlerts()) {
+        labels.forEach((label) => {
+            label.textContent = 'Open HTTPS admin';
+        });
+        updatePushDeviceStatus(`You are on http://. Open ${httpsAdminUrl()} then allow notifications again.`, 'error');
+        return;
+    }
+
+    if (Notification.permission === 'denied') {
+        labels.forEach((label) => {
+            label.textContent = 'Alerts blocked';
+        });
+        updatePushDeviceStatus('Notifications are blocked in Chrome. Open site settings for cakeshop.test → Notifications → Allow.', 'error');
+        return;
+    }
+
+    if (subscribed) {
+        labels.forEach((label) => {
+            label.textContent = 'Browser alerts on';
+        });
+        updatePushDeviceStatus('Registered. Tab open = in-app toast + sound. Tab closed/minimized = Windows popup.', 'success');
+        return;
+    }
+
+    if (Notification.permission === 'granted') {
+        labels.forEach((label) => {
+            label.textContent = 'Finish setup';
+        });
+        updatePushDeviceStatus('Permission granted — click the button once more to finish registering this device.', 'warning');
+        return;
+    }
+
+    labels.forEach((label) => {
+        label.textContent = 'Allow browser notifications';
+    });
+    updatePushDeviceStatus('Click Allow browser notifications, then choose Allow in the Chrome prompt.', 'warning');
+}
+
+function isTabVisible() {
+    return document.visibilityState === 'visible';
+}
+
+function parseInstant(value) {
+    if (!value) {
+        return null;
+    }
+
+    const ms = Date.parse(value);
+
+    return Number.isNaN(ms) ? null : ms;
+}
+
+function isNewSincePageLoad(item) {
+    const itemMs = parseInstant(item?.created_at);
+
+    if (itemMs === null) {
+        return true;
+    }
+
+    return itemMs > pageLoadMs;
+}
+
+function shouldPlayOrderSound(item) {
+    return ORDER_SOUND_TYPES.has(item?.type);
+}
+
+function toastNotificationItem(item, { force = false } = {}) {
+    if (!item?.title || (!force && !isNewSincePageLoad(item))) {
+        return;
+    }
+
+    const id = item.id;
+
+    if (id && liveToastedIds.has(id)) {
+        return;
+    }
+
+    if (id) {
+        liveToastedIds.add(id);
+    }
+
+    if (!isTabVisible()) {
+        return;
+    }
+
+    if (shouldPlayOrderSound(item)) {
+        playNewOrderSound();
+    }
+
+    showAdminToast(item.title, {
+        variant: 'info',
+        duration: 7000,
+        subtitle: item.message || null,
+    });
+}
+
+function updateBadge(count) {
+    const badge = document.querySelector('[data-notification-badge]');
+    if (!badge) return;
+
+    if (count > 0) {
+        badge.textContent = count > 99 ? '99+' : String(count);
+        badge.classList.remove('hidden');
+    } else {
+        badge.classList.add('hidden');
+    }
+}
+
+function setConnectionState(state, { showDisconnectToast = false } = {}) {
+    const dot = document.querySelector('[data-notification-connection]');
+    if (!dot) return;
+
+    dot.classList.remove('bg-emerald-500', 'bg-amber-400', 'bg-gray-300', 'animate-pulse');
+    if (state === 'connected') {
+        dot.classList.add('bg-emerald-500');
+        dot.title = 'Live updates active';
+    } else if (state === 'connecting') {
+        dot.classList.add('bg-amber-400', 'animate-pulse');
+        dot.title = 'Connecting to live updates…';
+    } else if (state === 'polling') {
+        dot.classList.add('bg-amber-400');
+        dot.title = 'Checking for new notifications every 30 seconds';
+        if (showDisconnectToast && !disconnectWarningShown) {
+            disconnectWarningShown = true;
+            showAdminToast('Live updates paused — checking every 30 seconds.', { variant: 'warning' });
+        }
+    } else {
+        dot.classList.add('bg-gray-300');
+        dot.title = 'Notifications via saved list';
+    }
+}
+
+function getUnreadListItemCount() {
+    return document.querySelectorAll('[data-notification-list] [data-notification-id]').length;
+}
+
+function buildNotificationListItem(item) {
+    const li = document.createElement('li');
+    li.setAttribute('data-notification-id', item.id);
+    li.innerHTML = `
+        <a href="${item.url ?? '#'}" class="block px-4 py-3 hover:bg-gray-50" data-notification-link>
+            <p class="text-sm font-semibold text-gray-900">${item.title ?? ''}</p>
+            <p class="mt-0.5 text-xs text-gray-600">${item.message ?? ''}</p>
+            <p class="mt-1 text-[10px] text-gray-400">${item.created_human ?? ''}</p>
+        </a>
+    `;
+
+    return li;
+}
+
+function renderNotificationList(items) {
+    const list = document.querySelector('[data-notification-list]');
+    if (!list) {
+        return;
+    }
+
+    list.replaceChildren();
+
+    if (!items.length) {
+        const empty = document.createElement('li');
+        empty.setAttribute('data-notification-empty', '');
+        empty.className = 'px-4 py-6 text-center text-sm text-gray-500';
+        empty.textContent = 'No unread notifications';
+        list.appendChild(empty);
+        return;
+    }
+
+    items.forEach((item) => {
+        list.appendChild(buildNotificationListItem(item));
+
+        if (item.highlight_target) {
+            document.querySelectorAll(`[data-highlight-target="${item.highlight_target}"]`).forEach((el) => {
+                el.classList.add('notification-highlight');
+            });
+        }
+    });
+}
+
+function prependNotificationItem(item) {
+    const list = document.querySelector('[data-notification-list]');
+    if (!list || !item) return;
+
+    const empty = list.querySelector('[data-notification-empty]');
+    if (empty) empty.remove();
+
+    const existing = list.querySelector(`[data-notification-id="${item.id}"]`);
+    if (existing) return;
+
+    list.prepend(buildNotificationListItem(item));
+
+    if (item.highlight_target) {
+        document.querySelectorAll(`[data-highlight-target="${item.highlight_target}"]`).forEach((el) => {
+            el.classList.add('notification-highlight');
+        });
+    }
+}
+
+async function fetchUnreadList() {
+    if (!routes.index) {
+        return [];
+    }
+
+    const result = await adminApi('get', `${routes.index}?unread_only=1`);
+
+    if (!result.ok) {
+        return [];
+    }
+
+    const items = result.data?.items ?? [];
+    renderNotificationList(items);
+
+    return items;
+}
+
+async function syncNotificationListWithBadge() {
+    const count = await refreshUnreadCount();
+
+    if (count === null) {
+        return;
+    }
+
+    const listCount = getUnreadListItemCount();
+
+    if (count === 0) {
+        if (listCount > 0) {
+            renderNotificationList([]);
+        }
+        return;
+    }
+
+    if (listCount === 0 || listCount < count) {
+        await fetchUnreadList();
+    }
+}
+
+function applyHighlightTargets(targets) {
+    document.querySelectorAll('[data-highlight-target]').forEach((el) => {
+        const target = el.getAttribute('data-highlight-target');
+        if (targets.includes(target)) {
+            el.classList.add('notification-highlight');
+        }
+    });
+}
+
+async function refreshUnreadCount() {
+    if (!routes.unreadCount) return null;
+
+    const result = await adminApi('get', routes.unreadCount);
+    if (result.ok && result.data?.count !== undefined) {
+        updateBadge(result.data.count);
+        fetchErrorShown = false;
+        return result.data.count;
+    }
+
+    if (!fetchErrorShown) {
+        fetchErrorShown = true;
+        showAdminToast(result.message, { variant: 'warning' });
+        showInlineError();
+    }
+
+    return null;
+}
+
+async function fetchSince({ toast = false } = {}) {
+    if (!routes.since) return;
+
+    const params = lastSince ? `?after=${encodeURIComponent(lastSince)}` : '';
+    const result = await adminApi('get', routes.since + params);
+
+    if (!result.ok) {
+        return;
+    }
+
+    const items = result.data?.items ?? [];
+    items.forEach((item) => {
+        prependNotificationItem(item);
+        if (toast) {
+            toastNotificationItem(item, { force: true });
+        }
+    });
+
+    if (items.length > 0) {
+        lastSince = items[0].created_at;
+        await refreshUnreadCount();
+    }
+}
+
+async function pollForNewNotifications() {
+    const count = await refreshUnreadCount();
+    if (count === null) {
+        return;
+    }
+
+    if (lastUnreadCount !== null && count > lastUnreadCount) {
+        await fetchSince({ toast: isTabVisible() });
+    }
+
+    const listCount = getUnreadListItemCount();
+
+    if (count > 0 && listCount === 0) {
+        await fetchUnreadList();
+    } else if (count > 0 && listCount < count) {
+        await fetchUnreadList();
+    } else if (count === 0 && listCount > 0) {
+        renderNotificationList([]);
+    }
+
+    lastUnreadCount = count;
+}
+
+function showInlineError() {
+    const errorEl = document.querySelector('[data-notification-error]');
+    if (errorEl) {
+        errorEl.classList.remove('hidden');
+    }
+}
+
+function hideInlineError() {
+    const errorEl = document.querySelector('[data-notification-error]');
+    if (errorEl) {
+        errorEl.classList.add('hidden');
+    }
+}
+
+function startPolling({ showDisconnectToast = false } = {}) {
+    if (pollTimer) return;
+    setConnectionState('polling', { showDisconnectToast });
+    void fetchSince({ toast: false });
+    pollTimer = window.setInterval(() => fetchSince({ toast: false }), POLL_INTERVAL_MS);
+}
+
+function stopPolling() {
+    if (pollTimer) {
+        window.clearInterval(pollTimer);
+        pollTimer = null;
+    }
+}
+
+function startCountPolling() {
+    if (countPollTimer) return;
+
+    const badgeText = document.querySelector('[data-notification-badge]')?.textContent ?? '0';
+    lastUnreadCount = badgeText === '99+' ? 99 : Number(badgeText) || 0;
+
+    void pollForNewNotifications();
+    countPollTimer = window.setInterval(() => {
+        void pollForNewNotifications();
+    }, COUNT_POLL_INTERVAL_MS);
+}
+
+function clearConnectTimeout() {
+    if (connectTimeout) {
+        window.clearTimeout(connectTimeout);
+        connectTimeout = null;
+    }
+}
+
+function initEcho() {
+    const config = window.__pusherConfig ?? {};
+    echo = createAdminEcho(config);
+
+    if (!echo) {
+        startPolling();
+        return;
+    }
+
+    const userId = window.__authUserId;
+    if (!userId) {
+        startPolling();
+        return;
+    }
+
+    setConnectionState('connecting');
+
+    const channel = echo.private(`App.Models.User.${userId}`);
+
+    channel.listen('.staff.notification', (payload) => {
+        const item = {
+            id: payload.id ?? `live-${Date.now()}`,
+            type: payload.type ?? null,
+            title: payload.title,
+            message: payload.message,
+            url: payload.url,
+            highlight_target: payload.highlight_target,
+            created_human: payload.created_human ?? 'Just now',
+            created_at: payload.created_at ?? null,
+        };
+
+        handleIncomingNotificationItem(item);
+        if (item.created_at) {
+            lastSince = item.created_at;
+        }
+    });
+
+    if (typeof channel.error === 'function') {
+        channel.error(() => {
+            startPolling();
+        });
+    }
+
+    if (echo.connector?.pusher?.connection) {
+        const connection = echo.connector.pusher.connection;
+
+        connection.bind('pusher:subscription_error', () => {
+            startPolling();
+        });
+
+        connection.bind('connected', () => {
+            wasLiveConnected = true;
+            clearConnectTimeout();
+            setConnectionState('connected');
+            disconnectWarningShown = false;
+            stopPolling();
+            fetchSince({ toast: false });
+        });
+        connection.bind('disconnected', () => {
+            startPolling({ showDisconnectToast: wasLiveConnected });
+        });
+        connection.bind('unavailable', () => {
+            startPolling({ showDisconnectToast: wasLiveConnected });
+        });
+        connection.bind('failed', () => {
+            startPolling({ showDisconnectToast: wasLiveConnected });
+        });
+
+        connectTimeout = window.setTimeout(() => {
+            if (!wasLiveConnected) {
+                startPolling();
+            }
+        }, CONNECT_TIMEOUT_MS);
+    } else {
+        startPolling();
+    }
+}
+
+async function markAsRead(id, link) {
+    if (!routes.read) return;
+
+    const result = await adminApi('post', routes.read.replace('__ID__', id));
+    if (result.ok) {
+        const row = document.querySelector(`[data-notification-id="${id}"]`);
+        row?.remove();
+        await refreshUnreadCount();
+    } else {
+        showAdminToast(result.message, { variant: 'error' });
+        if (link) {
+            window.location.href = link.href;
+        }
+    }
+}
+
+async function markAllRead() {
+    if (!routes.readAll) return;
+
+    const result = await adminApi('post', routes.readAll);
+    if (result.ok) {
+        renderNotificationList([]);
+        updateBadge(0);
+        lastUnreadCount = 0;
+        document.querySelectorAll('.notification-highlight').forEach((el) => {
+            el.classList.remove('notification-highlight');
+        });
+        showAdminToast(result.message ?? 'All notifications marked as read.', { variant: 'success' });
+    } else {
+        showAdminToast(result.message, { variant: 'error' });
+    }
+}
+
+async function subscribePushAlerts({ prompt = false } = {}) {
+    if (!canUseBrowserAlerts()) {
+        if (prompt) {
+            showAdminToast('Switching to HTTPS — browser alerts do not work on http://.', {
+                variant: 'warning',
+                duration: 6000,
+            });
+            redirectToHttpsAdmin();
+        }
+        updatePushButtonState();
+        return false;
+    }
+
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        if (prompt) {
+            showAdminToast("Browser alerts aren't available in this browser. In-app notifications still work.", { variant: 'warning' });
+        }
+        return false;
+    }
+
+    const vapidKey = window.__webPushPublicKey;
+    if (!vapidKey) {
+        if (prompt) {
+            showAdminToast("Browser alerts aren't configured yet.", { variant: 'warning' });
+        }
+        return false;
+    }
+
+    try {
+        let permission = Notification.permission;
+        if (permission === 'default' && prompt) {
+            permission = await Notification.requestPermission();
+        }
+
+        if (permission === 'denied') {
+            if (prompt) {
+                showAdminToast('Notifications are blocked. Allow them in your browser site settings, then click Enable browser alerts again.', {
+                    variant: 'warning',
+                    duration: 9000,
+                });
+            }
+            updatePushButtonState();
+            return false;
+        }
+
+        if (permission !== 'granted') {
+            updatePushButtonState();
+            return false;
+        }
+
+        const registration = await navigator.serviceWorker.register('/sw.js');
+        await registration.update().catch(() => undefined);
+        await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+
+        if (!subscription) {
+            subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(vapidKey),
+            });
+        }
+
+        const result = await adminApi('post', routes.pushSubscribe, subscription.toJSON());
+        if (result.ok) {
+            hidePushPermissionBanner();
+            updatePushButtonState({ subscribed: true });
+            if (prompt) {
+                showAdminToast(result.message ?? 'Browser alerts enabled.', { variant: 'success' });
+            }
+            return true;
+        }
+
+        if (prompt) {
+            showAdminToast(result.message ?? `Could not save browser subscription (${result.status || 'error'}).`, { variant: 'error' });
+        }
+        updatePushButtonState();
+        return false;
+    } catch (error) {
+        console.warn('Push subscribe failed', error);
+        if (prompt) {
+            const message = error?.message?.includes('permission')
+                ? 'Notification permission was not granted.'
+                : "Browser alerts aren't available. In-app notifications still work.";
+            showAdminToast(message, { variant: 'warning' });
+        }
+        updatePushButtonState();
+        return false;
+    }
+}
+
+async function fetchPushSubscriptionStatus() {
+    if (!routes.pushStatus) {
+        return { subscribed: false, count: 0 };
+    }
+
+    const result = await adminApi('get', routes.pushStatus);
+
+    if (!result.ok) {
+        return { subscribed: false, count: 0 };
+    }
+
+    return {
+        subscribed: Boolean(result.data?.subscribed),
+        count: Number(result.data?.count ?? 0),
+    };
+}
+
+async function enablePushAlerts() {
+    if (redirectToHttpsAdmin()) {
+        return;
+    }
+
+    await subscribePushAlerts({ prompt: true });
+    const status = await fetchPushSubscriptionStatus();
+    updatePushButtonState({ subscribed: status.subscribed });
+}
+
+async function sendTestPushAlert() {
+    if (!routes.pushTest) {
+        return;
+    }
+
+    const result = await adminApi('post', routes.pushTest);
+
+    showAdminToast(result.message ?? 'Test sent.', {
+        variant: result.ok ? 'success' : 'error',
+        duration: 8000,
+    });
+}
+
+async function ensurePushRegistered() {
+    if (!window.__webPushPublicKey) {
+        updatePushButtonState();
+        return;
+    }
+
+    if (!canUseBrowserAlerts()) {
+        updatePushButtonState();
+        if (isAdminHttp()) {
+            showAdminToast('You are on http://. Browser alerts only work on https://cakeshop.test — use the popup or top button to switch.', {
+                variant: 'warning',
+                duration: 10000,
+            });
+        }
+        return;
+    }
+
+    const serverStatus = await fetchPushSubscriptionStatus();
+
+    if (serverStatus.subscribed) {
+        updatePushButtonState({ subscribed: true });
+        hidePushPermissionBanner();
+        return;
+    }
+
+    if (Notification.permission === 'granted') {
+        await subscribePushAlerts({ prompt: false });
+        const status = await fetchPushSubscriptionStatus();
+        updatePushButtonState({ subscribed: status.subscribed });
+
+        if (!status.subscribed) {
+            showAdminToast('Click Allow browser notifications to finish registering this device.', {
+                variant: 'warning',
+                duration: 9000,
+            });
+        }
+        return;
+    }
+
+    if (window.__promptStaffPush && Notification.permission === 'default') {
+        await subscribePushAlerts({ prompt: true });
+        const status = await fetchPushSubscriptionStatus();
+        updatePushButtonState({ subscribed: status.subscribed });
+        if (!status.subscribed) {
+            showPushPermissionBanner();
+        }
+        return;
+    }
+
+    if (Notification.permission === 'default') {
+        showPushPermissionBanner();
+    }
+
+    updatePushButtonState();
+}
+
+function urlBase64ToUint8Array(base64String) {
+    const padding = '='.repeat((4 - (base64String.length % 4)) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    const outputArray = new Uint8Array(rawData.length);
+    for (let i = 0; i < rawData.length; ++i) {
+        outputArray[i] = rawData.charCodeAt(i);
+    }
+    return outputArray;
+}
+
+function initBellUi() {
+    const bellButton = document.querySelector('[data-notification-bell]');
+    const dropdown = document.querySelector('[data-notification-dropdown]');
+
+    bellButton?.addEventListener('click', async () => {
+        const wasHidden = dropdown?.classList.contains('hidden');
+        dropdown?.classList.toggle('hidden');
+
+        if (wasHidden && dropdown && !dropdown.classList.contains('hidden')) {
+            await fetchUnreadList();
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        if (!dropdown || dropdown.classList.contains('hidden')) return;
+        if (event.target.closest('[data-notification-bell]') || event.target.closest('[data-notification-dropdown]')) {
+            return;
+        }
+        dropdown.classList.add('hidden');
+    });
+
+    document.querySelector('[data-notification-mark-all]')?.addEventListener('click', (e) => {
+        e.preventDefault();
+        markAllRead();
+    });
+
+    document.querySelector('[data-notification-retry]')?.addEventListener('click', async () => {
+        hideInlineError();
+        await syncNotificationListWithBadge();
+        await fetchSince({ toast: false });
+    });
+
+    document.querySelectorAll('[data-enable-push]').forEach((button) => {
+        button.addEventListener('click', enablePushAlerts);
+    });
+
+    document.querySelectorAll('[data-test-push]').forEach((button) => {
+        button.addEventListener('click', sendTestPushAlert);
+    });
+
+    document.querySelector('[data-push-banner-allow]')?.addEventListener('click', async () => {
+        hidePushPermissionBanner();
+        await subscribePushAlerts({ prompt: true });
+        updatePushButtonState({ subscribed: await isPushSubscribed() });
+    });
+
+    document.querySelector('[data-push-banner-dismiss]')?.addEventListener('click', () => {
+        localStorage.setItem(PUSH_BANNER_DISMISS_KEY, '1');
+        hidePushPermissionBanner();
+    });
+
+    document.querySelector('[data-notification-list]')?.addEventListener('click', async (event) => {
+        const link = event.target.closest('[data-notification-link]');
+        if (!link) return;
+        const row = link.closest('[data-notification-id]');
+        const id = row?.getAttribute('data-notification-id');
+        if (!id) return;
+        event.preventDefault();
+        await markAsRead(id, link);
+        window.location.href = link.getAttribute('href');
+    });
+}
+
+function initServiceWorkerMessages() {
+    if (!('serviceWorker' in navigator)) {
+        return;
+    }
+
+    navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data?.type !== 'staff-notification') {
+            return;
+        }
+
+        const payload = event.data.payload ?? {};
+        handleIncomingNotificationItem({
+            id: payload.id ?? payload.data?.id ?? `push-${Date.now()}`,
+            type: payload.type ?? payload.data?.type ?? null,
+            title: payload.title ?? 'Notification',
+            message: payload.body ?? payload.message ?? '',
+            url: payload.data?.url ?? payload.url ?? '#',
+            highlight_target: payload.highlight_target ?? null,
+            created_at: new Date().toISOString(),
+            created_human: 'Just now',
+        });
+    });
+}
+
+function handleIncomingNotificationItem(item) {
+    if (!item) {
+        return;
+    }
+
+    prependNotificationItem(item);
+
+    if (isTabVisible()) {
+        toastNotificationItem(item, { force: true });
+    }
+
+    refreshUnreadCount();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    if (!document.querySelector('[data-notification-bell]')) {
+        return;
+    }
+
+    const targets = window.__unreadHighlightTargets ?? [];
+    applyHighlightTargets(targets);
+
+    pageLoadMs = Date.now();
+    lastSince = window.__notificationWatermark ?? new Date(pageLoadMs).toISOString();
+
+    initBellUi();
+    initEcho();
+    startCountPolling();
+    void syncNotificationListWithBadge();
+    void ensurePushRegistered();
+    initServiceWorkerMessages();
+    updatePushButtonState();
+
+    document.addEventListener('visibilitychange', () => {
+        if (isTabVisible()) {
+            void syncNotificationListWithBadge();
+        }
+    });
+
+    document.addEventListener('click', () => unlockNotificationSound(), { once: true });
+    document.addEventListener('keydown', () => unlockNotificationSound(), { once: true });
+});

@@ -1,0 +1,1 @@
+import{a as o}from"./index-C0Zqfgkc.js";window.axios=o;window.axios.defaults.headers.common["X-Requested-With"]="XMLHttpRequest";window.axios.defaults.withCredentials=!0;const e=document.head.querySelector('meta[name="csrf-token"]');e&&(window.axios.defaults.headers.common["X-CSRF-TOKEN"]=e.content);

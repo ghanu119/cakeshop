@@ -44,6 +44,10 @@ class DashboardController extends Controller
             $upcomingTotal = $this->orderService->countKitchenUpcoming();
         }
 
+        if (request()->routeIs('admin.dashboard') && auth()->user()->unreadNotifications()->exists()) {
+            session()->put('notifications_catchup_shown', true);
+        }
+
         return view('dashboard', compact(
             'header',
             'ordersCount',

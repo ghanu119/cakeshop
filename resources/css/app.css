@@ -234,6 +234,28 @@ html.admin-area .admin-main {
     min-width: 0;
 }
 
+html.admin-area .admin-topbar {
+    margin-top: -2rem;
+}
+
+html.admin-area .notification-highlight {
+    animation: notification-pulse 2s ease-in-out infinite;
+    box-shadow: 0 0 0 2px rgb(251 191 36);
+}
+
+@keyframes notification-pulse {
+    0%, 100% {
+        box-shadow: 0 0 0 2px rgb(251 191 36);
+    }
+    50% {
+        box-shadow: 0 0 0 4px rgb(251 191 36 / 0.45);
+    }
+}
+
+html.admin-area .notification-bell-dropdown {
+    max-height: calc(100vh - 6rem);
+}
+
 /* Admin product image previews — fixed thumb size, never expand page height */
 #product-images-manager [data-role="preview-grid"] {
     display: flex;

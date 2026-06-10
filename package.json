@@ -20,7 +20,9 @@
     "dependencies": {
         "aos": "^2.3.4",
         "jquery": "3.7.1",
+        "laravel-echo": "^2.3.7",
         "magnific-popup": "^1.1.0",
+        "pusher-js": "^8.5.0",
         "select2": "^4.0.13",
         "slick-carousel": "^1.8.1",
         "sweetalert2": "^11.26.25"

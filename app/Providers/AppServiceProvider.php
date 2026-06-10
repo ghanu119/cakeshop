@@ -2,7 +2,10 @@
 
 namespace App\Providers;
 
+use App\Services\PusherSettingsResolver;
+use App\View\Composers\AdminNotificationComposer;
 use Illuminate\Support\Facades\Blade;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -34,5 +37,22 @@ class AppServiceProvider extends ServiceProvider
         Blade::if('themeIs', function (string $theme) {
             return active_theme() === $theme;
         });
+
+        View::composer([
+            'layouts.admin',
+            'dashboard',
+            'dashboard.*',
+            'admin.*',
+            'kitchen.*',
+        ], AdminNotificationComposer::class);
+
+        $appUrl = (string) config('app.url');
+        if (preg_match('/\.(test|localhost)(:\d+)?$/i', parse_url($appUrl, PHP_URL_HOST) ?? '')) {
+            URL::forceScheme('https');
+        }
+
+        if (! $this->app->runningInConsole()) {
+            $this->app->make(PusherSettingsResolver::class)->applyBroadcastingConfig();
+        }
     }
 }

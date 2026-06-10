@@ -9,10 +9,18 @@ use App\Mail\OrderStatusUpdated;
 use App\Mail\PaymentSubmittedNotification;
 use App\Mail\PaymentVerifiedNotification;
 use App\Models\Order;
+use App\Notifications\KitchenOrderQueuedTodayNotification;
+use App\Notifications\KitchenPaymentVerifiedTodayNotification;
+use App\Notifications\NewOrderAdminNotification;
+use App\Notifications\OrderCompletedAdminNotification;
 use Illuminate\Contracts\Mail\Mailable;
 
 class OrderNotificationService
 {
+    public function __construct(
+        private InAppOrderNotificationService $inAppOrderNotificationService
+    ) {}
+
     public function notifyOrderPlaced(Order $order): void
     {
         $order->loadMissing('product');
@@ -23,6 +31,8 @@ class OrderNotificationService
         if ($adminEmail) {
             $this->queueSafely($adminEmail, new NewOrderNotification($order));
         }
+
+        $this->inAppOrderNotificationService->notifyAdmins(new NewOrderAdminNotification($order));
     }
 
     public function notifyPaymentSubmitted(Order $order, bool $isUpdate = false): void
@@ -42,6 +52,12 @@ class OrderNotificationService
         $order->loadMissing('product');
 
         $this->sendToCustomer($order, new PaymentVerifiedNotification($order));
+
+        if ($order->isDeliveryToday()) {
+            $this->inAppOrderNotificationService->notifyKitchen(
+                new KitchenPaymentVerifiedTodayNotification($order)
+            );
+        }
     }
 
     public function notifyStatusUpdated(Order $order, ?string $previousStatus = null): void
@@ -53,6 +69,21 @@ class OrderNotificationService
         $order->loadMissing('product');
 
         $this->sendToCustomer($order, new OrderStatusUpdated($order, $previousStatus));
+
+        if ($order->order_status === 'completed') {
+            $this->inAppOrderNotificationService->notifyAdmins(
+                new OrderCompletedAdminNotification($order)
+            );
+        }
+    }
+
+    public function notifyKitchenOrderQueued(Order $order): void
+    {
+        $order->loadMissing('product');
+
+        $this->inAppOrderNotificationService->notifyKitchen(
+            new KitchenOrderQueuedTodayNotification($order)
+        );
     }
 
     private function sendToCustomer(Order $order, Mailable $mailable): void

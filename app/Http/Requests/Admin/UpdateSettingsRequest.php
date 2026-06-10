@@ -18,7 +18,7 @@ class UpdateSettingsRequest extends FormRequest
 
         return [
             'site_name' => ['nullable', 'string', 'max:255'],
-            'theme' => ['nullable', 'string', 'in:' . implode(',', $availableThemes)],
+            'theme' => ['nullable', 'string', 'in:'.implode(',', $availableThemes)],
             'address' => ['nullable', 'string'],
             'contact' => ['nullable', 'string', 'max:500'],
             'admin_email' => ['nullable', 'email'],
@@ -39,6 +39,12 @@ class UpdateSettingsRequest extends FormRequest
             'instagram_url' => ['nullable', 'string', 'max:500', 'url'],
             'twitter_url' => ['nullable', 'string', 'max:500', 'url'],
             'product_note' => ['nullable', 'string', 'max:1000'],
+            'notifications_enabled' => ['nullable', 'boolean'],
+            'notifications_web_push_enabled' => ['nullable', 'boolean'],
+            'pusher_app_id' => ['nullable', 'string', 'max:255'],
+            'pusher_app_key' => ['nullable', 'string', 'max:255'],
+            'pusher_app_secret' => ['nullable', 'string', 'max:255'],
+            'pusher_app_cluster' => ['nullable', 'string', 'max:50'],
         ];
     }
 }

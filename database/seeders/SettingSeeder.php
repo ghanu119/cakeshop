@@ -28,6 +28,8 @@ class SettingSeeder extends Seeder
             'order_min_hours_before_delivery' => '4',
             'kitchen_lead_hours' => '24',
             'message_on_cake_max_length' => '50',
+            'notifications_enabled' => '1',
+            'notifications_web_push_enabled' => '0',
         ];
 
         foreach ($items as $key => $value) {

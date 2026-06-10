@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\ContactEnquiryController;
 use App\Http\Controllers\Admin\FeatureController;
 use App\Http\Controllers\Admin\FlavorController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
+use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\UserController;
@@ -55,7 +56,7 @@ Route::middleware(['auth'])->group(function () {
     Route::post('logout', [LogoutController::class, 'destroy'])->name('logout');
 });
 
-Route::middleware(['auth', 'verified', 'role:Admin|Kitchen'])->group(function () {
+Route::middleware(['ensure.admin.https', 'auth', 'verified', 'role:Admin|Kitchen'])->group(function () {
     // Admin area: all backend routes under /admin prefix
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
@@ -77,6 +78,20 @@ Route::middleware(['auth', 'verified', 'role:Admin|Kitchen'])->group(function ()
         Route::resource('products', \App\Http\Controllers\Admin\ProductController::class)->except(['show']);
         Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
         Route::put('settings', [SettingsController::class, 'update'])->name('settings.update');
+        Route::post('settings/test-pusher', [SettingsController::class, 'testPusher'])->name('settings.test-pusher');
+        Route::middleware(['throttle:60,1'])->group(function () {
+            Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
+            Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+            Route::get('notifications/since', [NotificationController::class, 'since'])->name('notifications.since');
+            Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
+            Route::post('notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+        });
+        Route::middleware(['throttle:30,1'])->group(function () {
+            Route::get('push-subscriptions/status', [NotificationController::class, 'pushSubscriptionStatus'])->name('push-subscriptions.status');
+            Route::post('push-subscriptions', [NotificationController::class, 'storePushSubscription'])->name('push-subscriptions.store');
+            Route::post('push-subscriptions/test', [NotificationController::class, 'testPushNotification'])->name('push-subscriptions.test');
+            Route::delete('push-subscriptions', [NotificationController::class, 'destroyPushSubscription'])->name('push-subscriptions.destroy');
+        });
         Route::middleware(['permission:settings.manage'])->group(function () {
             Route::resource('cake-weights', \App\Http\Controllers\Admin\CakeWeightController::class)
                 ->parameters(['cake-weights' => 'cake_weight'])
@@ -109,7 +124,7 @@ Route::view('profile', 'profile')
     ->name('profile');
 
 // Admin login (separate from frontend login; only Admin|Kitchen may use this)
-Route::prefix('admin')->middleware('guest')->group(function () {
+Route::prefix('admin')->middleware(['ensure.admin.https', 'guest'])->group(function () {
     Route::get('login', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'showLoginForm'])->name('admin.login');
     Route::post('login', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'login'])->name('admin.login.post');
 });

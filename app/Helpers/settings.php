@@ -7,7 +7,7 @@ if (! function_exists('settings')) {
     /**
      * Get a setting value by key.
      */
-    function settings(string $key = null, $default = null)
+    function settings(?string $key = null, $default = null)
     {
         if ($key === null) {
             return Setting::allCached();
@@ -36,6 +36,18 @@ if (! function_exists('branding_logo_url')) {
         $url = header_icon_url();
 
         return $url ? url($url) : null;
+    }
+}
+
+if (! function_exists('pusher_settings')) {
+    /**
+     * Resolved Pusher config from encrypted settings (null when not configured).
+     *
+     * @return array{key: string, secret: string, app_id: string, cluster: string}|null
+     */
+    function pusher_settings(): ?array
+    {
+        return Setting::isPusherConfigured() ? Setting::pusherConfig() : null;
     }
 }
 

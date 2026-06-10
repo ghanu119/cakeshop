@@ -16,7 +16,7 @@
 <div class="admin-dashboard space-y-6">
     {{-- KPI row (4 cards) --}}
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <a href="{{ route('admin.orders.index', ['delivery_today' => 1]) }}" class="group rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm ring-1 ring-black/[0.03] transition hover:border-orange-200 hover:shadow-md">
+        <a href="{{ route('admin.orders.index', ['delivery_today' => 1]) }}" data-highlight-target="deliveries_today" class="group rounded-2xl border border-gray-200/80 bg-white p-5 shadow-sm ring-1 ring-black/[0.03] transition hover:border-orange-200 hover:shadow-md {{ in_array('deliveries_today', ($unreadHighlightTargets ?? collect())->toArray(), true) ? 'notification-highlight' : '' }}">
             <div class="flex items-start justify-between gap-3">
                 <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
                     <svg class="h-6 w-6 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1 1H9m4-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6-1a1 1 0 001 1h1M5 17a2 2 0 104 0m-4 0a2 2 0 114 0m6 0a2 2 0 104 0m-4 0a2 2 0 114 0"/></svg>
@@ -237,7 +237,7 @@
 
             {{-- Payments — full width of right column --}}
             @if($paymentReviewTotal > 0)
-                <section class="overflow-hidden rounded-2xl border-2 border-amber-200 bg-white shadow-sm">
+                <section data-highlight-target="payment_review" class="overflow-hidden rounded-2xl border-2 border-amber-200 bg-white shadow-sm {{ in_array('payment_review', ($unreadHighlightTargets ?? collect())->toArray(), true) ? 'notification-highlight' : '' }}">
                     <div class="flex items-center justify-between border-b border-amber-100 bg-amber-50 px-4 py-3">
                         <h2 class="text-sm font-black uppercase text-amber-950">{{ __('Review Payments') }}</h2>
                         <span class="rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-black text-white">{{ $paymentReviewTotal }}</span>
