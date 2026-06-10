@@ -29,6 +29,18 @@ class OrderFulfillmentTest extends TestCase
         Setting::flushCache();
     }
 
+    public function test_order_place_url_uses_product_slug(): void
+    {
+        $product = $this->simpleProduct();
+
+        $url = route('order.place', $product);
+
+        $this->assertStringContainsString('/order/product/'.$product->slug, $url);
+        $this->assertStringNotContainsString('/order/product/'.$product->id, $url);
+
+        $this->get($url)->assertOk();
+    }
+
     public function test_checkout_shows_order_type_when_theme_setting_is_null(): void
     {
         Setting::set('theme', null);
