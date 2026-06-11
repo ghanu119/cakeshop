@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Support\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Validation\Rule;
 
 class UpdateVariantOptionTypeRequest extends FormRequest
 {
@@ -17,7 +17,7 @@ class UpdateVariantOptionTypeRequest extends FormRequest
         $type = $this->route('variant_option_type');
 
         return [
-            'slug' => ['required', 'string', 'max:50', 'alpha_dash', Rule::unique('variant_option_types', 'slug')->ignore($type?->id)],
+            'slug' => ['required', 'string', 'max:50', 'alpha_dash', ValidationRules::uniqueAmongActive('variant_option_types', 'slug', $type?->id)],
             'name_en' => ['required', 'string', 'max:255'],
             'selection_mode' => ['required', 'string', 'in:single,multiple'],
             'sort_order' => ['nullable', 'integer', 'min:0'],

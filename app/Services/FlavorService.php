@@ -33,16 +33,36 @@ class FlavorService
         $flavor->sort_order = (int) ($data['sort_order'] ?? 0);
         $flavor->badge_color = $data['badge_color'] ?? null;
 
-        $slugBase = Str::slug($data['name_en']);
-        $slug = $slugBase;
-        $count = 0;
-        while (Flavor::where('slug', $slug)->where('id', '!=', $flavor->id)->exists()) {
-            $slug = $slugBase.'-'.(++$count);
-        }
-        $flavor->slug = $slug;
+        $flavor->slug = $this->resolveUniqueSlug($flavor, $data['name_en']);
 
         $flavor->save();
 
         return $flavor;
+    }
+
+    private function resolveUniqueSlug(Flavor $flavor, string $nameEn): string
+    {
+        $slugBase = Str::slug($nameEn);
+        $slug = $slugBase;
+        $count = 0;
+
+        while (true) {
+            $conflict = Flavor::withTrashed()
+                ->where('slug', $slug)
+                ->when($flavor->exists, fn ($query) => $query->where('id', '!=', $flavor->id))
+                ->first();
+
+            if ($conflict === null) {
+                return $slug;
+            }
+
+            if ($conflict->trashed()) {
+                $conflict->releaseSlugForSoftDelete();
+
+                continue;
+            }
+
+            $slug = $slugBase.'-'.(++$count);
+        }
     }
 }

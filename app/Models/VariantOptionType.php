@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ReleasesUniqueSlugOnSoftDelete;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class VariantOptionType extends Model
 {
-    use SoftDeletes;
+    use ReleasesUniqueSlugOnSoftDelete, SoftDeletes;
 
     protected $fillable = [
         'slug',

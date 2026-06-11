@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\User;
+use App\Support\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
@@ -20,7 +21,7 @@ class UpdateUserRequest extends FormRequest
 
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:users,email,'.$user->id],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', ValidationRules::uniqueAmongActive('users', 'email', $user->id)],
             'phone' => ['nullable', 'string', 'max:50'],
             'password' => ['nullable', 'string', 'confirmed', Password::defaults()],
             'roles' => ['nullable', 'array'],

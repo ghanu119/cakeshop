@@ -31,6 +31,16 @@ class VariantOptionService
     public function createOrUpdateType(?VariantOptionType $type, array $data): VariantOptionType
     {
         $type = $type ?? new VariantOptionType;
+
+        $conflict = VariantOptionType::withTrashed()
+            ->where('slug', $data['slug'])
+            ->when($type->exists, fn ($query) => $query->where('id', '!=', $type->id))
+            ->first();
+
+        if ($conflict?->trashed()) {
+            $conflict->releaseSlugForSoftDelete();
+        }
+
         $type->slug = $data['slug'];
         $type->name_en = $data['name_en'];
         $type->selection_mode = $data['selection_mode'] ?? 'single';

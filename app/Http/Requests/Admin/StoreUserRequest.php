@@ -2,7 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\User;
+use App\Support\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rules\Password;
 
@@ -17,7 +17,7 @@ class StoreUserRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', ValidationRules::uniqueAmongActive('users', 'email')],
             'phone' => ['nullable', 'string', 'max:50'],
             'password' => ['required', 'string', 'confirmed', Password::defaults()],
             'roles' => ['nullable', 'array'],

@@ -15,6 +15,34 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasPushSubscriptions, HasRoles, Notifiable, SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::deleting(function (User $user) {
+            if (! $user->isForceDeleting()) {
+                $user->releaseEmailForSoftDelete();
+            }
+        });
+    }
+
+    public function releaseEmailForSoftDelete(): void
+    {
+        $suffix = '-deleted-'.$this->id;
+
+        if (str_ends_with($this->email, $suffix)) {
+            return;
+        }
+
+        $maxLength = 255;
+        $email = $this->email.$suffix;
+
+        if (strlen($email) > $maxLength) {
+            $email = substr($this->email, 0, $maxLength - strlen($suffix)).$suffix;
+        }
+
+        $this->email = $email;
+        $this->saveQuietly();
+    }
+
     /**
      * The attributes that are mass assignable.
      *

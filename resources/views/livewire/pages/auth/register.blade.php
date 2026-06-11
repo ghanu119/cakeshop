@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Support\ValidationRules;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -22,7 +23,7 @@ new #[Layout('layouts.guest')] class extends Component
     {
         $validated = $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
+            'email' => ['required', 'string', 'lowercase', 'email', 'max:255', ValidationRules::uniqueAmongActive('users', 'email')],
             'password' => ['required', 'string', 'confirmed', Rules\Password::defaults()],
         ]);
 

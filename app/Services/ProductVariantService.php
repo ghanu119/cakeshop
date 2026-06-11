@@ -68,10 +68,14 @@ class ProductVariantService
             }
 
             if (! $variant) {
-                $variant = ProductVariant::query()
+                $variant = ProductVariant::withTrashed()
                     ->where('product_id', $product->id)
                     ->where('selection_hash', $hash)
                     ->first();
+            }
+
+            if ($variant?->trashed()) {
+                $variant->restore();
             }
 
             if (! $variant) {

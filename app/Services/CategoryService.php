@@ -33,16 +33,36 @@ class CategoryService
         $category->status = $data['status'] ?? 'active';
         $category->sort_order = (int) ($data['sort_order'] ?? 0);
 
-        $slugBase = Str::slug($data['name_en']);
-        $slug = $slugBase;
-        $count = 0;
-        while (Category::where('slug', $slug)->where('id', '!=', $category->id)->exists()) {
-            $slug = $slugBase . '-' . (++$count);
-        }
-        $category->slug = $slug;
+        $category->slug = $this->resolveUniqueSlug($category, $data['name_en']);
 
         $category->save();
 
         return $category;
+    }
+
+    private function resolveUniqueSlug(Category $category, string $nameEn): string
+    {
+        $slugBase = Str::slug($nameEn);
+        $slug = $slugBase;
+        $count = 0;
+
+        while (true) {
+            $conflict = Category::withTrashed()
+                ->where('slug', $slug)
+                ->when($category->exists, fn ($query) => $query->where('id', '!=', $category->id))
+                ->first();
+
+            if ($conflict === null) {
+                return $slug;
+            }
+
+            if ($conflict->trashed()) {
+                $conflict->releaseSlugForSoftDelete();
+
+                continue;
+            }
+
+            $slug = $slugBase.'-'.(++$count);
+        }
     }
 }
