@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { showAdminToast } from './admin-toast';
 import { resolveUserMessage, unwrapApiData } from './error-messages';
 
 const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
@@ -28,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!root) return;
 
     const maxImages = parseInt(root.dataset.maxImages, 10) || 10;
+    const maxBytes = parseInt(root.dataset.maxBytes, 10) || 2 * 1024 * 1024;
+    const sizeExceededMessage =
+        root.dataset.sizeExceededMessage || 'Image size exceeds the maximum allowed size.';
     const uploadUrl = root.dataset.uploadUrl;
     const deleteUrlTemplate = root.dataset.deleteUrlTemplate;
     const grid = root.querySelector('[data-role="preview-grid"]');
@@ -58,6 +62,11 @@ document.addEventListener('DOMContentLoaded', () => {
         statusEl.textContent = message;
         statusEl.classList.toggle('text-red-600', isError);
         statusEl.classList.toggle('text-gray-500', !isError);
+    }
+
+    function notifyUploadError(message, { subtitle = null } = {}) {
+        showAdminToast(message, { variant: 'error', subtitle });
+        setStatus(message, true);
     }
 
     function primaryRef() {
@@ -124,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     },
                 });
             } catch (err) {
-                setStatus(resolveUserMessage(err), true);
+                notifyUploadError(resolveUserMessage(err));
                 return;
             }
         } else if (item.mediaId) {
@@ -180,7 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return frame;
     }
 
-    function render() {
+    function render({ preserveErrorStatus = false } = {}) {
         if (!grid) return;
         grid.innerHTML = '';
 
@@ -243,15 +252,31 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         syncHiddenFields();
-        const readyCount = items.filter((item) => !item.uploading).length;
-        setStatus(readyCount ? `${readyCount} / ${maxImages} images` : '');
+
+        if (!preserveErrorStatus) {
+            const readyCount = items.filter((item) => !item.uploading).length;
+            setStatus(readyCount ? `${readyCount} / ${maxImages} images` : '');
+        }
 
         if (fileInput) {
             fileInput.disabled = items.length >= maxImages || items.some((item) => item.uploading);
         }
     }
 
+    function rejectOversizedFile(file) {
+        if (file.size <= maxBytes) {
+            return false;
+        }
+
+        notifyUploadError(sizeExceededMessage, { subtitle: file.name });
+        return true;
+    }
+
     async function uploadFile(file) {
+        if (rejectOversizedFile(file)) {
+            return false;
+        }
+
         const localUrl = URL.createObjectURL(file);
         const pending = {
             ref: null,
@@ -282,14 +307,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const payload = unwrapApiData(data) ?? data;
 
-            if (! payload?.token) {
+            if (!payload?.token) {
                 throw new Error('Upload response missing image token.');
             }
 
             const index = items.indexOf(pending);
             if (index === -1) {
                 URL.revokeObjectURL(localUrl);
-                return;
+                return true;
             }
 
             const previewUrl = normalizePreviewUrl(payload.url) || localUrl;
@@ -304,12 +329,13 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             URL.revokeObjectURL(localUrl);
             render();
+            return true;
         } catch (err) {
             items = items.filter((item) => item !== pending);
             URL.revokeObjectURL(localUrl);
-            render();
-            setStatus(resolveUserMessage(err), true);
-            throw err;
+            render({ preserveErrorStatus: true });
+            notifyUploadError(resolveUserMessage(err));
+            return false;
         }
     }
 
@@ -323,22 +349,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const slots = maxImages - items.filter((item) => !item.uploading).length;
         if (slots <= 0) {
-            setStatus(`Maximum ${maxImages} images reached.`, true);
+            notifyUploadError(`Maximum ${maxImages} images reached.`);
             return;
         }
 
         const batch = files.slice(0, slots);
+        let hadError = false;
 
         for (const file of batch) {
-            try {
-                await uploadFile(file);
-            } catch {
-                break;
+            const uploaded = await uploadFile(file);
+            if (!uploaded) {
+                hadError = true;
             }
         }
 
-        const readyCount = items.filter((item) => !item.uploading).length;
-        setStatus(readyCount ? `${readyCount} / ${maxImages} images` : '');
+        if (!hadError) {
+            const readyCount = items.filter((item) => !item.uploading).length;
+            setStatus(readyCount ? `${readyCount} / ${maxImages} images` : '');
+        }
     });
 
     render();

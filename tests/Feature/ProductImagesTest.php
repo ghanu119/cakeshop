@@ -75,6 +75,21 @@ class ProductImagesTest extends TestCase
         Storage::disk('public')->assertExists('temp/product-images/'.$admin->id.'/'.$token.'.jpg');
     }
 
+    public function test_admin_cannot_upload_oversized_temp_product_image(): void
+    {
+        $admin = $this->adminUser();
+
+        $response = $this->actingAs($admin)->postJson(route('admin.products.images.temp.store'), [
+            'image' => UploadedFile::fake()->create('large.jpg', 2049, 'image/jpeg'),
+        ], [
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertUnprocessable()
+            ->assertJsonPath('success', false)
+            ->assertJsonPath('data.errors.image.0', __('Image size exceeds the maximum of :max.', ['max' => '2 MB']));
+    }
+
     public function test_store_product_attaches_temp_images_in_order(): void
     {
         $admin = $this->adminUser();

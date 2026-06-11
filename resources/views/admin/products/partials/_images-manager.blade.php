@@ -3,6 +3,8 @@
 
     $product = $product ?? null;
     $maxImages = \App\Services\ProductImageService::MAX_IMAGES;
+    $maxImageBytes = \App\Services\ProductImageTempService::MAX_BYTES;
+    $maxImageSizeLabel = number_format($maxImageBytes / 1024 / 1024, 0).' MB';
     $existingImages = $product
         ? $product->orderedProductImages()->map(fn ($media) => [
             'ref' => 'existing:'.$media->id,
@@ -17,12 +19,14 @@
 <div id="product-images-manager"
      class="space-y-4"
      data-max-images="{{ $maxImages }}"
+     data-max-bytes="{{ $maxImageBytes }}"
+     data-size-exceeded-message="{{ __('Image size exceeds the maximum of :max.', ['max' => $maxImageSizeLabel]) }}"
      data-upload-url="{{ route('admin.products.images.temp.store') }}"
      data-delete-url-template="{{ route('admin.products.images.temp.destroy', ['token' => '__TOKEN__']) }}"
      data-existing='@json($existingImages)'>
     <div class="flex flex-wrap items-center justify-between gap-2">
         <label class="block text-sm font-medium text-gray-700">{{ __('Product images') }}</label>
-        <p class="text-xs text-gray-500">{{ __('Up to :max images. First image is primary.', ['max' => $maxImages]) }}</p>
+        <p class="text-xs text-gray-500">{{ __('Up to :max images, :size each. First image is primary.', ['max' => $maxImages, 'size' => $maxImageSizeLabel]) }}</p>
     </div>
 
     <div data-role="preview-grid"></div>

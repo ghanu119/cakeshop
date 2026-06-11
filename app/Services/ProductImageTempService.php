@@ -11,7 +11,7 @@ use RuntimeException;
 
 class ProductImageTempService
 {
-    public const MAX_BYTES = 5 * 1024 * 1024;
+    public const MAX_BYTES = 2 * 1024 * 1024;
 
     public const CACHE_TTL_SECONDS = 86400;
 
