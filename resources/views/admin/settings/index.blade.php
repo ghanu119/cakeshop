@@ -9,6 +9,7 @@
 
     <form method="post" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data" class="space-y-8">
         @csrf
+            <x-form-errors :show-validation-summary="true" />
         @method('PUT')
 
         <x-card>

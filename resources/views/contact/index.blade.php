@@ -128,6 +128,7 @@
                         </div>
                         <form method="post" action="{{ route('contact.store') }}" class="space-y-6">
                             @csrf
+            <x-form-errors show-system-errors :show-validation-summary="true" />
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div>
                                     <label for="name" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Name') }} *</label>

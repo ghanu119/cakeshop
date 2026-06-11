@@ -11,6 +11,7 @@
     <x-card class="max-w-2xl" :elevated="true">
         <form method="post" action="{{ route('admin.features.store') }}" enctype="multipart/form-data" class="space-y-8">
             @csrf
+            <x-form-errors :show-validation-summary="true" />
             @include('admin.features._form', ['feature' => null])
             <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-6">
                 <x-button type="submit" variant="primary" class="shadow-sm">{{ __('Create Feature') }}</x-button>

@@ -11,6 +11,7 @@
     <x-card class="max-w-xl" :elevated="true">
         <form method="post" action="{{ route('admin.categories.store') }}" class="space-y-8">
             @csrf
+            <x-form-errors :show-validation-summary="true" />
             @include('admin.categories._form', ['category' => null])
             <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-6">
                 <x-button type="submit" variant="primary" class="shadow-sm">{{ __('Create Category') }}</x-button>

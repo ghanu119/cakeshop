@@ -17,6 +17,7 @@
         @stack('styles')
         {!! theme_style('css/app.css') !!}
         @vite(['resources/js/app.js'])
+        <x-app-messages-script />
     </head>
     <body class="min-h-screen font-sans antialiased text-stone-800 overflow-x-hidden">
         <header class="sticky top-0 z-50 w-full bg-white/90 backdrop-blur-md shadow-md border-b border-amber-100/80">
@@ -92,11 +93,9 @@
         </script>
 
         <main class="min-h-[calc(100vh-4rem)]">
-            @if (session('status'))
-                <div class="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-                    <div class="rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('status') }}</div>
-                </div>
-            @endif
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <x-flash-messages class="py-3" />
+            </div>
             @yield('content')
         </main>
 

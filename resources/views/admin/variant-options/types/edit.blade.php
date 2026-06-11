@@ -7,6 +7,7 @@
     <x-card>
         <form method="post" action="{{ route('admin.variant-option-types.update', $type) }}" class="space-y-4">
             @csrf
+            <x-form-errors :show-validation-summary="true" />
             @method('PUT')
             @include('admin.variant-options.types._form', ['type' => $type])
             <x-button type="submit" variant="primary">{{ __('Update') }}</x-button>

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { resolveUserMessage, unwrapApiData } from './error-messages';
 
 const csrfToken = () => document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
 
@@ -116,10 +117,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (item.kind === 'temp' && item.token) {
             try {
                 await axios.delete(deleteUrl(deleteUrlTemplate, item.token), {
-                    headers: { 'X-CSRF-TOKEN': csrfToken() },
+                    headers: {
+                        Accept: 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken(),
+                    },
                 });
-            } catch {
-                setStatus('Could not remove temporary image.', true);
+            } catch (err) {
+                setStatus(resolveUserMessage(err), true);
                 return;
             }
         } else if (item.mediaId) {
@@ -268,10 +273,18 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const { data } = await axios.post(uploadUrl, formData, {
                 headers: {
+                    Accept: 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': csrfToken(),
                     'Content-Type': 'multipart/form-data',
                 },
             });
+
+            const payload = unwrapApiData(data) ?? data;
+
+            if (! payload?.token) {
+                throw new Error('Upload response missing image token.');
+            }
 
             const index = items.indexOf(pending);
             if (index === -1) {
@@ -279,13 +292,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const previewUrl = normalizePreviewUrl(data.url) || localUrl;
+            const previewUrl = normalizePreviewUrl(payload.url) || localUrl;
             items[index] = {
-                ref: `temp:${data.token}`,
-                token: data.token,
+                ref: `temp:${payload.token}`,
+                token: payload.token,
                 url: previewUrl,
                 fullUrl: previewUrl,
-                name: data.name || file.name,
+                name: payload.name || file.name,
                 kind: 'temp',
                 uploading: false,
             };
@@ -295,11 +308,7 @@ document.addEventListener('DOMContentLoaded', () => {
             items = items.filter((item) => item !== pending);
             URL.revokeObjectURL(localUrl);
             render();
-            const message =
-                err.response?.data?.message ||
-                err.response?.data?.errors?.image?.[0] ||
-                'Upload failed.';
-            setStatus(message, true);
+            setStatus(resolveUserMessage(err), true);
             throw err;
         }
     }

@@ -28,40 +28,13 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
-            if ($request->is('admin/notifications*', 'admin/push-subscriptions', 'admin/push-subscriptions/*', 'admin/settings/test-pusher', 'broadcasting/auth')
-                && $request->expectsJson()) {
-                if ($e instanceof \Illuminate\Auth\Access\AuthorizationException
-                    || $e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-                    || $e instanceof \Spatie\Permission\Exceptions\UnauthorizedException) {
-                    return \App\Http\Responses\ApiResponse::error(
-                        __('You don\'t have permission to do that.'),
-                        403
-                    );
-                }
+        $exceptions->dontReport([
+            \Illuminate\Auth\Access\AuthorizationException::class,
+            \Illuminate\Auth\AuthenticationException::class,
+            \Illuminate\Session\TokenMismatchException::class,
+            \Illuminate\Validation\ValidationException::class,
+            \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface::class,
+        ]);
 
-                if ($e instanceof \Illuminate\Auth\AuthenticationException) {
-                    return \App\Http\Responses\ApiResponse::error(
-                        __('Your session expired. Please sign in again.'),
-                        401
-                    );
-                }
-
-                if ($e instanceof \Illuminate\Validation\ValidationException) {
-                    return \App\Http\Responses\ApiResponse::validation(
-                        $e->errors(),
-                        __('Validation failed.')
-                    );
-                }
-
-                report($e);
-
-                return \App\Http\Responses\ApiResponse::error(
-                    __('Something went wrong. You can keep working — please try again.'),
-                    500
-                );
-            }
-
-            return null;
-        });
+        $exceptions->render(fn (\Throwable $e, \Illuminate\Http\Request $request) => app(\App\Exceptions\ExceptionRenderer::class)->render($e, $request));
     })->create();

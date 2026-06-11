@@ -20,6 +20,7 @@ class UpdateProductRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->prepareProductVariantInput();
+        $this->prepareProductImageInput();
     }
 
     public function rules(): array
@@ -50,12 +51,18 @@ class UpdateProductRequest extends FormRequest
 
     public function messages(): array
     {
-        return $this->productWeightVariantMessages();
+        return array_merge(
+            $this->productWeightVariantMessages(),
+            $this->productImageMessages(),
+        );
     }
 
     public function attributes(): array
     {
-        return $this->productWeightVariantAttributes();
+        return array_merge(
+            $this->productWeightVariantAttributes(),
+            $this->productImageAttributes(),
+        );
     }
 
     public function withValidator($validator): void

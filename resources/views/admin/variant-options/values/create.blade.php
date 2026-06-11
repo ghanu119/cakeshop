@@ -7,6 +7,7 @@
     <x-card>
         <form method="post" action="{{ route('admin.variant-option-types.values.store', $type) }}" class="space-y-4">
             @csrf
+            <x-form-errors :show-validation-summary="true" />
             @include('admin.variant-options.values._form', ['type' => $type, 'value' => null])
             <x-button type="submit" variant="primary">{{ __('Create') }}</x-button>
         </form>

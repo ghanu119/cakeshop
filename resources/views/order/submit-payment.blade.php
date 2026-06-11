@@ -28,6 +28,7 @@
             </div>
             <form method="post" action="{{ route('order.submit-payment.store', $order) }}" enctype="multipart/form-data" class="space-y-4">
                 @csrf
+            <x-form-errors show-system-errors :show-validation-summary="true" />
                 <input type="hidden" name="phone" value="{{ $order->guest_phone }}" />
                 <div>
                     <label for="payment_reference" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Transaction / UPI reference') }}</label>

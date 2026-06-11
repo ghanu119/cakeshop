@@ -15,13 +15,19 @@ class ApiResponse
         ], $status);
     }
 
-    public static function error(string $message, int $status = 500, mixed $data = null): JsonResponse
+    public static function error(string $message, int $status = 500, mixed $data = null, ?string $code = null): JsonResponse
     {
-        return response()->json([
+        $payload = [
             'success' => false,
             'message' => $message,
             'data' => $data,
-        ], $status);
+        ];
+
+        if ($code !== null) {
+            $payload['code'] = $code;
+        }
+
+        return response()->json($payload, $status);
     }
 
     /**

@@ -26,6 +26,7 @@
         @endif
         <form method="post" action="{{ route('order.store', $product) }}" class="space-y-4">
             @csrf
+            <x-form-errors show-system-errors :show-validation-summary="true" />
             @if($hasVariants && $variantChoices->isNotEmpty())
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">{{ __('Weight') }} *</label>

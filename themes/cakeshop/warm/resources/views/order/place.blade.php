@@ -45,7 +45,8 @@
             
             {{-- Left Column: Form Fields --}}
             <div class="order-place-main lg:col-span-7 xl:col-span-8 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-amber-100/50 p-6 sm:p-10 mb-10 lg:mb-0">
-                
+                <x-form-errors show-system-errors :show-validation-summary="true" class="mb-8" />
+
                 {{-- Contact Info Section --}}
                 <div class="mb-10">
                     <h3 class="text-xl font-bold text-stone-900 mb-6 flex items-center gap-3 border-b border-stone-100 pb-4">

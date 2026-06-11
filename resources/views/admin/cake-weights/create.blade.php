@@ -12,6 +12,7 @@
     <x-card class="max-w-xl" :elevated="true">
         <form method="post" action="{{ route('admin.cake-weights.store') }}" class="space-y-8" novalidate>
             @csrf
+            <x-form-errors :show-validation-summary="true" />
             @include('admin.cake-weights._form', ['weight' => null])
             <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-6">
                 <x-button type="submit" variant="primary">{{ __('Save weight') }}</x-button>

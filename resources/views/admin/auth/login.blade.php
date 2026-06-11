@@ -20,17 +20,12 @@
             <h1 class="text-xl font-bold text-gray-900 mb-6">{{ __('Admin Login') }}</h1>
 
             @if (session('status'))
-                <div class="mb-4 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800">{{ session('status') }}</div>
-            @endif
-
-            @if ($errors->any())
-                <div class="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                    {{ $errors->first() }}
-                </div>
+                <x-alert variant="success" dismissible class="mb-4">{{ session('status') }}</x-alert>
             @endif
 
             <form method="post" action="{{ route('admin.login') }}" class="space-y-6">
                 @csrf
+                <x-form-errors show-system-errors show-field-errors />
                 <div>
                     <label for="email" class="block text-sm font-medium text-gray-700">{{ __('Email') }}</label>
                     <input type="email" name="email" id="email" value="{{ old('email') }}" required autofocus autocomplete="username"

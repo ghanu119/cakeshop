@@ -10,6 +10,7 @@
     <x-card class="max-w-xl">
         <form method="post" action="{{ route('admin.users.store') }}" class="space-y-6">
             @csrf
+            <x-form-errors :show-validation-summary="true" />
             @include('admin.users._form', ['user' => null])
             <div class="flex gap-4">
                 <x-button type="submit" variant="primary">{{ __('Create User') }}</x-button>

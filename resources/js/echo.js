@@ -1,6 +1,8 @@
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
 import axios from 'axios';
+import { resolveUserMessage } from './error-messages';
+import { showAdminToast } from './admin-toast';
 
 window.Pusher = Pusher;
 
@@ -37,7 +39,12 @@ export function createAdminEcho(config) {
                         )
                         .then((response) => callback(null, response.data))
                         .catch((error) => {
-                            console.warn('Broadcast channel auth failed', error?.response?.status, channel.name);
+                            const status = error?.response?.status ?? 0;
+                            if (status === 401 || status === 403 || status === 419) {
+                                showAdminToast(resolveUserMessage(error), { variant: 'error' });
+                            } else {
+                                console.warn('Broadcast channel auth failed', status, channel.name);
+                            }
                             callback(error, null);
                         });
                 },

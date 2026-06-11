@@ -79,12 +79,12 @@ class OrderController extends Controller
 
         if (! $order->canKitchenUpdateStatus()) {
             return redirect()->route('admin.kitchen.orders.show', $order)
-                ->with('error', __('You can only update the status of today\'s processing orders.'));
+                ->withErrors(['_form' => __('You can only update the status of today\'s processing orders.')]);
         }
 
         if (! $order->isPaymentVerified()) {
             return redirect()->route('admin.kitchen.orders.show', $order)
-                ->with('error', __('Payment must be verified before you can change the order status.'));
+                ->withErrors(['_form' => __('Payment must be verified before you can change the order status.')]);
         }
 
         $newStatus = $request->validated('order_status');

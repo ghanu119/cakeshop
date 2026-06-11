@@ -67,10 +67,10 @@ class ProductImagesTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertJsonStructure(['token', 'url', 'name']);
+            ->assertJsonStructure(['success', 'data' => ['token', 'url', 'name']]);
 
-        $token = $response->json('token');
-        $this->assertStringStartsWith('/storage/', $response->json('url'));
+        $token = $response->json('data.token');
+        $this->assertStringStartsWith('/storage/', $response->json('data.url'));
         $this->assertNotNull(Cache::get('product_image_temp:'.$token));
         Storage::disk('public')->assertExists('temp/product-images/'.$admin->id.'/'.$token.'.jpg');
     }

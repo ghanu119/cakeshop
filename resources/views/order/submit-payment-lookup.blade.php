@@ -8,6 +8,7 @@
         <p class="mb-4 text-gray-600">{{ __('Enter your order reference (UUID) and phone number to continue.') }}</p>
         <form method="post" action="{{ route('order.submit-payment.lookup') }}" class="space-y-4">
             @csrf
+            <x-form-errors show-system-errors :show-validation-summary="true" />
             <div>
                 <label for="order_no" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Order reference') }} *</label>
                 <x-input type="text" name="order_no" id="order_no" value="{{ old('order_no') }}" class="block w-full" placeholder="e.g. BB-20260606-001" required />

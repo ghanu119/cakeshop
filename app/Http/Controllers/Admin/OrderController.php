@@ -48,7 +48,7 @@ class OrderController extends Controller
     {
         if (! $order->isPaymentVerified()) {
             return redirect()->route('admin.orders.show', $order)
-                ->with('error', __('Payment must be verified before you can change the order status.'));
+                ->withErrors(['_form' => __('Payment must be verified before you can change the order status.')]);
         }
 
         $previousStatus = $order->order_status;

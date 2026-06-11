@@ -74,7 +74,7 @@ class CakeWeightController extends Controller
         abort_unless($cake_weight->variant_option_type_id === $type->id, 404);
 
         if (! $this->variantOptionService->deleteValueIfUnused($cake_weight)) {
-            return back()->with('error', __('This weight is used on products. Set it to inactive instead of deleting.'));
+            return back()->withErrors(['_form' => __('This weight is used on products. Set it to inactive instead of deleting.')]);
         }
 
         return redirect()->route('admin.cake-weights.index')

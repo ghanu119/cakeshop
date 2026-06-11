@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Responses\ApiResponse;
 use App\Services\ProductImageTempService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -26,7 +27,7 @@ class ProductImageTempController extends Controller
 
         $result = $this->tempService->store($validated['image'], $user);
 
-        return response()->json($result);
+        return ApiResponse::success($result);
     }
 
     public function destroy(Request $request, string $token): JsonResponse
@@ -38,6 +39,6 @@ class ProductImageTempController extends Controller
 
         $this->tempService->delete($token, $user);
 
-        return response()->json(['ok' => true]);
+        return ApiResponse::success(null, __('Image removed.'));
     }
 }

@@ -10,6 +10,7 @@
     <x-card class="max-w-xl">
         <form method="post" action="{{ route('admin.users.update', $user) }}" class="space-y-6">
             @csrf
+            <x-form-errors :show-validation-summary="true" />
             @method('PUT')
             @include('admin.users._form', ['user' => $user])
             <div class="flex gap-4">

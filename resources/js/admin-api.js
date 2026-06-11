@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { extractValidationErrors, getAppMessages, resolveUserMessage } from './error-messages';
 
 axios.defaults.withCredentials = true;
 axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
@@ -6,46 +7,6 @@ axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
 const csrfMeta = document.head.querySelector('meta[name="csrf-token"]');
 if (csrfMeta?.content) {
     axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfMeta.content;
-}
-
-const USER_MESSAGES = {
-    offline: "You're offline. Live updates paused.",
-    server: 'Something went wrong. You can keep working — please try again.',
-    session: 'Your session expired. Please sign in again.',
-    forbidden: "You don't have permission to do that.",
-};
-
-function resolveUserMessage(error) {
-    if (!navigator.onLine) {
-        return USER_MESSAGES.offline;
-    }
-
-    const response = error?.response;
-    if (response?.data?.message) {
-        return response.data.message;
-    }
-
-    if (response?.status === 401) {
-        return USER_MESSAGES.session;
-    }
-
-    if (response?.status === 403) {
-        return USER_MESSAGES.forbidden;
-    }
-
-    if (response?.status === 419) {
-        return 'Your session expired. Please refresh the page and try again.';
-    }
-
-    if (response?.status === 422) {
-        return response?.data?.message ?? USER_MESSAGES.server;
-    }
-
-    if (response?.status >= 500) {
-        return USER_MESSAGES.server;
-    }
-
-    return USER_MESSAGES.server;
 }
 
 export async function adminApi(method, url, data = undefined) {
@@ -65,8 +26,10 @@ export async function adminApi(method, url, data = undefined) {
         if (response.data?.success === false) {
             return {
                 ok: false,
-                message: response.data.message ?? USER_MESSAGES.server,
+                message: response.data.message ?? getAppMessages().server,
                 data: response.data.data ?? null,
+                errors: extractValidationErrors({ response }) ?? null,
+                code: response.data.code ?? response.data.data?.code ?? null,
                 status: response.status,
             };
         }
@@ -75,11 +38,14 @@ export async function adminApi(method, url, data = undefined) {
             ok: true,
             data: response.data?.data ?? response.data,
             message: response.data?.message ?? null,
+            errors: null,
+            code: null,
             status: response.status,
         };
     } catch (error) {
         const message = resolveUserMessage(error);
         const status = error?.response?.status ?? 0;
+        const code = error?.response?.data?.code ?? error?.response?.data?.data?.code ?? null;
 
         if (status === 401) {
             window.setTimeout(() => {
@@ -87,10 +53,18 @@ export async function adminApi(method, url, data = undefined) {
             }, 1500);
         }
 
+        if (status === 419) {
+            window.setTimeout(() => {
+                window.location.reload();
+            }, 2000);
+        }
+
         return {
             ok: false,
             message,
             data: null,
+            errors: extractValidationErrors(error),
+            code,
             status,
         };
     }

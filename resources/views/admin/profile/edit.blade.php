@@ -13,6 +13,7 @@
             <h2 class="mb-4 text-lg font-semibold text-gray-900">{{ __('Profile information') }}</h2>
             <form method="post" action="{{ route('admin.profile.update') }}" class="space-y-4">
                 @csrf
+            <x-form-errors :show-validation-summary="true" />
                 @method('PUT')
                 <div>
                     <label for="name" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Name') }}</label>

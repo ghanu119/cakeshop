@@ -11,6 +11,7 @@
     <x-card class="max-w-xl" :elevated="true">
         <form method="post" action="{{ route('admin.testimonials.update', $testimonial) }}" class="space-y-8">
             @csrf
+            <x-form-errors :show-validation-summary="true" />
             @method('PUT')
             @include('admin.testimonials._form', ['testimonial' => $testimonial])
             <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-6">

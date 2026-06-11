@@ -95,6 +95,7 @@
                 <h2 class="text-lg font-bold text-stone-900 mb-6">{{ __('Send a Message') }}</h2>
                 <form method="post" action="{{ route('contact.store') }}" class="space-y-5">
                     @csrf
+            <x-form-errors show-system-errors :show-validation-summary="true" />
                     <div>
                         <label for="name" class="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-stone-500">{{ __('Full Name') }}</label>
                         <input type="text" name="name" id="name" value="{{ old('name') }}" placeholder="{{ __('John Doe') }}" class="input-modern w-full" required />

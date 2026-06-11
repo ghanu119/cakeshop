@@ -11,6 +11,7 @@
     <x-card class="max-w-xl" :elevated="true">
         <form method="post" action="{{ route('admin.flavors.update', $flavor) }}" class="space-y-8">
             @csrf
+            <x-form-errors :show-validation-summary="true" />
             @method('PUT')
             @include('admin.flavors._form', ['flavor' => $flavor])
             <div class="flex flex-wrap items-center gap-3 border-t border-gray-200 pt-6">

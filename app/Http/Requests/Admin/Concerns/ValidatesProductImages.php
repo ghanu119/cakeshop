@@ -18,6 +18,35 @@ trait ValidatesProductImages
         ];
     }
 
+    protected function prepareProductImageInput(): void
+    {
+        if ($this->input('primary_image') === '') {
+            $this->merge(['primary_image' => null]);
+        }
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function productImageMessages(): array
+    {
+        return [
+            'product_images.*.regex' => __('One of the product images is invalid. Please remove it and upload again.'),
+            'primary_image.regex' => __('The primary image selection is invalid. Please choose a primary image again.'),
+        ];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    protected function productImageAttributes(): array
+    {
+        return [
+            'product_images.*' => __('product image'),
+            'primary_image' => __('primary image'),
+        ];
+    }
+
     protected function validateProductImages(Validator $validator): void
     {
         $validator->after(function (Validator $validator) {
