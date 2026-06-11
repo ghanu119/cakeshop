@@ -254,12 +254,8 @@ function toastNotificationItem(item, { force = false } = {}) {
         liveToastedIds.add(id);
     }
 
-    if (!isTabVisible()) {
-        return;
-    }
-
     if (shouldPlayOrderSound(item)) {
-        playNewOrderSound();
+        void playNewOrderSound();
     }
 
     showAdminToast(item.title, {
@@ -467,7 +463,7 @@ async function pollForNewNotifications() {
     }
 
     if (lastUnreadCount !== null && count > lastUnreadCount) {
-        await fetchSince({ toast: isTabVisible() });
+        await fetchSince({ toast: true });
     }
 
     const listCount = getUnreadListItemCount();
@@ -1009,8 +1005,9 @@ function handleIncomingNotificationItem(item) {
 
     prependNotificationItem(item);
 
-    if (isTabVisible()) {
-        toastNotificationItem(item, { force: true });
+    toastNotificationItem(item, { force: true });
+
+    if (!isTabVisible()) {
         showOsNotificationFromPage(item);
     }
 
@@ -1043,7 +1040,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     document.addEventListener('visibilitychange', () => {
         if (isTabVisible()) {
+            unlockNotificationSound();
             void syncNotificationListWithBadge();
+            void fetchSince({ toast: true });
         }
     });
 

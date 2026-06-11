@@ -35,11 +35,15 @@ function playTone(ctx, frequency, start, duration, volume = 0.12) {
     oscillator.stop(end + 0.02);
 }
 
-export function playNewOrderSound() {
+export async function playNewOrderSound() {
     try {
         const ctx = getAudioContext();
         if (!ctx) {
             return;
+        }
+
+        if (ctx.state === 'suspended') {
+            await ctx.resume();
         }
 
         const now = ctx.currentTime + 0.02;

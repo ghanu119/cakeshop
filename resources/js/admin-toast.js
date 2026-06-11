@@ -55,10 +55,16 @@ export function showAdminToast(message, { variant = 'success', duration = 6000, 
 
     container.appendChild(toast);
 
-    requestAnimationFrame(() => {
+    const revealToast = () => {
         toast.classList.remove('opacity-0', 'translate-y-2');
         toast.classList.add('opacity-100', 'translate-y-0');
-    });
+    };
+
+    if (document.visibilityState === 'hidden') {
+        revealToast();
+    } else {
+        requestAnimationFrame(revealToast);
+    }
 
     window.setTimeout(() => {
         toast.classList.remove('opacity-100', 'translate-y-0');
