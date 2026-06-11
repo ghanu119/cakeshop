@@ -20,3 +20,19 @@ export function confirmAction({
         reverseButtons: true,
     });
 }
+
+export function confirmDelete({
+    title,
+    text,
+    confirmText = 'Yes, delete',
+    cancelText = 'Cancel',
+    confirmColor = '#dc2626',
+}) {
+    return confirmAction({
+        title,
+        text,
+        confirmText,
+        cancelText,
+        confirmColor,
+    });
+}

@@ -68,11 +68,10 @@
                                 <span class="mx-2 text-gray-300">|</span>
                             @endcan
                             @can('features.delete')
-                                <form method="post" action="{{ route('admin.features.destroy', $feature) }}" class="inline" onsubmit="return confirm('{{ __('Delete this feature?') }}');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800">{{ __('Delete') }}</button>
-                                </form>
+                                <x-admin-delete-form
+                                    :action="route('admin.features.destroy', $feature)"
+                                    :title="__('Delete this feature?')"
+                                />
                             @endcan
                         </x-table.cell>
                     </x-table.row>

@@ -68,11 +68,10 @@
                                 <span class="mx-2 text-gray-300">|</span>
                             @endcan
                             @can('testimonials.delete')
-                                <form method="post" action="{{ route('admin.testimonials.destroy', $testimonial) }}" class="inline" onsubmit="return confirm('{{ __('Delete this testimonial?') }}');">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800">{{ __('Delete') }}</button>
-                                </form>
+                                <x-admin-delete-form
+                                    :action="route('admin.testimonials.destroy', $testimonial)"
+                                    :title="__('Delete this testimonial?')"
+                                />
                             @endcan
                         </x-table.cell>
                     </x-table.row>

@@ -86,7 +86,7 @@
     ]
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-CBy26aFN.js",
+    "file": "assets/admin-DkljN1OR.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true,
@@ -139,7 +139,7 @@
     "isEntry": true
   },
   "resources/js/order-status-form.js": {
-    "file": "assets/order-status-form-Fvj9JAH8.js",
+    "file": "assets/order-status-form-DW1Ofmab.js",
     "name": "order-status-form",
     "src": "resources/js/order-status-form.js",
     "isEntry": true,

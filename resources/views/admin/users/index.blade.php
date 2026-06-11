@@ -70,11 +70,10 @@
                             @endcan
                             @can('users.delete')
                                 @if($user->id !== auth()->id())
-                                    <form method="post" action="{{ route('admin.users.destroy', $user) }}" class="inline" onsubmit="return confirm('{{ __('Delete this user?') }}');">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="text-red-600 hover:text-red-800">{{ __('Delete') }}</button>
-                                    </form>
+                                    <x-admin-delete-form
+                                        :action="route('admin.users.destroy', $user)"
+                                        :title="__('Delete this user?')"
+                                    />
                                 @endif
                             @endcan
                         </x-table.cell>
