@@ -1,4 +1,5 @@
 import './bootstrap';
+import './admin-flash-swal';
 import './admin-form-confirm';
 import './order-status-form';
 import './order-verify-payment';

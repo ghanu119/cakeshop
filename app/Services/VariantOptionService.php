@@ -99,4 +99,15 @@ class VariantOptionService
             'status' => 'active',
         ]);
     }
+
+    public function deleteValueIfUnused(VariantOptionValue $value): bool
+    {
+        if ($value->productVariantSelections()->exists()) {
+            return false;
+        }
+
+        $value->delete();
+
+        return true;
+    }
 }

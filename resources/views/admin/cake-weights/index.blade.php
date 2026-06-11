@@ -3,6 +3,8 @@
 @section('title', __('Cake weights'))
 
 @section('content')
+    <x-admin-flash-swal />
+
     <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <a href="{{ route('admin.settings.index') }}" class="mb-2 inline-flex text-sm font-medium text-gray-500 hover:text-gray-700">{{ __('← Settings') }}</a>
@@ -34,7 +36,16 @@
                             <x-badge :variant="$weight->isActive() ? 'success' : 'default'">{{ $weight->isActive() ? __('Active') : __('Inactive') }}</x-badge>
                         </x-table.cell>
                         <x-table.cell class="text-right">
-                            <a href="{{ route('admin.cake-weights.edit', $weight) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">{{ __('Edit') }}</a>
+                            @can('settings.manage')
+                                <a href="{{ route('admin.cake-weights.edit', $weight) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">{{ __('Edit') }}</a>
+                                <span class="mx-2 text-gray-300">|</span>
+                                <x-admin-delete-form
+                                    :action="route('admin.cake-weights.destroy', $weight)"
+                                    :title="__('Delete this weight?')"
+                                />
+                            @else
+                                <a href="{{ route('admin.cake-weights.edit', $weight) }}" class="text-sm font-medium text-indigo-600 hover:text-indigo-800">{{ __('Edit') }}</a>
+                            @endcan
                         </x-table.cell>
                     </x-table.row>
                 @empty

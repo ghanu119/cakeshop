@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class VariantOptionValue extends Model
@@ -29,6 +30,11 @@ class VariantOptionValue extends Model
     public function type(): BelongsTo
     {
         return $this->belongsTo(VariantOptionType::class, 'variant_option_type_id');
+    }
+
+    public function productVariantSelections(): HasMany
+    {
+        return $this->hasMany(ProductVariantSelection::class, 'variant_option_value_id');
     }
 
     public function scopeActive($query)

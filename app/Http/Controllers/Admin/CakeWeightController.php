@@ -73,11 +73,9 @@ class CakeWeightController extends Controller
         $type = $this->variantOptionService->ensureWeightType();
         abort_unless($cake_weight->variant_option_type_id === $type->id, 404);
 
-        if (\App\Models\ProductVariantSelection::where('variant_option_value_id', $cake_weight->id)->exists()) {
-            return back()->withErrors(['weight' => __('This weight is used on products. Set it to inactive instead of deleting.')]);
+        if (! $this->variantOptionService->deleteValueIfUnused($cake_weight)) {
+            return back()->with('error', __('This weight is used on products. Set it to inactive instead of deleting.'));
         }
-
-        $cake_weight->delete();
 
         return redirect()->route('admin.cake-weights.index')
             ->with('status', __('Weight option removed.'));
