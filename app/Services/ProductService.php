@@ -237,13 +237,7 @@ class ProductService
         $product->is_featured = ! empty($data['is_featured']);
         $product->homepage_sort_order = isset($data['homepage_sort_order']) && $data['homepage_sort_order'] !== '' ? (int) $data['homepage_sort_order'] : null;
 
-        $slugBase = Str::slug($data['name_en']);
-        $slug = $slugBase;
-        $count = 0;
-        while (Product::where('slug', $slug)->where('id', '!=', $product->id)->exists()) {
-            $slug = $slugBase.'-'.(++$count);
-        }
-        $product->slug = $slug;
+        $product->slug = $this->resolveUniqueSlug($product, $data['name_en']);
 
         $product->save();
 
@@ -267,5 +261,31 @@ class ProductService
             ->all();
 
         $product->flavors()->sync($sync);
+    }
+
+    private function resolveUniqueSlug(Product $product, string $nameEn): string
+    {
+        $slugBase = Str::slug($nameEn);
+        $slug = $slugBase;
+        $count = 0;
+
+        while (true) {
+            $conflict = Product::withTrashed()
+                ->where('slug', $slug)
+                ->when($product->exists, fn ($query) => $query->where('id', '!=', $product->id))
+                ->first();
+
+            if ($conflict === null) {
+                return $slug;
+            }
+
+            if ($conflict->trashed()) {
+                $conflict->releaseSlugForSoftDelete();
+
+                continue;
+            }
+
+            $slug = $slugBase.'-'.(++$count);
+        }
     }
 }

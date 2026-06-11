@@ -14,6 +14,25 @@ class Product extends Model implements HasMedia
 {
     use HasFactory, InteractsWithMedia, SoftDeletes;
 
+    protected static function booted(): void
+    {
+        static::deleting(function (Product $product) {
+            if (! $product->isForceDeleting()) {
+                $product->releaseSlugForSoftDelete();
+            }
+        });
+    }
+
+    public function releaseSlugForSoftDelete(): void
+    {
+        $suffix = '-deleted-'.$this->id;
+
+        if (! str_ends_with($this->slug, $suffix)) {
+            $this->slug = $this->slug.$suffix;
+            $this->saveQuietly();
+        }
+    }
+
     protected $fillable = [
         'category_id',
         'name_en',
