@@ -64,5 +64,8 @@
             <a href="{{ route('home') }}" class="text-gray-600 hover:text-gray-900">{{ __('Back to site') }}</a>
         </p>
     </div>
+    <script>
+        localStorage.removeItem('staff_push_setup_toast_shown');
+    </script>
 </body>
 </html>

@@ -22,6 +22,7 @@ const liveToastedIds = new Set();
 
 const CONNECT_TIMEOUT_MS = 12000;
 const PUSH_BANNER_DISMISS_KEY = 'staff_push_banner_dismissed';
+const PUSH_SETUP_TOAST_SHOWN_KEY = 'staff_push_setup_toast_shown';
 
 function isAdminHttp() {
     return location.protocol === 'http:' && /\.(test|localhost)$/i.test(location.hostname);
@@ -86,6 +87,18 @@ function hidePushPermissionBanner() {
 
     banner.classList.add('hidden');
     banner.classList.remove('flex');
+}
+
+function hasShownPushSetupToast() {
+    return localStorage.getItem(PUSH_SETUP_TOAST_SHOWN_KEY) === '1';
+}
+
+function markPushSetupToastShown() {
+    localStorage.setItem(PUSH_SETUP_TOAST_SHOWN_KEY, '1');
+}
+
+function clearPushSetupToastShown() {
+    localStorage.removeItem(PUSH_SETUP_TOAST_SHOWN_KEY);
 }
 
 function updatePushDeviceStatus(message, tone = 'neutral') {
@@ -827,13 +840,14 @@ async function ensurePushRegistered() {
         const status = await fetchPushSubscriptionStatus();
         updatePushButtonState({ subscribed: status.subscribed });
 
-        if (!status.subscribed) {
+        if (!status.subscribed && !hasShownPushSetupToast()) {
             showAdminToast(
                 registered
                     ? 'Could not save browser registration. Click Enable browser alerts again.'
                     : 'Chrome allows notifications, but this device still needs one click on Enable browser alerts to finish setup.',
                 { variant: 'warning', duration: 9000 }
             );
+            markPushSetupToastShown();
         }
         return;
     }
@@ -1020,6 +1034,11 @@ document.addEventListener('DOMContentLoaded', () => {
     void syncNotificationListWithBadge();
     initServiceWorkerMessages();
     watchNotificationPermission();
+
+    if (window.__promptStaffPush) {
+        clearPushSetupToastShown();
+    }
+
     void ensurePushRegistered();
 
     document.addEventListener('visibilitychange', () => {
