@@ -170,15 +170,9 @@ class OrderPaymentConfirmationTest extends TestCase
         $response->assertSee(__('Copy UPI ID'), false);
         $response->assertSee(__('Download QR code'), false);
         $response->assertSee(route('order.payment-qr.download'), false);
-        $response->assertSee(__('Pay with UPI app'), false);
-        $response->assertSee('data-upi-pay-button', false);
-        $response->assertSee('id="upi-pay-config"', false);
-        $response->assertSee(__('Google Pay'), false);
-        $response->assertSee(__('PhonePe'), false);
-        $response->assertSee('upi://pay?', false);
-        $response->assertSee('pa=shop%40upi', false);
-        $response->assertSee('am=749.50', false);
-        $response->assertSee('tn='.$order->order_no, false);
+        $response->assertDontSee(__('Pay with UPI app'), false);
+        $response->assertDontSee('data-upi-pay-button', false);
+        $response->assertDontSee('id="upi-pay-config"', false);
     }
 
     public function test_confirm_page_hides_upi_copy_when_payment_details_submitted(): void

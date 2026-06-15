@@ -110,7 +110,7 @@
                 <div>
                     <label for="payment_upi_id" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Payment UPI ID') }}</label>
                     <x-input type="text" name="payment_upi_id" id="payment_upi_id" value="{{ old('payment_upi_id', $settings['payment_upi_id'] ?? '') }}" class="block w-full font-mono" placeholder="merchant@upi" />
-                    <p class="mt-1 text-sm text-gray-500">{{ __('UPI handle shown on order confirmation. Enables copy and mobile UPI app pay.') }}</p>
+                    <p class="mt-1 text-sm text-gray-500">{{ __('UPI handle shown on order confirmation with a copy button.') }}</p>
                 </div>
                 <div>
                     <label for="payment_instructions" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Payment instructions') }}</label>

@@ -472,26 +472,3 @@ html.admin-area .notification-bell-dropdown {
 .payment-block-instructions {
     padding-bottom: 0.25rem;
 }
-.payment-upi-app-btn {
-    display: inline-flex;
-    width: 100%;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    border-radius: 1rem;
-    padding: 1rem 2rem;
-    font-size: 1.125rem;
-    line-height: 1.75rem;
-    font-weight: 700;
-    color: #fff !important;
-    text-decoration: none;
-    background: linear-gradient(to right, #059669, #0d9488);
-    box-shadow: 0 8px 20px rgb(16 185 129 / 0.25);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-.payment-upi-app-btn:hover {
-    color: #fff !important;
-    text-decoration: none;
-    transform: translateY(-2px);
-    box-shadow: 0 12px 25px rgb(16 185 129 / 0.35);
-}
