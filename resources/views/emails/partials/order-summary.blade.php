@@ -63,6 +63,10 @@
                 @endif
                 @if($order->isDeliveryFulfillment() && $order->delivery_address)
                 <tr>
+                    <td style="padding:6px 0;font-size:14px;color:#78716c;vertical-align:top;">{{ __('Pincode') }}</td>
+                    <td style="padding:6px 0;font-size:14px;color:#1c1917;">{{ $order->delivery_pincode ?: '—' }}</td>
+                </tr>
+                <tr>
                     <td style="padding:6px 0;font-size:14px;color:#78716c;vertical-align:top;">{{ __('Address') }}</td>
                     <td style="padding:6px 0;font-size:14px;color:#1c1917;white-space:pre-wrap;">{{ $order->delivery_address }}</td>
                 </tr>

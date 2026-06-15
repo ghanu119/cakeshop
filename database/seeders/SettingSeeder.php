@@ -28,6 +28,9 @@ class SettingSeeder extends Seeder
             'order_min_hours_before_delivery' => '4',
             'kitchen_lead_hours' => '24',
             'message_on_cake_max_length' => '50',
+            'checkout_delivery_notice' => 'We deliver only within Rajkot. Enter your pincode to check availability.',
+            'checkout_takeaway_notice' => 'Pickup is only available at our store:',
+            'checkout_takeaway_address' => 'B/H Asopalav Triangle Opp Matuki Restaurant Punit Nagar 80 Ft road Rajkot, Gujarat, Rajkot, Gujarat 360004',
             'notifications_enabled' => '1',
             'notifications_web_push_enabled' => '0',
         ];

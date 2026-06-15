@@ -7,6 +7,7 @@ use App\Http\Controllers\Admin\FlavorController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\ServiceablePincodeController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LogoutController;
@@ -16,6 +17,7 @@ use App\Http\Controllers\Kitchen\OrderController as KitchenOrderController;
 use App\Http\Controllers\CategoryController as FrontendCategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PincodeCheckController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController as FrontendProductController;
 use App\Http\Controllers\SitemapController;
@@ -42,6 +44,7 @@ Route::get('robots.txt', [\App\Http\Controllers\RobotsController::class, 'index'
 Route::prefix('order')->name('order.')->group(function () {
     Route::get('product/{product:slug}', [OrderController::class, 'placeForm'])->name('place');
     Route::post('product/{product:slug}', [OrderController::class, 'place'])->name('store');
+    Route::middleware(['throttle:30,1'])->post('check-pincode', [PincodeCheckController::class, 'check'])->name('pincode.check');
     Route::get('confirm/{order}', [OrderController::class, 'confirm'])->name('confirm');
     Route::get('payment-qr/download', [OrderController::class, 'downloadPaymentQr'])->name('payment-qr.download');
     Route::get('history', [OrderController::class, 'historyForm'])->name('history');
@@ -96,6 +99,7 @@ Route::middleware(['ensure.admin.https', 'auth', 'verified', 'role:Admin|Kitchen
             Route::resource('cake-weights', \App\Http\Controllers\Admin\CakeWeightController::class)
                 ->parameters(['cake-weights' => 'cake_weight'])
                 ->except(['show']);
+            Route::resource('serviceable-pincodes', ServiceablePincodeController::class)->except(['show']);
             Route::redirect('variant-option-types', '/admin/cake-weights')->name('variant-option-types.index');
             Route::redirect('variant-option-types/create', '/admin/cake-weights/create')->name('variant-option-types.create');
             Route::get('variant-option-types/{variant_option_type}/values', fn () => redirect()->route('admin.cake-weights.index'));

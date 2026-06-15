@@ -23,6 +23,9 @@
                 <div class="w-full sm:max-w-xl">
                     <p class="mb-2 text-sm font-bold uppercase tracking-wider text-teal-700">{{ __('Delivery address') }}</p>
                     <div class="rounded-lg border border-teal-300/80 bg-white/90 p-4 shadow-inner">
+                        @if($order->delivery_pincode)
+                            <p class="mb-2 font-mono text-sm font-bold text-teal-900">{{ $order->delivery_pincode }}</p>
+                        @endif
                         <p class="whitespace-pre-wrap font-medium leading-relaxed text-teal-950">{{ $order->delivery_address }}</p>
                     </div>
                 </div>

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ServiceablePincode;
 use App\Models\Setting;
 use App\Models\User;
 use App\Services\OrderService;
@@ -27,6 +28,12 @@ class OrderFulfillmentTest extends TestCase
         Setting::set('order_max_future_days', '7');
         Setting::set('order_min_hours_before_delivery', '4');
         Setting::flushCache();
+
+        ServiceablePincode::factory()->create([
+            'pincode' => '360004',
+            'locality' => 'Kalawad Road',
+            'is_active' => true,
+        ]);
     }
 
     public function test_order_place_url_uses_product_slug(): void
@@ -89,7 +96,7 @@ class OrderFulfillmentTest extends TestCase
             'fulfillment_type' => 'delivery',
         ]));
 
-        $response->assertSessionHasErrors('delivery_address');
+        $response->assertSessionHasErrors(['delivery_address', 'delivery_pincode']);
     }
 
     public function test_better_buns_delivery_persists_address(): void
@@ -102,6 +109,7 @@ class OrderFulfillmentTest extends TestCase
 
         $response = $this->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
             'fulfillment_type' => 'delivery',
+            'delivery_pincode' => '360004',
             'delivery_address' => $address,
         ]));
 
@@ -109,8 +117,27 @@ class OrderFulfillmentTest extends TestCase
         $this->assertDatabaseHas('orders', [
             'product_id' => $product->id,
             'fulfillment_type' => 'delivery',
+            'delivery_pincode' => '360004',
             'delivery_address' => $address,
         ]);
+    }
+
+    public function test_checkout_shows_pincode_and_takeaway_notice(): void
+    {
+        Setting::set('theme', 'better-buns');
+        Setting::set('address', '123 Test Store, Rajkot 360004');
+        Setting::set('checkout_takeaway_address', '456 Pickup Lane, Rajkot 360001');
+        Setting::set('checkout_takeaway_notice', 'Pickup only at:');
+        Setting::flushCache();
+
+        $product = $this->simpleProduct();
+
+        $response = $this->get(route('order.place', $product));
+
+        $response->assertOk();
+        $response->assertSee(__('Delivery pincode'), false);
+        $response->assertSee('Pickup only at:', false);
+        $response->assertSee('456 Pickup Lane, Rajkot 360001', false);
     }
 
     public function test_warm_theme_requires_fulfillment_and_defaults_quantity_one(): void
@@ -156,7 +183,7 @@ class OrderFulfillmentTest extends TestCase
         $admin = $this->adminUser();
         $order = Order::factory()
             ->verified()
-            ->deliveryFulfillment('123 Main St')
+            ->deliveryFulfillment('123 Main St', '360004')
             ->create();
 
         $response = $this->actingAs($admin)->get(route('admin.orders.show', $order));

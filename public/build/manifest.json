@@ -61,7 +61,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-Clj2U5dQ.css",
+    "file": "assets/app-PE7kl5Ld.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -133,9 +133,15 @@
     "isEntry": true
   },
   "resources/js/order-fulfillment-type.js": {
-    "file": "assets/order-fulfillment-type-_cip7NzS.js",
+    "file": "assets/order-fulfillment-type-B1YCF43B.js",
     "name": "order-fulfillment-type",
     "src": "resources/js/order-fulfillment-type.js",
+    "isEntry": true
+  },
+  "resources/js/order-pincode-check.js": {
+    "file": "assets/order-pincode-check-C-hpSaqo.js",
+    "name": "order-pincode-check",
+    "src": "resources/js/order-pincode-check.js",
     "isEntry": true
   },
   "resources/js/order-place-confirm.js": {
