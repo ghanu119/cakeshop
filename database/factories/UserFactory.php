@@ -42,4 +42,14 @@ class UserFactory extends Factory
             'email_verified_at' => null,
         ]);
     }
+
+    public function customer(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'password' => null,
+            'registered_via' => 'front_otp',
+        ])->afterCreating(function (\App\Models\User $user) {
+            $user->assignRole('Customer');
+        });
+    }
 }

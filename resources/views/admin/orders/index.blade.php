@@ -36,6 +36,7 @@
                     <option value="">{{ __('All') }}</option>
                     <option value="pending" @selected(request('payment_status') === 'pending')>{{ __('Pending') }}</option>
                     <option value="verified" @selected(request('payment_status') === 'verified')>{{ __('Verified') }}</option>
+                    <option value="cash_on_store" @selected(request('payment_status') === 'cash_on_store')>{{ __('In-store') }}</option>
                 </select>
             </div>
             <div class="w-40">
@@ -139,7 +140,11 @@
                         @endrole
                         <x-table.cell class="whitespace-nowrap font-medium">₹ {{ number_format($order->amount, 2) }}</x-table.cell>
                         <x-table.cell>
-                            <x-badge :variant="$order->payment_status === 'verified' ? 'success' : 'warning'">{{ $order->payment_status }}</x-badge>
+                            @if($order->isCashOnStore())
+                                <x-badge variant="default">{{ __('In-store') }}</x-badge>
+                            @else
+                                <x-badge :variant="$order->payment_status === 'verified' ? 'success' : 'warning'">{{ $order->payment_status }}</x-badge>
+                            @endif
                         </x-table.cell>
                         <x-table.cell>
                             @php

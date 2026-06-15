@@ -75,11 +75,17 @@
                                 'statusFormAction' => route('admin.orders.update-status', $order),
                                 'fromKitchen' => request()->query('from') === 'kitchen',
                                 'paymentBadge' => 'verified',
+                                'paymentBadgeLabel' => $order->adminPaymentStatusLabel(),
+                                'paymentBadgeInStore' => $order->isCashOnStore(),
                             ])
                         @else
-                            <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
+                            <span @class([
+                                'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold shadow-sm',
+                                'border-violet-200 bg-violet-50 text-violet-800' => $order->isCashOnStore(),
+                                'border-emerald-200 bg-emerald-50 text-emerald-700' => ! $order->isCashOnStore(),
+                            ])>
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                {{ __('Payment Verified') }}
+                                {{ $order->adminPaymentStatusLabel() }}
                             </span>
                         @endcan
                     @endif
@@ -136,6 +142,15 @@
                         {{-- Customer Info --}}
                         <div class="mb-8">
                             <h4 class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">{{ __('Customer Details') }}</h4>
+                            @if($order->isInStoreOrder())
+                                <div class="mb-4 rounded-lg border border-violet-100 bg-violet-50/60 px-4 py-3 text-sm text-violet-900">
+                                    <span class="font-semibold">{{ __('Order source') }}:</span>
+                                    {{ __('In-store visit') }}
+                                    @if($order->placedBy)
+                                        · {{ __('placed by :name', ['name' => $order->placedBy->name]) }}
+                                    @endif
+                                </div>
+                            @endif
                             <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
                                 <div>
                                     <p class="mb-1 text-sm font-medium text-gray-500">{{ __('Name') }}</p>
@@ -251,7 +266,30 @@
                         <h3 class="font-semibold text-gray-900">{{ __('Payment Details') }}</h3>
                     </div>
                     <div class="p-6">
-                        @if($order->payment_reference || $order->payment_amount !== null || $order->payment_made_at)
+                        @if($order->isCashOnStore())
+                            <div class="space-y-4">
+                                <div class="rounded-lg border border-violet-200 bg-violet-50 p-4">
+                                    <p class="text-sm font-semibold text-violet-900">{{ __('Cash collected in store') }}</p>
+                                    <p class="mt-1 text-sm text-violet-800">{{ __('This order was placed during an in-store visit. Payment is recorded as cash on store — no UPI reference or payment proof is required.') }}</p>
+                                </div>
+                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Payment method') }}</p>
+                                        <p class="font-semibold text-gray-900">{{ $order->paymentMethodLabel() }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Amount') }}</p>
+                                        <p class="font-semibold text-gray-900">₹ {{ number_format($order->amount, 2) }}</p>
+                                    </div>
+                                </div>
+                                @if($order->placedBy)
+                                    <div>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Placed by staff') }}</p>
+                                        <p class="font-semibold text-gray-900">{{ $order->placedBy->name }}</p>
+                                    </div>
+                                @endif
+                            </div>
+                        @elseif($order->payment_reference || $order->payment_amount !== null || $order->payment_made_at)
                             <div class="space-y-4">
                                 @if($order->payment_reference)
                                     <div>

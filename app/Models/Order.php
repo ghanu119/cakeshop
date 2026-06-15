@@ -20,6 +20,10 @@ class Order extends Model implements HasMedia
 
     public const STATUS_DELIVERED = 'delivered';
 
+    public const PAYMENT_METHOD_UPI = 'upi';
+
+    public const PAYMENT_METHOD_CASH_ON_STORE = 'cash_on_store';
+
     /** Default max inscription length when no site or product override is set. */
     public const MESSAGE_ON_CAKE_MAX_LENGTH = 50;
 
@@ -67,6 +71,7 @@ class Order extends Model implements HasMedia
         'serial_number',
         'amount',
         'payment_status',
+        'payment_method',
         'order_status',
         'payment_reference',
         'payment_amount',
@@ -126,6 +131,47 @@ class Order extends Model implements HasMedia
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function placedBy()
+    {
+        return $this->belongsTo(User::class, 'placed_by_user_id');
+    }
+
+    public function isCashOnStore(): bool
+    {
+        return $this->payment_method === self::PAYMENT_METHOD_CASH_ON_STORE;
+    }
+
+    public function isInStoreOrder(): bool
+    {
+        return $this->isCashOnStore() || $this->placed_by_user_id !== null;
+    }
+
+    public function paymentMethodLabel(): string
+    {
+        return match ($this->payment_method) {
+            self::PAYMENT_METHOD_CASH_ON_STORE => __('Cash on store'),
+            self::PAYMENT_METHOD_UPI => __('UPI'),
+            default => __('UPI'),
+        };
+    }
+
+    public function adminPaymentStatusLabel(): string
+    {
+        if ($this->isCashOnStore() && $this->isPaymentVerified()) {
+            return __('Cash on store — collected');
+        }
+
+        if ($this->isPaymentVerified()) {
+            return __('Payment verified');
+        }
+
+        if ($this->hasPaymentDetailsSubmitted()) {
+            return __('Awaiting verification');
+        }
+
+        return __('Payment pending');
     }
 
     public function product()
@@ -265,6 +311,7 @@ class Order extends Model implements HasMedia
     public function scopeKitchenTodayQueue($query): void
     {
         $query->paymentVerified()
+            ->deliveryToday()
             ->where('order_status', 'processing')
             ->whereNotNull('preparation_at');
 

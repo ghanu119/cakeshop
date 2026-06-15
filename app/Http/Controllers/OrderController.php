@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\SiteSetting;
+use App\Services\CustomerContext;
 use App\Services\OrderService;
 use App\Services\ProductVariantService;
 use App\Services\OrderNotificationService;
@@ -20,7 +21,8 @@ class OrderController extends Controller
     public function __construct(
         private OrderService $orderService,
         private ProductVariantService $productVariantService,
-        private OrderNotificationService $orderNotificationService
+        private OrderNotificationService $orderNotificationService,
+        private CustomerContext $customerContext
     ) {}
 
     public function placeForm(Product $product): View
@@ -28,6 +30,7 @@ class OrderController extends Controller
         if (! $product->isActive()) {
             abort(404);
         }
+        $customer = $this->customerContext->effectiveCustomer();
         $deliveryRules = $this->orderService->deliveryAtRules();
         $this->productVariantService->eagerLoadForStorefront($product);
         $product->load([
@@ -42,6 +45,7 @@ class OrderController extends Controller
 
         return view('order.place', compact(
             'product',
+            'customer',
             'deliveryRules',
             'variantChoices',
             'defaultVariant',
@@ -58,6 +62,20 @@ class OrderController extends Controller
         }
 
         $validated = $request->validated();
+        $customer = $this->customerContext->effectiveCustomer();
+
+        if ($customer) {
+            if (blank($validated['guest_name'] ?? null)) {
+                $validated['guest_name'] = $customer->name;
+            }
+            if (blank($validated['guest_phone'] ?? null)) {
+                $validated['guest_phone'] = $customer->phone;
+            }
+            if (blank($validated['guest_email'] ?? null)) {
+                $validated['guest_email'] = $customer->email;
+            }
+        }
+
         $duplicateQuery = Order::query()
             ->where('product_id', $product->id)
             ->where('guest_phone', $validated['guest_phone'])
@@ -76,6 +94,14 @@ class OrderController extends Controller
         }
 
         $order = $this->orderService->createOrder($product, $validated);
+
+        if ($this->customerContext->isImpersonating()) {
+            $impersonator = $this->customerContext->impersonator();
+            $customer = $this->customerContext->effectiveCustomer();
+            if ($impersonator && $customer) {
+                $this->customerContext->logOrderPlaced($impersonator, $customer, $order->id);
+            }
+        }
 
         $this->orderNotificationService->notifyOrderPlaced($order);
 

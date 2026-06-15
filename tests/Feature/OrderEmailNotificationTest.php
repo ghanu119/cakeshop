@@ -46,7 +46,7 @@ class OrderEmailNotificationTest extends TestCase
     {
         $product = $this->simpleProduct();
 
-        $response = $this->post(route('order.store', $product), $this->validOrderPayload([
+        $response = $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), $this->validOrderPayload([
             'guest_email' => 'customer@example.com',
         ]));
 
@@ -62,15 +62,20 @@ class OrderEmailNotificationTest extends TestCase
         });
     }
 
-    public function test_placing_order_without_email_fails_validation(): void
+    public function test_phone_only_customer_can_place_order_without_guest_email_in_payload(): void
     {
+        $customer = $this->createStorefrontCustomer([
+            'email' => null,
+            'phone' => '9876543210',
+        ]);
         $product = $this->simpleProduct();
         $payload = $this->validOrderPayload();
         unset($payload['guest_email']);
 
-        $response = $this->post(route('order.store', $product), $payload);
+        $response = $this->actingAs($customer)->post(route('order.store', $product), $payload);
 
-        $response->assertSessionHasErrors('guest_email');
+        $response->assertRedirect();
+        Mail::assertNotSent(OrderConfirmation::class);
     }
 
     public function test_submitting_payment_sends_notification_to_admin(): void
@@ -170,7 +175,7 @@ class OrderEmailNotificationTest extends TestCase
 
         $product = $this->simpleProduct();
 
-        $this->post(route('order.store', $product), $this->validOrderPayload([
+        $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), $this->validOrderPayload([
             'guest_email' => 'customer@example.com',
         ]));
 
@@ -184,7 +189,7 @@ class OrderEmailNotificationTest extends TestCase
 
         $product = $this->simpleProduct();
 
-        $this->post(route('order.store', $product), $this->validOrderPayload([
+        $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), $this->validOrderPayload([
             'guest_email' => 'customer@example.com',
         ]));
 
@@ -205,7 +210,7 @@ class OrderEmailNotificationTest extends TestCase
 
         $product = $this->simpleProduct();
 
-        $response = $this->post(route('order.store', $product), $this->validOrderPayload([
+        $response = $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), $this->validOrderPayload([
             'guest_email' => 'customer@example.com',
         ]));
 

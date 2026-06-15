@@ -47,7 +47,7 @@ class BroadcastChannelAuthTest extends TestCase
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
 
-        $response = $this->actingAs($user)->post('/broadcasting/auth', [
+        $response = $this->actingAs($user)->postJson('/broadcasting/auth', [
             'channel_name' => 'private-App.Models.User.'.$user->id,
             'socket_id' => '1234.5678',
         ]);

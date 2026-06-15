@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Services\CustomerAuthService;
+use App\Services\CustomerContext;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,11 +19,12 @@ class LoginController extends Controller
      */
     public function showLoginForm(Request $request): View|RedirectResponse
     {
-        if (Auth::check() && (Auth::user()->hasRole('Admin') || Auth::user()->hasRole('Kitchen'))) {
-            return redirect()->route('admin.dashboard');
-        }
+        $customer = $request->user();
 
-        return view('admin.auth.login');
+        return view('admin.auth.login', [
+            'customerSignedIn' => $customer?->hasRole('Customer') ?? false,
+            'customerName' => $customer?->name,
+        ]);
     }
 
     /**
@@ -61,6 +64,9 @@ class LoginController extends Controller
                 'email' => [__('You do not have access to the admin area.')],
             ]);
         }
+
+        app(CustomerContext::class)->clearImpersonation();
+        $request->session()->forget(CustomerAuthService::SESSION_VERIFIED_EMAIL);
 
         if (Setting::isWebPushEnabled()) {
             $request->session()->put('prompt_staff_push', true);

@@ -122,6 +122,10 @@ class Setting extends Model
 
     public static function getEncrypted(string $key, $default = null): ?string
     {
+        if (! static::tableExists()) {
+            return $default;
+        }
+
         $raw = static::query()->where('key', $key)->value('value');
 
         if ($raw === null || $raw === '') {
@@ -139,6 +143,10 @@ class Setting extends Model
 
     public static function hasEncryptedValue(string $key): bool
     {
+        if (! static::tableExists()) {
+            return false;
+        }
+
         $raw = static::query()->where('key', $key)->value('value');
 
         return $raw !== null && $raw !== '';

@@ -42,13 +42,37 @@
                         </a>
                     </div>
 
+                    <div class="flex items-center gap-4">
+                        @php
+                            $customerContext = app(\App\Services\CustomerContext::class);
+                            $customerUser = auth()->user()?->isCustomer() ? auth()->user() : null;
+                            $isImpersonating = $customerContext->isImpersonating();
+                            $effectiveCustomer = $customerContext->effectiveCustomer();
+                        @endphp
+                        @if($isImpersonating && $effectiveCustomer)
+                            <span class="hidden text-sm font-medium text-indigo-700 sm:inline">{{ __('Ordering as :name', ['name' => $effectiveCustomer->name]) }}</span>
+                            <a href="{{ route('admin.dashboard') }}" class="text-sm font-medium text-indigo-700 hover:text-indigo-900">{{ __('Admin') }}</a>
+                        @elseif($customerUser)
+                            <a href="{{ route('account.dashboard') }}" class="text-sm font-medium text-stone-700 hover:text-amber-700">{{ __('Account') }}</a>
+                            <a href="{{ route('account.orders.index') }}" class="hidden text-sm font-medium text-stone-700 hover:text-amber-700 sm:inline">{{ __('My orders') }}</a>
+                            <form method="post" action="{{ route('account.logout') }}" class="inline">
+                                @csrf
+                                <button type="submit" class="text-sm font-medium text-stone-500 hover:text-stone-800">{{ __('Sign out') }}</button>
+                            </form>
+                        @else
+                            <a href="{{ route('products.index') }}" class="text-sm font-medium text-stone-700 hover:text-amber-700">{{ __('Menu') }}</a>
+                            <a href="{{ route('account.login') }}" class="rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white hover:bg-stone-800">{{ __('Sign in') }}</a>
+                        @endif
+                    </div>
                 </div>
             </nav>
         </header>
 
-        <main class="pt-20 min-h-[calc(100vh-5rem)]">
+        @include('partials._impersonation-banner')
+
+        <main class="{{ app(\App\Services\CustomerContext::class)->isImpersonating() ? 'pt-32' : 'pt-20' }} min-h-[calc(100vh-5rem)]">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-                <x-flash-messages class="py-3" />
+                <x-flash-messages class="py-3" :showFormErrors="true" />
             </div>
             @yield('content')
         </main>

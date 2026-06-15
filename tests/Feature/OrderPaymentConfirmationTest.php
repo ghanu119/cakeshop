@@ -212,7 +212,7 @@ class OrderPaymentConfirmationTest extends TestCase
     {
         $product = $this->simpleProduct();
 
-        $response = $this->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
+        $response = $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
             'fulfillment_type' => 'takeaway',
             'quantity' => 1,
         ]));

@@ -47,30 +47,7 @@
             <div class="order-place-main lg:col-span-7 xl:col-span-8 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-amber-100/50 p-6 sm:p-10 mb-10 lg:mb-0">
                 <x-form-errors show-system-errors :show-validation-summary="true" class="mb-8" />
 
-                {{-- Contact Info Section --}}
-                <div class="mb-10">
-                    <h3 class="text-xl font-bold text-stone-900 mb-6 flex items-center gap-3 border-b border-stone-100 pb-4">
-                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold shadow-sm">1</span>
-                        {{ __('Contact Information') }}
-                    </h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                            <label for="guest_name" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Your Name') }} <span class="text-red-500">*</span></label>
-                            <input type="text" name="guest_name" id="guest_name" value="{{ old('guest_name') }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" required />
-                            @error('guest_name')<p class="mt-2 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
-                        </div>
-                        <div>
-                            <label for="guest_phone" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Phone Number') }} <span class="text-red-500">*</span></label>
-                            <input type="tel" name="guest_phone" id="guest_phone" value="{{ old('guest_phone') }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" required />
-                            @error('guest_phone')<p class="mt-2 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
-                        </div>
-                        <div class="md:col-span-2">
-                            <label for="guest_email" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Email Address') }} <span class="text-red-500">*</span></label>
-                            <input type="email" name="guest_email" id="guest_email" value="{{ old('guest_email') }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" required />
-                            @error('guest_email')<p class="mt-2 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
-                        </div>
-                    </div>
-                </div>
+                <x-order.contact-fields :customer="$customer" variant="checkout" />
 
                 {{-- Order Details Section --}}
                 <div class="mb-2">

@@ -21,7 +21,23 @@ return Application::configure(basePath: dirname(__DIR__))
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'ensure.admin.https' => \App\Http\Middleware\EnsureAdminHttps::class,
+            'customer.auth' => \App\Http\Middleware\EnsureCustomerAuthenticated::class,
+            'account.guest' => \App\Http\Middleware\RedirectStaffFromAccount::class,
+            'admin.guest' => \App\Http\Middleware\RedirectStaffFromAdminLogin::class,
         ]);
+        $middleware->redirectUsersTo(function (\Illuminate\Http\Request $request) {
+            $user = $request->user();
+
+            if ($user?->hasRole('Customer')) {
+                return route('account.dashboard');
+            }
+
+            if ($user?->hasAnyRole(['Admin', 'Kitchen'])) {
+                return route('admin.dashboard');
+            }
+
+            return route('home');
+        });
         $middleware->web(append: [
             \App\Http\Middleware\SetActiveTheme::class,
             \App\Http\Middleware\ApplyBroadcastingConfig::class,

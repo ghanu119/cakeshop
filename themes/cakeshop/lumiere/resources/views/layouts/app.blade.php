@@ -41,6 +41,7 @@
                         <a href="{{ route('products.index') }}" class="nav-link rounded-lg px-3 py-2 text-base font-medium text-stone-600 transition-colors duration-200 {{ request()->routeIs('products.*') ? 'nav-link-active font-semibold' : '' }}">{{ __('Shop') }}</a>
                         <a href="{{ route('about') }}" class="nav-link rounded-lg px-3 py-2 text-base font-medium text-stone-600 transition-colors duration-200 {{ request()->routeIs('about') ? 'nav-link-active font-semibold' : '' }}">{{ __('About Us') }}</a>
                         <a href="{{ route('contact.index') }}" class="nav-link rounded-lg px-3 py-2 text-base font-medium text-stone-600 transition-colors duration-200 {{ request()->routeIs('contact.*') ? 'nav-link-active font-semibold' : '' }}">{{ __('Contact') }}</a>
+                        @include('partials._account-nav')
                     </div>
 
                     <button type="button" class="lg:hidden inline-flex items-center justify-center rounded-lg p-2.5 text-stone-700 hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-offset-2" style="--tw-ring-color: rgba(90,90,64,0.25);" id="mobile-menu-button" aria-expanded="false">
@@ -84,7 +85,9 @@
             });
         </script>
 
-        <main class="pt-20 min-h-[calc(100vh-5rem)]">
+        @include('partials._impersonation-banner')
+
+        <main class="{{ app(\App\Services\CustomerContext::class)->isImpersonating() ? 'pt-32' : 'pt-20' }} min-h-[calc(100vh-5rem)]">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <x-flash-messages class="py-3" />
             </div>

@@ -32,7 +32,7 @@ class OrderFlavorTest extends TestCase
         $flavor = Flavor::factory()->create(['slug' => 'chocolate', 'name_en' => 'Chocolate']);
         $product->flavors()->attach($flavor->id, ['sort_order' => 0]);
 
-        $response = $this->post(route('order.store', $product), $this->validOrderPayload());
+        $response = $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), $this->validOrderPayload());
 
         $response->assertSessionHasErrors('flavor_id');
     }
@@ -44,7 +44,7 @@ class OrderFlavorTest extends TestCase
         $flavor = Flavor::factory()->create(['slug' => 'vanilla', 'name_en' => 'Vanilla']);
         $product->flavors()->attach($flavor->id, ['sort_order' => 0]);
 
-        $response = $this->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
+        $response = $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
             'flavor_id' => $flavor->id,
         ]));
 
@@ -62,7 +62,7 @@ class OrderFlavorTest extends TestCase
         $category = Category::factory()->create();
         $product = Product::factory()->create(['category_id' => $category->id, 'price' => 500]);
 
-        $response = $this->post(route('order.store', $product), $this->validOrderPayload());
+        $response = $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), $this->validOrderPayload());
 
         $response->assertRedirect();
         $this->assertDatabaseHas('orders', [

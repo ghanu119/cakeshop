@@ -34,6 +34,11 @@ class RoleAndPermissionSeeder extends Seeder
             'users.create',
             'users.update',
             'users.delete',
+            'customers.view',
+            'customers.create',
+            'customers.update',
+            'customers.delete',
+            'customers.impersonate',
             'settings.manage',
             'contact_enquiries.view',
             'features.view',
@@ -61,6 +66,9 @@ class RoleAndPermissionSeeder extends Seeder
         // Kitchen: orders view and update only
         $kitchen = Role::firstOrCreate(['name' => 'Kitchen', 'guard_name' => $guard]);
         $kitchen->syncPermissions(['orders.view', 'orders.update']);
+
+        // Customer: no admin permissions (storefront only)
+        Role::firstOrCreate(['name' => 'Customer', 'guard_name' => $guard]);
 
         // Re-give Admin all permissions (in case new ones were added)
         $admin->syncPermissions(Permission::all());

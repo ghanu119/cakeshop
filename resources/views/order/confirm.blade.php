@@ -49,11 +49,7 @@
         </div>
     </x-card>
 
-    <p class="text-center text-sm text-gray-500">
-        <a href="{{ route('order.history') }}" class="text-gray-600 hover:underline">{{ __('Look up your order') }}</a>
-        <span class="mx-2">·</span>
-        <a href="{{ route('home') }}" class="text-gray-600 hover:underline">{{ __('Back to home') }}</a>
-    </p>
+    @include('order.partials._order-footer-nav')
 </div>
 @endif
 @endsection

@@ -1,6 +1,8 @@
 @php
     $canSetPreparationTime = $canSetPreparationTime ?? auth()->user()->hasRole('Admin');
     $paymentBadge = $paymentBadge ?? null;
+    $paymentBadgeLabel = $paymentBadgeLabel ?? __('Payment verified');
+    $paymentBadgeInStore = $paymentBadgeInStore ?? false;
     $tz = $preparationRules['timezone'];
     $prepMin = $preparationRules['min']->format('Y-m-d\TH:i');
     $prepMax = $preparationRules['max']?->format('Y-m-d\TH:i');
@@ -14,9 +16,13 @@
 @if($order->isStatusLocked())
     <div class="flex flex-wrap items-center justify-end gap-3">
         @if($paymentBadge === 'verified')
-            <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
+            <span @class([
+                'inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold shadow-sm',
+                'border-violet-200 bg-violet-50 text-violet-800' => $paymentBadgeInStore,
+                'border-emerald-200 bg-emerald-50 text-emerald-700' => ! $paymentBadgeInStore,
+            ])>
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                {{ __('Payment Verified') }}
+                {{ $paymentBadgeLabel }}
             </span>
         @endif
         <span class="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-sm font-semibold text-teal-800 shadow-sm">
@@ -42,9 +48,13 @@
 
         <div class="flex flex-wrap items-center justify-end gap-3">
             @if($paymentBadge === 'verified')
-                <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
+                <span @class([
+                    'inline-flex shrink-0 items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold shadow-sm',
+                    'border-violet-200 bg-violet-50 text-violet-800' => $paymentBadgeInStore,
+                    'border-emerald-200 bg-emerald-50 text-emerald-700' => ! $paymentBadgeInStore,
+                ])>
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    {{ __('Payment Verified') }}
+                    {{ $paymentBadgeLabel }}
                 </span>
             @endif
 

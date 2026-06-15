@@ -1,9 +1,15 @@
 <?php
 
+use App\Http\Controllers\Account\AuthController as AccountAuthController;
+use App\Http\Controllers\Account\DashboardController as AccountDashboardController;
+use App\Http\Controllers\Account\OrderController as AccountOrderController;
+use App\Http\Controllers\Account\ProfileController as AccountProfileController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ContactEnquiryController;
+use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\FeatureController;
 use App\Http\Controllers\Admin\FlavorController;
+use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\SettingsController;
@@ -20,6 +26,16 @@ use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController as FrontendProductController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
+
+Route::bind('customer', function (string $value) {
+    $user = \App\Models\User::withTrashed()->role('Customer')->find($value);
+
+    if (! $user) {
+        abort(404);
+    }
+
+    return $user;
+});
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -39,9 +55,33 @@ Route::get('categories/{slug}', [FrontendCategoryController::class, 'show'])->na
 Route::get('sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('robots.txt', [\App\Http\Controllers\RobotsController::class, 'index'])->name('robots');
 
+Route::prefix('account')->name('account.')->middleware(['account.guest'])->group(function () {
+    Route::middleware('guest')->group(function () {
+        Route::get('login', [AccountAuthController::class, 'showLogin'])->name('login');
+        Route::post('login', [AccountAuthController::class, 'sendOtp'])->middleware('throttle:60,1')->name('login.send-otp');
+        Route::get('verify-otp', [AccountAuthController::class, 'showVerifyOtp'])->name('verify-otp');
+        Route::post('verify-otp', [AccountAuthController::class, 'verifyOtp'])->middleware('throttle:10,15')->name('verify-otp.submit');
+        Route::get('register', [AccountAuthController::class, 'showRegister'])->name('register');
+        Route::post('register', [AccountAuthController::class, 'register'])->middleware('throttle:10,15')->name('register.submit');
+        Route::get('register/check-phone', [AccountAuthController::class, 'checkPhone'])->name('register.check-phone');
+    });
+
+    Route::middleware(['auth', 'role:Customer'])->group(function () {
+        Route::get('/', [AccountDashboardController::class, 'index'])->name('dashboard');
+        Route::get('orders', [AccountOrderController::class, 'index'])->name('orders.index');
+        Route::get('orders/{order}', [AccountOrderController::class, 'show'])->name('orders.show');
+        Route::get('profile', [AccountProfileController::class, 'edit'])->name('profile.edit');
+        Route::put('profile', [AccountProfileController::class, 'update'])->name('profile.update');
+        Route::delete('profile', [AccountProfileController::class, 'destroy'])->name('profile.destroy');
+        Route::post('logout', [AccountAuthController::class, 'logout'])->name('logout');
+    });
+});
+
 Route::prefix('order')->name('order.')->group(function () {
-    Route::get('product/{product:slug}', [OrderController::class, 'placeForm'])->name('place');
-    Route::post('product/{product:slug}', [OrderController::class, 'place'])->name('store');
+    Route::middleware(['customer.auth'])->group(function () {
+        Route::get('product/{product:slug}', [OrderController::class, 'placeForm'])->name('place');
+        Route::post('product/{product:slug}', [OrderController::class, 'place'])->name('store');
+    });
     Route::get('confirm/{order}', [OrderController::class, 'confirm'])->name('confirm');
     Route::get('payment-qr/download', [OrderController::class, 'downloadPaymentQr'])->name('payment-qr.download');
     Route::get('history', [OrderController::class, 'historyForm'])->name('history');
@@ -57,7 +97,6 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['ensure.admin.https', 'auth', 'verified', 'role:Admin|Kitchen'])->group(function () {
-    // Admin area: all backend routes under /admin prefix
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::middleware(['permission:orders.view'])->group(function () {
@@ -104,6 +143,10 @@ Route::middleware(['ensure.admin.https', 'auth', 'verified', 'role:Admin|Kitchen
         Route::resource('testimonials', TestimonialController::class)->except(['show']);
         Route::resource('users', UserController::class)->except(['show']);
         Route::middleware('role:Admin')->group(function () {
+            Route::get('customers/lookup', [CustomerController::class, 'lookup'])->name('customers.lookup');
+            Route::post('customers/{customer}/impersonate', [CustomerController::class, 'impersonate'])->name('customers.impersonate');
+            Route::post('impersonation/stop', [ImpersonationController::class, 'stop'])->name('impersonation.stop');
+            Route::resource('customers', CustomerController::class)->except(['edit', 'update']);
             Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
             Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
             Route::post('orders/{order}/verify-payment', [AdminOrderController::class, 'verifyPayment'])->name('orders.verify-payment');
@@ -116,15 +159,23 @@ Route::middleware(['ensure.admin.https', 'auth', 'verified', 'role:Admin|Kitchen
     });
 });
 
-// Redirect legacy /dashboard to /admin/dashboard so admin prefix is required
 Route::get('dashboard', fn () => redirect()->route('admin.dashboard', [], 301))->name('dashboard')->middleware(['auth', 'verified', 'role:Admin|Kitchen']);
 
-Route::view('profile', 'profile')
-    ->middleware(['auth'])
-    ->name('profile');
+Route::get('profile', function () {
+    $user = auth()->user();
 
-// Admin login (separate from frontend login; only Admin|Kitchen may use this)
-Route::prefix('admin')->middleware(['ensure.admin.https', 'guest'])->group(function () {
+    if ($user?->hasRole('Customer')) {
+        return redirect()->route('account.profile.edit');
+    }
+
+    if ($user?->hasAnyRole(['Admin', 'Kitchen'])) {
+        return redirect()->route('admin.profile.edit');
+    }
+
+    return redirect()->route('account.login');
+})->middleware(['auth'])->name('profile');
+
+Route::prefix('admin')->middleware(['ensure.admin.https', 'admin.guest'])->group(function () {
     Route::get('login', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'showLoginForm'])->name('admin.login');
     Route::post('login', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'login'])->name('admin.login.post');
 });

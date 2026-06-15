@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\CustomerContext;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -54,7 +55,11 @@ class OrderService
             $query->where('order_status', $request->input('order_status'));
         }
         if ($request->filled('payment_status')) {
-            $query->where('payment_status', $request->input('payment_status'));
+            if ($request->input('payment_status') === Order::PAYMENT_METHOD_CASH_ON_STORE) {
+                $query->where('payment_method', Order::PAYMENT_METHOD_CASH_ON_STORE);
+            } else {
+                $query->where('payment_status', $request->input('payment_status'));
+            }
         }
         if ($request->filled('from_date')) {
             $query->whereDate('ordered_at', '>=', $request->input('from_date'));
@@ -209,10 +214,14 @@ class OrderService
 
     public function createOrder(Product $product, array $data): Order
     {
+        $customerContext = app(CustomerContext::class);
+        $customer = $customerContext->effectiveCustomer();
+
         $order = new Order;
-        $order->guest_name = $data['guest_name'];
-        $order->guest_email = $data['guest_email'];
-        $order->guest_phone = $data['guest_phone'];
+        $order->user_id = $customer?->id;
+        $order->guest_name = $data['guest_name'] ?? $customer?->name ?? '';
+        $order->guest_email = $data['guest_email'] ?? $customer?->email;
+        $order->guest_phone = $data['guest_phone'] ?? $customer?->phone ?? '';
         $order->product_id = $product->id;
         $order->product_name = $product->name_en;
         $order->quantity = (int) ($data['quantity'] ?? 1);
@@ -224,6 +233,14 @@ class OrderService
             : null;
         $order->payment_status = 'pending';
         $order->order_status = 'pending';
+        $order->payment_method = Order::PAYMENT_METHOD_UPI;
+
+        if ($customerContext->isImpersonating()) {
+            $order->payment_method = Order::PAYMENT_METHOD_CASH_ON_STORE;
+            $order->payment_status = 'verified';
+            $order->placed_by_user_id = $customerContext->impersonator()?->id;
+        }
+
         $tz = settings('timezone') ?? 'Asia/Kolkata';
         $order->delivery_at = Carbon::parse($data['delivery_at'], $tz)->utc();
         $order->ordered_at = now();

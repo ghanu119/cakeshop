@@ -46,6 +46,7 @@
                         @endthemeIs
                         <a href="{{ route('contact.index') }}" class="nav-link rounded-lg px-3 py-2 text-base font-medium text-stone-600 hover:text-amber-600 hover:bg-amber-50/80 transition-colors duration-200 {{ request()->routeIs('contact.*') ? 'nav-link-active bg-amber-50 text-amber-600 font-semibold' : '' }}">{{ __('Contact') }}</a>
                         <a href="{{ route('about') }}" class="nav-link rounded-lg px-3 py-2 text-base font-medium text-stone-600 hover:text-amber-600 hover:bg-amber-50/80 transition-colors duration-200 {{ request()->routeIs('about') ? 'nav-link-active bg-amber-50 text-amber-600 font-semibold' : '' }}">{{ __('About') }}</a>
+                        @include('partials._account-nav')
                     </div>
 
                     <button type="button" class="lg:hidden inline-flex items-center justify-center rounded-lg p-2.5 text-gray-700 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:ring-offset-2" id="mobile-menu-button" aria-expanded="false">
@@ -91,6 +92,8 @@
                 }
             });
         </script>
+
+        @include('partials._impersonation-banner')
 
         <main class="min-h-[calc(100vh-4rem)]">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">

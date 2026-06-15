@@ -55,21 +55,7 @@
                 'product' => $product,
                 'hasFlavors' => $hasFlavors,
             ])
-            <div>
-                <label for="guest_name" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Your name') }} *</label>
-                <x-input type="text" name="guest_name" id="guest_name" value="{{ old('guest_name') }}" class="block w-full" required />
-                @error('guest_name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-            </div>
-            <div>
-                <label for="guest_phone" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Phone') }} *</label>
-                <x-input type="text" name="guest_phone" id="guest_phone" value="{{ old('guest_phone') }}" class="block w-full" required />
-                @error('guest_phone')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-            </div>
-            <div>
-                <label for="guest_email" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Email') }} <span class="text-red-500">*</span></label>
-                <x-input type="email" name="guest_email" id="guest_email" value="{{ old('guest_email') }}" class="block w-full" required />
-                @error('guest_email')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
-            </div>
+            <x-order.contact-fields :customer="$customer" />
             @if(uses_better_buns_checkout())
                 @include('order.partials._fulfillment-order-fields', ['initialFulfillmentType' => $initialFulfillmentType])
             @else

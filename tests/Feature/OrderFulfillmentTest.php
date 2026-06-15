@@ -32,13 +32,13 @@ class OrderFulfillmentTest extends TestCase
     public function test_order_place_url_uses_product_slug(): void
     {
         $product = $this->simpleProduct();
-
         $url = route('order.place', $product);
 
         $this->assertStringContainsString('/order/product/'.$product->slug, $url);
         $this->assertStringNotContainsString('/order/product/'.$product->id, $url);
-
-        $this->get($url)->assertOk();
+        $response = $this->get($url);
+        $response->assertRedirect();
+        $this->assertStringContainsString('account/login', $response->headers->get('Location'));
     }
 
     public function test_checkout_shows_order_type_when_theme_setting_is_null(): void
@@ -48,7 +48,8 @@ class OrderFulfillmentTest extends TestCase
 
         $product = $this->simpleProduct();
 
-        $response = $this->get(route('order.place', $product));
+        $response = $this->actingAs($this->storefrontCustomer())
+            ->get(route('order.place', $product));
 
         $response->assertOk();
         $response->assertSee(__('Order type'), false);
@@ -64,10 +65,11 @@ class OrderFulfillmentTest extends TestCase
 
         $product = $this->simpleProduct();
 
-        $response = $this->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
-            'fulfillment_type' => 'takeaway',
-            'quantity' => 1,
-        ]));
+        $response = $this->actingAs($this->storefrontCustomer())
+            ->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
+                'fulfillment_type' => 'takeaway',
+                'quantity' => 1,
+            ]));
 
         $response->assertRedirect();
         $this->assertDatabaseHas('orders', [
@@ -85,9 +87,10 @@ class OrderFulfillmentTest extends TestCase
 
         $product = $this->simpleProduct();
 
-        $response = $this->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
-            'fulfillment_type' => 'delivery',
-        ]));
+        $response = $this->actingAs($this->storefrontCustomer())
+            ->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
+                'fulfillment_type' => 'delivery',
+            ]));
 
         $response->assertSessionHasErrors('delivery_address');
     }
@@ -100,10 +103,11 @@ class OrderFulfillmentTest extends TestCase
         $product = $this->simpleProduct();
         $address = '42 Baker Street, Downtown';
 
-        $response = $this->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
-            'fulfillment_type' => 'delivery',
-            'delivery_address' => $address,
-        ]));
+        $response = $this->actingAs($this->storefrontCustomer())
+            ->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
+                'fulfillment_type' => 'delivery',
+                'delivery_address' => $address,
+            ]));
 
         $response->assertRedirect();
         $this->assertDatabaseHas('orders', [
@@ -120,9 +124,10 @@ class OrderFulfillmentTest extends TestCase
 
         $product = $this->simpleProduct();
 
-        $response = $this->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
-            'fulfillment_type' => 'takeaway',
-        ]));
+        $response = $this->actingAs($this->storefrontCustomer())
+            ->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
+                'fulfillment_type' => 'takeaway',
+            ]));
 
         $response->assertRedirect();
         $this->assertDatabaseHas('orders', [
@@ -139,9 +144,10 @@ class OrderFulfillmentTest extends TestCase
 
         $product = $this->simpleProduct();
 
-        $response = $this->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
-            'quantity' => 2,
-        ]));
+        $response = $this->actingAs($this->storefrontCustomer())
+            ->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
+                'quantity' => 2,
+            ]));
 
         $response->assertRedirect();
         $this->assertDatabaseHas('orders', [
@@ -183,12 +189,13 @@ class OrderFulfillmentTest extends TestCase
         return $admin;
     }
 
-    private function kitchenUser(): User
+    private function storefrontCustomer(): User
     {
-        $kitchen = User::factory()->create(['email_verified_at' => now()]);
-        $kitchen->assignRole('Kitchen');
-
-        return $kitchen;
+        return $this->createStorefrontCustomer([
+            'name' => 'Test Customer',
+            'email' => 'customer@example.com',
+            'phone' => '9876543210',
+        ]);
     }
 
     private function simpleProduct(): Product
@@ -212,9 +219,6 @@ class OrderFulfillmentTest extends TestCase
             ->format('Y-m-d\TH:i');
 
         return [
-            'guest_name' => 'Test Customer',
-            'guest_email' => 'customer@example.com',
-            'guest_phone' => '9876543210',
             'quantity' => 1,
             'delivery_at' => $delivery,
         ];

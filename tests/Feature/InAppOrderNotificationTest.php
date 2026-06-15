@@ -50,7 +50,7 @@ class InAppOrderNotificationTest extends TestCase
         $kitchen = $this->kitchenUser();
 
         $product = $this->simpleProduct();
-        $this->post(route('order.store', $product), $this->validOrderPayload());
+        $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), $this->validOrderPayload());
 
         $this->assertDatabaseHas('notifications', [
             'notifiable_id' => $adminOne->id,

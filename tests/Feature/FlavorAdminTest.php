@@ -41,7 +41,7 @@ class FlavorAdminTest extends TestCase
     {
         $user = User::factory()->create(['email_verified_at' => now()]);
 
-        $response = $this->actingAs($user)->post(route('admin.flavors.store'), [
+        $response = $this->actingAs($user)->postJson(route('admin.flavors.store'), [
             'name_en' => 'Blocked Flavor',
             'status' => 'active',
         ]);

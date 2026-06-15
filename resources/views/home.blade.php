@@ -45,7 +45,7 @@
 </section>
 @endthemeIs
 
-@unless(theme() === 'lumiere')
+@unless(active_theme() === 'lumiere')
 {{-- Default hero --}}
 <section class="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-gradient-hero">
     <div class="absolute inset-0 bg-black/20"></div>
@@ -91,7 +91,7 @@
             <h2 class="heading-display text-4xl sm:text-5xl mb-4">{{ __('Crafted with Intention') }}</h2>
             <p class="text-xl text-stone-600 max-w-2xl mx-auto">{{ __('Organic ingredients, artisanal process, premium recipes—every detail matters.') }}</p>
             @endthemeIs
-            @unless(theme() === 'lumiere')
+            @unless(active_theme() === 'lumiere')
             <span class="badge-warm mb-4">{{ __('Why Choose Us') }}</span>
             <h2 class="heading-display text-4xl sm:text-5xl mb-4">{{ __('We are committed to delivering excellence') }}</h2>
             <p class="text-xl text-stone-600 max-w-2xl mx-auto">{{ __('Every bite is crafted with passion and the finest ingredients') }}</p>
@@ -136,7 +136,7 @@
                 <h2 class="heading-display text-4xl sm:text-5xl mb-2">{{ __('Seasonal Favorites') }}</h2>
                 <p class="text-xl text-stone-600">{{ __('Handpicked cakes for the season') }}</p>
                 @endthemeIs
-                @unless(theme() === 'lumiere')
+                @unless(active_theme() === 'lumiere')
                 <span class="badge-warm mb-4">{{ __('Top Feature Products') }}</span>
                 <h2 class="heading-display text-4xl sm:text-5xl mb-2">{{ __('Most Popular Cakes') }}</h2>
                 <p class="text-xl text-stone-600">{{ __('Discover our most beloved cake creations') }}</p>

@@ -55,7 +55,7 @@ class CakeWeightAdminTest extends TestCase
             ->delete(route('admin.cake-weights.destroy', $weight500));
 
         $response->assertRedirect(route('admin.cake-weights.index'));
-        $response->assertSessionHas('error', __('This weight is used on products. Set it to inactive instead of deleting.'));
+        $response->assertSessionHasErrors('_form');
         $this->assertNotSoftDeleted('variant_option_values', ['id' => $weight500->id]);
     }
 
@@ -68,7 +68,7 @@ class CakeWeightAdminTest extends TestCase
             ->where('grams', 3000)
             ->firstOrFail();
 
-        $response = $this->actingAs($user)->delete(route('admin.cake-weights.destroy', $weight));
+        $response = $this->actingAs($user)->deleteJson(route('admin.cake-weights.destroy', $weight));
 
         $response->assertForbidden();
         $this->assertNotSoftDeleted('variant_option_values', ['id' => $weight->id]);

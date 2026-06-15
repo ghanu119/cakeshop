@@ -57,7 +57,7 @@ class KitchenDashboardTest extends TestCase
         $response->assertDontSee($order->order_no, false);
     }
 
-    public function test_completed_verified_future_order_appears_on_upcoming(): void
+    public function test_completed_verified_future_order_not_on_upcoming(): void
     {
         $kitchen = $this->kitchenUser();
         $order = Order::factory()
@@ -71,7 +71,7 @@ class KitchenDashboardTest extends TestCase
         $response = $this->actingAs($kitchen)->get(route('admin.kitchen.orders.upcoming'));
 
         $response->assertOk();
-        $response->assertSee($order->order_no, false);
+        $response->assertDontSee($order->order_no, false);
     }
 
     public function test_kitchen_upcoming_show_is_read_only(): void

@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Volt\Volt;
 use Tests\TestCase;
@@ -11,17 +12,29 @@ class ProfileTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_profile_page_is_displayed(): void
+    protected function setUp(): void
     {
-        $user = User::factory()->create();
+        parent::setUp();
+        $this->seed(RoleAndPermissionSeeder::class);
+    }
 
-        $response = $this->actingAs($user)->get('/profile');
+    public function test_legacy_profile_redirects_customer_to_account_profile(): void
+    {
+        $customer = User::factory()->customer()->create();
 
-        $response
-            ->assertOk()
-            ->assertSeeVolt('profile.update-profile-information-form')
-            ->assertSeeVolt('profile.update-password-form')
-            ->assertSeeVolt('profile.delete-user-form');
+        $this->actingAs($customer)
+            ->get('/profile')
+            ->assertRedirect(route('account.profile.edit'));
+    }
+
+    public function test_legacy_profile_redirects_admin_to_admin_profile(): void
+    {
+        $admin = User::factory()->create(['email_verified_at' => now()]);
+        $admin->assignRole('Admin');
+
+        $this->actingAs($admin)
+            ->get('/profile')
+            ->assertRedirect(route('admin.profile.edit'));
     }
 
     public function test_profile_information_can_be_updated(): void
@@ -32,36 +45,13 @@ class ProfileTest extends TestCase
 
         $component = Volt::test('profile.update-profile-information-form')
             ->set('name', 'Test User')
-            ->set('email', 'test@example.com')
             ->call('updateProfileInformation');
 
         $component
             ->assertHasNoErrors()
             ->assertNoRedirect();
 
-        $user->refresh();
-
-        $this->assertSame('Test User', $user->name);
-        $this->assertSame('test@example.com', $user->email);
-        $this->assertNull($user->email_verified_at);
-    }
-
-    public function test_email_verification_status_is_unchanged_when_the_email_address_is_unchanged(): void
-    {
-        $user = User::factory()->create();
-
-        $this->actingAs($user);
-
-        $component = Volt::test('profile.update-profile-information-form')
-            ->set('name', 'Test User')
-            ->set('email', $user->email)
-            ->call('updateProfileInformation');
-
-        $component
-            ->assertHasNoErrors()
-            ->assertNoRedirect();
-
-        $this->assertNotNull($user->refresh()->email_verified_at);
+        $this->assertSame('Test User', $user->refresh()->name);
     }
 
     public function test_user_can_delete_their_account(): void
@@ -79,7 +69,7 @@ class ProfileTest extends TestCase
             ->assertRedirect('/');
 
         $this->assertGuest();
-        $this->assertNull($user->fresh());
+        $this->assertSoftDeleted($user);
     }
 
     public function test_correct_password_must_be_provided_to_delete_account(): void

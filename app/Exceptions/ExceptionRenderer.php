@@ -225,9 +225,11 @@ class ExceptionRenderer
 
     protected function redirectFormWithError(Request $request, string $message): RedirectResponse
     {
-        $target = $request->headers->get('referer')
-            ?? session()->previousUrl()
-            ?? $this->guessFormUrlFromRequest($request);
+        $guessed = $this->guessFormUrlFromRequest($request);
+
+        $target = $request->is('account', 'account/*')
+            ? ($guessed ?? session()->previousUrl() ?? $request->headers->get('referer'))
+            : ($request->headers->get('referer') ?? session()->previousUrl() ?? $guessed);
 
         if (! $target || $target === $request->fullUrl()) {
             $target = $this->defaultFormUrl($request);
@@ -246,6 +248,22 @@ class ExceptionRenderer
             return null;
         }
 
+        if ($request->is('account/login')) {
+            return route('account.login');
+        }
+
+        if ($request->is('account/verify-otp')) {
+            $email = $request->input('email', $request->query('email'));
+
+            return is_string($email) && $email !== ''
+                ? route('account.verify-otp', ['email' => $email])
+                : route('account.login');
+        }
+
+        if ($request->is('account/register', 'account/register/*')) {
+            return route('account.register');
+        }
+
         if (in_array($request->method(), ['PUT', 'PATCH'], true)
             && preg_match('#^(admin/[^/]+)/(\d+)$#', $path, $matches)) {
             return url($matches[1].'/'.$matches[2].'/edit');
@@ -262,6 +280,26 @@ class ExceptionRenderer
     {
         if ($request->is('admin/login')) {
             return route('admin.login');
+        }
+
+        if ($request->is('account/login')) {
+            return route('account.login');
+        }
+
+        if ($request->is('account/verify-otp')) {
+            $email = $request->input('email', $request->query('email'));
+
+            return is_string($email) && $email !== ''
+                ? route('account.verify-otp', ['email' => $email])
+                : route('account.login');
+        }
+
+        if ($request->is('account/register', 'account/register/*')) {
+            return route('account.register');
+        }
+
+        if ($request->is('account', 'account/*')) {
+            return route('account.login');
         }
 
         if ($request->is('order/*')) {

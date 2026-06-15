@@ -23,7 +23,13 @@
                 <x-alert variant="success" dismissible class="mb-4">{{ session('status') }}</x-alert>
             @endif
 
-            <form method="post" action="{{ route('admin.login') }}" class="space-y-6">
+            @if (! empty($customerSignedIn))
+                <x-alert variant="info" class="mb-4">
+                    {{ __('You are signed in as customer :name. Logging in here will switch to your staff account.', ['name' => $customerName]) }}
+                </x-alert>
+            @endif
+
+            <form method="post" action="{{ route('admin.login.post') }}" class="space-y-6">
                 @csrf
                 <x-form-errors show-system-errors show-field-errors />
                 <div>

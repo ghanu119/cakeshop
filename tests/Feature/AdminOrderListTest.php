@@ -91,4 +91,29 @@ class AdminOrderListTest extends TestCase
         $response->assertSee($deliveryAt->setTimezone('Asia/Kolkata')->format('d M Y'));
         $response->assertSee($deliveryAt->setTimezone('Asia/Kolkata')->format('H:i'));
     }
+
+    public function test_admin_can_filter_in_store_orders(): void
+    {
+        $admin = $this->adminUser();
+        $product = Product::factory()->create();
+
+        $inStore = Order::factory()->for($product)->verified()->create([
+            'order_no' => 'ORD-INSTORE-001',
+            'payment_method' => Order::PAYMENT_METHOD_CASH_ON_STORE,
+            'placed_by_user_id' => $admin->id,
+        ]);
+
+        Order::factory()->for($product)->verified()->create([
+            'order_no' => 'ORD-UPI-001',
+            'payment_method' => Order::PAYMENT_METHOD_UPI,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.orders.index', [
+            'payment_status' => Order::PAYMENT_METHOD_CASH_ON_STORE,
+        ]));
+
+        $response->assertOk()
+            ->assertSee($inStore->order_no, false)
+            ->assertDontSee('ORD-UPI-001', false);
+    }
 }

@@ -29,7 +29,7 @@ class MessageOnCakeLimitTest extends TestCase
     {
         $product = $this->createProduct();
 
-        $response = $this->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
+        $response = $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
             'message_on_cake' => str_repeat('a', 31),
         ]));
 
@@ -41,7 +41,7 @@ class MessageOnCakeLimitTest extends TestCase
         $product = $this->createProduct();
 
         $message = str_repeat('b', 30);
-        $response = $this->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
+        $response = $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
             'message_on_cake' => $message,
         ]));
 
@@ -56,7 +56,7 @@ class MessageOnCakeLimitTest extends TestCase
     {
         $product = $this->createProduct(['message_on_cake_max_length' => 15]);
 
-        $response = $this->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
+        $response = $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), array_merge($this->validOrderPayload(), [
             'message_on_cake' => str_repeat('c', 16),
         ]));
 

@@ -2,8 +2,12 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\User\RegisteredVia;
+use App\Models\User\UserGender;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -15,17 +19,29 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, HasPushSubscriptions, HasRoles, Notifiable, SoftDeletes;
 
+    public const DELETION_REASON_CUSTOMER = 'customer_request';
+
+    public const DELETION_REASON_ADMIN = 'admin_action';
+
     protected static function booted(): void
     {
         static::deleting(function (User $user) {
             if (! $user->isForceDeleting()) {
                 $user->releaseEmailForSoftDelete();
+
+                if ($user->isCustomer()) {
+                    $user->releasePhoneForSoftDelete();
+                }
             }
         });
     }
 
     public function releaseEmailForSoftDelete(): void
     {
+        if ($this->email === null || $this->email === '') {
+            return;
+        }
+
         $suffix = '-deleted-'.$this->id;
 
         if (str_ends_with($this->email, $suffix)) {
@@ -43,11 +59,29 @@ class User extends Authenticatable
         $this->saveQuietly();
     }
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
+    public function releasePhoneForSoftDelete(): void
+    {
+        if ($this->phone === null || $this->phone === '') {
+            return;
+        }
+
+        $suffix = '-deleted-'.$this->id;
+
+        if (str_ends_with($this->phone, $suffix)) {
+            return;
+        }
+
+        $maxLength = 50;
+        $phone = $this->phone.$suffix;
+
+        if (strlen($phone) > $maxLength) {
+            $phone = substr($this->phone, 0, $maxLength - strlen($suffix)).$suffix;
+        }
+
+        $this->phone = $phone;
+        $this->saveQuietly();
+    }
+
     protected $fillable = [
         'name',
         'email',
@@ -55,26 +89,81 @@ class User extends Authenticatable
         'password',
     ];
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
             'email_verified_at' => 'datetime',
+            'email_claimed_at' => 'datetime',
+            'deletion_requested_at' => 'datetime',
+            'purged_at' => 'datetime',
             'password' => 'hashed',
+            'birth_day' => 'integer',
+            'birth_month' => 'integer',
+            'anniversary_day' => 'integer',
+            'anniversary_month' => 'integer',
         ];
+    }
+
+    public function orders(): HasMany
+    {
+        return $this->hasMany(Order::class);
+    }
+
+    public function createdByAdmin(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by_admin_id');
+    }
+
+    public function scopeCustomers(Builder $query): Builder
+    {
+        return $query->role('Customer');
+    }
+
+    public function scopeActiveCustomers(Builder $query): Builder
+    {
+        return $query->customers();
+    }
+
+    public function isCustomer(): bool
+    {
+        return $this->hasRole('Customer');
+    }
+
+    public function isStaff(): bool
+    {
+        return $this->hasAnyRole(['Admin', 'Kitchen']);
+    }
+
+    public function hasEmail(): bool
+    {
+        return $this->email !== null && $this->email !== '';
+    }
+
+    public function isPhoneOnly(): bool
+    {
+        return $this->isCustomer() && ! $this->hasEmail() && $this->phone !== null;
+    }
+
+    public function genderLabel(): ?string
+    {
+        if ($this->gender === null) {
+            return null;
+        }
+
+        return UserGender::options()[$this->gender] ?? $this->gender;
+    }
+
+    public function registeredViaLabel(): ?string
+    {
+        return match ($this->registered_via) {
+            RegisteredVia::FRONT_OTP => __('Signed up online'),
+            RegisteredVia::ADMIN_CREATED => __('Added by store'),
+            default => null,
+        };
     }
 }

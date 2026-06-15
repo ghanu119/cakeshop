@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\CustomerContext;
 use App\Services\OrderService;
 use App\Services\ProductVariantService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -13,7 +14,7 @@ class PlaceOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        return app(CustomerContext::class)->effectiveCustomer() !== null;
     }
 
     public function rules(): array
@@ -29,7 +30,7 @@ class PlaceOrderRequest extends FormRequest
 
         $rules = [
             'guest_name' => ['required', 'string', 'max:255'],
-            'guest_email' => ['required', 'email', 'max:255'],
+            'guest_email' => ['nullable', 'email', 'max:255'],
             'guest_phone' => ['required', 'string', 'max:50'],
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
             'message_on_cake' => ['nullable', 'string', 'max:'.$messageMax],
