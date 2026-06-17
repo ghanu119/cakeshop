@@ -7,9 +7,11 @@
     $priceInputClass = $priceInputClass ?? 'w-full min-w-0 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20';
     $labelClass = $labelClass ?? 'mb-2 block text-sm font-medium text-gray-700';
     $fieldsGridClass = $fieldsGridClass ?? $gridClass ?? 'product-filters-grid grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4';
+    $showSort = $showSort ?? true;
     $searchPlaceholder = $searchPlaceholder ?? __('Search by name, ingredients, or flavor...');
     $selectedFlavorIds = array_map('intval', (array) request('flavor_ids', []));
     $selectedWeightIds = array_map('intval', (array) request('weight_ids', []));
+    $selectedCategoryId = $selectedCategoryId ?? request('category_id');
 @endphp
 <div class="product-filters-fields">
     <div class="product-filters-field product-filters-search">
@@ -23,7 +25,7 @@
             <select name="category_id" id="category_id" class="{{ $selectClass }}">
                 <option value="">{{ __('All Categories') }}</option>
                 @foreach($categories as $cat)
-                    <option value="{{ $cat->id }}" @selected(request('category_id') == $cat->id)>{{ $cat->name_en }}</option>
+                    <option value="{{ $cat->id }}" @selected($selectedCategoryId == $cat->id)>{{ $cat->name_en }}</option>
                 @endforeach
             </select>
         </div>
@@ -57,16 +59,12 @@
             </div>
         </div>
         @endif
+        @if($showSort)
         <div class="product-filters-field">
             <label for="sort" class="{{ $labelClass }}">{{ __('Sort By') }}</label>
-            <select name="sort" id="sort" class="{{ $selectClass }}">
-                <option value="name_asc" @selected(request('sort', 'name_asc') === 'name_asc')>{{ __('Name A–Z') }}</option>
-                <option value="name_desc" @selected(request('sort') === 'name_desc')>{{ __('Name Z–A') }}</option>
-                <option value="price_asc" @selected(request('sort') === 'price_asc')>{{ __('Price: Low to High') }}</option>
-                <option value="price_desc" @selected(request('sort') === 'price_desc')>{{ __('Price: High to Low') }}</option>
-                <option value="newest" @selected(request('sort') === 'newest')>{{ __('Newest First') }}</option>
-            </select>
+            @include('products.partials._sort-select', ['selectClass' => $selectClass])
         </div>
+        @endif
     </div>
 </div>
 

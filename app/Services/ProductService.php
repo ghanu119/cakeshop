@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Category;
 use App\Models\Flavor;
 use App\Models\Product;
 use App\Models\ProductVariant;
@@ -94,6 +95,14 @@ class ProductService
         };
 
         return $query->paginate(12)->withQueryString();
+    }
+
+    public function listForCategory(Category $category, Request $request): LengthAwarePaginator
+    {
+        $filtered = $request->duplicate();
+        $filtered->merge(['category_id' => $category->id]);
+
+        return $this->listForHomepage($filtered);
     }
 
     /**

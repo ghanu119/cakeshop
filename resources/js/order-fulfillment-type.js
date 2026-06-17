@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function () {
     const picker = document.querySelector('[data-fulfillment-picker]');
-    const deliveryPanel = document.querySelector('[data-delivery-address-panel]');
+    const fulfillmentLeftColumn = document.querySelector('[data-fulfillment-left-column]');
     const takeawayPanel = document.querySelector('[data-takeaway-notice-panel]');
     const addressInput = document.querySelector('[data-delivery-address-input]');
     const pincodeInput = document.querySelector('[data-delivery-pincode-input]');
@@ -12,15 +12,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const pills = picker.querySelectorAll('[data-fulfillment-type]');
 
+    function deliveryPanels() {
+        const panels = document.querySelectorAll('[data-delivery-panel]');
+
+        if (panels.length > 0) {
+            return panels;
+        }
+
+        return document.querySelectorAll('[data-delivery-address-panel], [data-delivery-address-column]');
+    }
+
     function syncPanels() {
         const selected = picker.querySelector('[data-fulfillment-type][aria-pressed="true"]');
         const isDelivery = selected?.dataset.fulfillmentType === 'delivery';
 
-        if (deliveryPanel) {
+        deliveryPanels().forEach((panel) => {
             if (isDelivery) {
-                deliveryPanel.classList.remove('hidden');
+                panel.classList.remove('hidden');
             } else {
-                deliveryPanel.classList.add('hidden');
+                panel.classList.add('hidden');
+            }
+        });
+
+        if (fulfillmentLeftColumn) {
+            if (isDelivery) {
+                fulfillmentLeftColumn.classList.remove('md:col-span-2');
+            } else {
+                fulfillmentLeftColumn.classList.add('md:col-span-2');
             }
         }
 

@@ -7,7 +7,7 @@
         ->values();
     $imgUrl = $cardImages->first();
     $cardImageCount = $cardImages->count();
-    $productUrl = route('products.show', $product->slug);
+    $productUrl = route('product.show', $product->slug);
     $weightLabels = collect();
     if ($product->relationLoaded('variants')) {
         foreach ($product->variants->where('status', 'active') as $variant) {
@@ -92,11 +92,11 @@
             </div>
         @endif
         <h3 class="mb-2 line-clamp-2 text-lg font-bold leading-snug text-stone-900 transition-colors group-hover:text-amber-600 truncate">{{ $product->name_en }}</h3>
-        @if($product->short_description)
+        {{--@if($product->short_description)
             <p class="mb-4 line-clamp-2 flex-grow text-sm leading-relaxed text-stone-500">{{ $product->short_description }}</p>
         @else
             <div class="mb-4 flex-grow"></div>
-        @endif
+        @endif--}}
         <div class="mb-3 min-h-5">
             @if($hasVariants)
                 <p class="text-xs leading-5 text-stone-500 line-clamp-1">

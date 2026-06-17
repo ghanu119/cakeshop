@@ -86,7 +86,7 @@ class OrderProductImagePreviewTest extends TestCase
         $response->assertSee('js-product-gallery-lightbox', false);
         $response->assertSee('data-gallery-items', false);
         $response->assertSee($product->name_en, false);
-        $response->assertSee(route('products.show', $product->slug), false);
+        $response->assertSee(route('product.show', $product->slug), false);
         $response->assertSee($product->productImageUrl($product->orderedProductImages()->first(), 'medium'), false);
     }
 
@@ -107,7 +107,7 @@ class OrderProductImagePreviewTest extends TestCase
         $response->assertOk();
         $response->assertSee($product->name_en, false);
         $response->assertSee(__('no longer available'), false);
-        $response->assertDontSee(route('products.show', $product->slug), false);
+        $response->assertDontSee(route('product.show', $product->slug), false);
     }
 
     private function adminUser(): User

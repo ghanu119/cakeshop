@@ -3,7 +3,7 @@
     $symbol = $currency === 'INR' ? '₹' : $currency . ' ';
     $imgUrl = $product->getFirstMediaUrl('product_images', 'medium') ?: $product->getFirstMediaUrl('product_images', 'large');
 @endphp
-<a href="{{ route('products.show', $product->slug) }}" class="group block card-modern overflow-hidden p-0">
+<a href="{{ route('product.show', $product->slug) }}" class="group block card-modern overflow-hidden p-0">
     <div class="relative overflow-hidden bg-stone-100/80 aspect-square">
         @if($imgUrl)
             <img src="{{ $imgUrl }}" alt="{{ $product->name_en }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />

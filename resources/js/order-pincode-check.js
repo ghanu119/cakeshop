@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const panel = document.querySelector('[data-delivery-address-panel]');
+    const panel =
+        document.querySelector('[data-delivery-details-panel]') ||
+        document.querySelector('[data-delivery-address-panel]');
     const pincodeInput = document.querySelector('[data-delivery-pincode-input]');
     const addressInput = document.querySelector('[data-delivery-address-input]');
     const statusWrap = document.querySelector('[data-pincode-status-wrap]');

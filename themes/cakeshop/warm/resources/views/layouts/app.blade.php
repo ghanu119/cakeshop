@@ -40,7 +40,7 @@
 
                     <div class="header-nav hidden lg:flex lg:items-center lg:gap-2">
                         <a href="{{ route('home') }}" class="nav-link rounded-lg px-3 py-2 text-base font-medium text-stone-600 hover:text-amber-600 hover:bg-amber-50/80 transition-colors duration-200 {{ request()->routeIs('home') ? 'nav-link-active bg-amber-50 text-amber-600 font-semibold' : '' }}">{{ __('Home') }}</a>
-                        <a href="{{ route('products.index') }}" class="nav-link rounded-lg px-3 py-2 text-base font-medium text-stone-600 hover:text-amber-600 hover:bg-amber-50/80 transition-colors duration-200 {{ request()->routeIs('products.*') ? 'nav-link-active bg-amber-50 text-amber-600 font-semibold' : '' }}">{{ __('Products') }}</a>
+                        <a href="{{ route('products.index') }}" class="nav-link rounded-lg px-3 py-2 text-base font-medium text-stone-600 hover:text-amber-600 hover:bg-amber-50/80 transition-colors duration-200 {{ request()->routeIs('products.index', 'products.category', 'product.show') ? 'nav-link-active bg-amber-50 text-amber-600 font-semibold' : '' }}">{{ __('Products') }}</a>
                         @themeIs('better-buns')
                         <a href="{{ route('ingredients') }}" class="nav-link rounded-lg px-3 py-2 text-base font-medium text-stone-600 hover:text-amber-600 hover:bg-amber-50/80 transition-colors duration-200 {{ request()->routeIs('ingredients') ? 'nav-link-active bg-amber-50 text-amber-600 font-semibold' : '' }}">{{ __('Ingredients') }}</a>
                         @endthemeIs
@@ -62,7 +62,7 @@
                 <div class="hidden lg:hidden" id="mobile-menu">
                     <div class="space-y-1 px-2 pb-3 pt-2">
                         <a href="{{ route('home') }}" class="block rounded-lg px-3 py-2.5 text-base font-medium transition-colors {{ request()->routeIs('home') ? 'bg-amber-50 text-amber-600 font-semibold' : 'text-stone-700 hover:bg-amber-50/80 hover:text-amber-600' }}">{{ __('Home') }}</a>
-                        <a href="{{ route('products.index') }}" class="block rounded-lg px-3 py-2.5 text-base font-medium transition-colors {{ request()->routeIs('products.*') ? 'bg-amber-50 text-amber-600 font-semibold' : 'text-stone-700 hover:bg-amber-50/80 hover:text-amber-600' }}">{{ __('Products') }}</a>
+                        <a href="{{ route('products.index') }}" class="block rounded-lg px-3 py-2.5 text-base font-medium transition-colors {{ request()->routeIs('products.index', 'products.category', 'product.show') ? 'bg-amber-50 text-amber-600 font-semibold' : 'text-stone-700 hover:bg-amber-50/80 hover:text-amber-600' }}">{{ __('Products') }}</a>
                         @themeIs('better-buns')
                         <a href="{{ route('ingredients') }}" class="block rounded-lg px-3 py-2.5 text-base font-medium transition-colors {{ request()->routeIs('ingredients') ? 'bg-amber-50 text-amber-600 font-semibold' : 'text-stone-700 hover:bg-amber-50/80 hover:text-amber-600' }}">{{ __('Ingredients') }}</a>
                         @endthemeIs
@@ -71,6 +71,10 @@
                     </div>
                 </div>
             </nav>
+            @if(($navCategories ?? collect())->isNotEmpty())
+                @include('products.partials._category-pills', ['categories' => $navCategories])
+            @endif
+            @stack('below-header')
         </header>
 
         <script>

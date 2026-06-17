@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Services\PusherSettingsResolver;
 use App\View\Composers\AdminNotificationComposer;
+use App\View\Composers\StorefrontCategoryNavComposer;
 use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
@@ -45,6 +46,8 @@ class AppServiceProvider extends ServiceProvider
             'admin.*',
             'kitchen.*',
         ], AdminNotificationComposer::class);
+
+        View::composer('layouts.app', StorefrontCategoryNavComposer::class);
 
         $appUrl = (string) config('app.url');
         if (preg_match('/\.(test|localhost)(:\d+)?$/i', parse_url($appUrl, PHP_URL_HOST) ?? '')) {

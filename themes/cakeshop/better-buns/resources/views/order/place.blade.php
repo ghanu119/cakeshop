@@ -115,7 +115,7 @@
                             'flavorLabelTarget' => '#order-summary-flavor',
                         ])
                         @include('order.partials._fulfillment-order-fields', ['initialFulfillmentType' => $initialFulfillmentType])
-                        <div>
+                        <div class="md:col-span-2">
                             <label for="delivery_at" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Delivery Date & Time') }} <span class="text-red-500">*</span></label>
                             @php
                                 $minDt = $deliveryRules['after']->setTimezone($deliveryRules['timezone'])->format('Y-m-d\TH:i');
@@ -226,7 +226,7 @@
                                 {{ __('Place Order') }}
                                 <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                             </button>
-                            <a href="{{ route('products.show', $product->slug) }}" class="w-full px-8 py-3.5 rounded-full border-2 border-stone-200 text-stone-600 font-bold hover:border-stone-300 hover:text-stone-900 transition-colors text-center">
+                            <a href="{{ route('product.show', $product->slug) }}" class="w-full px-8 py-3.5 rounded-full border-2 border-stone-200 text-stone-600 font-bold hover:border-stone-300 hover:text-stone-900 transition-colors text-center">
                                 {{ __('Cancel') }}
                             </a>
                         </div>

@@ -14,7 +14,6 @@ use App\Http\Controllers\Auth\LogoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Kitchen\OrderController as KitchenOrderController;
-use App\Http\Controllers\CategoryController as FrontendCategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PincodeCheckController;
@@ -35,8 +34,14 @@ Route::get('privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('cookie-policy', [PageController::class, 'cookiePolicy'])->name('cookie-policy');
 
 Route::get('products', [FrontendProductController::class, 'index'])->name('products.index');
-Route::get('products/{slug}', [FrontendProductController::class, 'show'])->name('products.show');
-Route::get('categories/{slug}', [FrontendCategoryController::class, 'show'])->name('categories.show');
+Route::get('products/{slug}', [FrontendProductController::class, 'index'])->name('products.category');
+Route::get('product/{slug}', [FrontendProductController::class, 'show'])->name('product.show');
+Route::get('categories/{slug}', function (string $slug) {
+    return redirect()->route('products.category', array_merge(
+        ['slug' => $slug],
+        request()->query()
+    ), 301);
+})->name('categories.show');
 
 Route::get('sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('robots.txt', [\App\Http\Controllers\RobotsController::class, 'index'])->name('robots');

@@ -7,6 +7,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Services\ProductService;
 use App\Services\ProductVariantService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -16,9 +17,38 @@ class ProductController extends Controller
         private ProductVariantService $productVariantService
     ) {}
 
-    public function index(ListProductsRequest $request): View
+    public function index(ListProductsRequest $request, ?string $slug = null): View|RedirectResponse
     {
-        $products = $this->productService->listForHomepage($request);
+        $category = null;
+
+        if ($slug !== null) {
+            $category = Category::where('slug', $slug)->active()->first();
+
+            if (! $category) {
+                if (Product::where('slug', $slug)->active()->exists()) {
+                    return redirect()->route('product.show', $slug, 301);
+                }
+
+                abort(404);
+            }
+        }
+
+        if ($category === null && $request->filled('category_id') && ! $this->hasNonCategoryCatalogFilters($request)) {
+            $filterCategory = Category::active()->find($request->integer('category_id'));
+
+            if ($filterCategory) {
+                return redirect()->route('products.category', array_filter([
+                    'slug' => $filterCategory->slug,
+                    'sort' => $request->input('sort'),
+                    'page' => $request->input('page'),
+                ]), 301);
+            }
+        }
+
+        $products = $category
+            ? $this->productService->listForCategory($category, $request)
+            : $this->productService->listForHomepage($request);
+
         $categories = Category::active()->orderBy('sort_order')->get();
         $priceRange = $this->productService->catalogPriceRange();
         $filterOptions = $this->productService->filterOptions();
@@ -31,6 +61,7 @@ class ProductController extends Controller
             'priceRange',
             'filterFlavors',
             'filterWeights',
+            'category',
         ));
     }
 
@@ -92,5 +123,14 @@ class ProductController extends Controller
             ->get();
 
         return $related->merge($fill);
+    }
+
+    private function hasNonCategoryCatalogFilters(ListProductsRequest $request): bool
+    {
+        return $request->filled('search')
+            || $request->filled('price_min')
+            || $request->filled('price_max')
+            || $request->filled('flavor_ids')
+            || $request->filled('weight_ids');
     }
 }

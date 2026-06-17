@@ -1,14 +1,44 @@
 @extends('layouts.app')
 
-@section('title', __('Products') . ' – ' . (settings('site_name') ?: config('app.name')))
+@section('title', ($category ?? null)
+    ? $category->name_en . ' – ' . (settings('site_name') ?: config('app.name'))
+    : __('Products') . ' – ' . (settings('site_name') ?: config('app.name')))
+
+@if($category ?? null)
+@push('meta')
+    @include('partials.meta-category', ['category' => $category, 'products' => $products])
+    @include('partials.json-ld-category', ['category' => $category, 'products' => $products])
+@endpush
+@endif
 
 @section('content')
+@php
+    $category = $category ?? null;
+    $catalogAction = $category
+        ? route('products.category', $category->slug)
+        : route('products.index');
+    $catalogClearUrl = $category
+        ? route('products.category', ['slug' => $category->slug])
+        : route('products.index');
+@endphp
 
 {{-- Page Header --}}
-<section class="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-12 lg:py-16">
+<section class="bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 py-12 lg:py-16" data-testid="{{ $category ? 'category-page' : 'products-page' }}">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">{{ __('Our Products 123') }}</h1>
-        <p class="mt-4 text-xl text-gray-600">{{ __('Browse our complete collection of delicious cakes') }}</p>
+        @if($category)
+            <nav class="mb-4 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-medium text-gray-600" aria-label="{{ __('Breadcrumb') }}">
+                <a href="{{ route('home') }}" class="hover:text-amber-700">{{ __('Home') }}</a>
+                <span aria-hidden="true">/</span>
+                <a href="{{ route('products.index') }}" class="hover:text-amber-700">{{ __('Products') }}</a>
+                <span aria-hidden="true">/</span>
+                <span class="text-gray-900">{{ $category->name_en }}</span>
+            </nav>
+            <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">{{ $category->name_en }}</h1>
+            <p class="mt-4 text-xl text-gray-600">{{ __('Discover handcrafted :category made fresh for every celebration.', ['category' => strtolower($category->name_en)]) }}</p>
+        @else
+            <h1 class="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">{{ __('Our Products') }}</h1>
+            <p class="mt-4 text-xl text-gray-600">{{ __('Browse our complete collection of delicious cakes') }}</p>
+        @endif
     </div>
 </section>
 
@@ -18,14 +48,16 @@
         {{-- Filter Section --}}
         <div class="mb-12 rounded-2xl border border-gray-200 bg-white p-6 shadow-lg">
             <h2 class="mb-6 text-xl font-semibold text-gray-900">{{ __('Filter Products') }}</h2>
-            <form method="get" action="{{ route('products.index') }}" class="space-y-4" id="product-filters">
-                @include('products.partials._filters-fields')
+            <form method="get" action="{{ $catalogAction }}" class="space-y-4" id="product-filters">
+                @include('products.partials._filters-fields', [
+                    'selectedCategoryId' => $category?->id,
+                ])
                 <div class="flex flex-wrap items-center gap-3">
                     <button type="submit" class="rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-semibold text-white transition-all duration-200 hover:from-amber-600 hover:to-orange-600 hover:shadow-lg">
                         {{ __('Apply Filters') }}
                     </button>
                     @if(request()->hasAny(['search', 'category_id', 'sort', 'price_min', 'price_max', 'flavor_ids', 'weight_ids']))
-                    <a href="{{ route('products.index') }}" class="rounded-lg border border-gray-300 bg-white px-5 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50">{{ __('Clear') }}</a>
+                    <a href="{{ $catalogClearUrl }}" class="rounded-lg border border-gray-300 bg-white px-5 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-50">{{ __('Clear') }}</a>
                     @endif
                 </div>
             </form>
@@ -51,16 +83,23 @@
                             </svg>
                         </div>
                         <div>
-                            <h3 class="text-xl font-semibold text-gray-900">{{ __('No products found') }}</h3>
-                            <p class="mt-2 text-gray-600">{{ __('Try adjusting your search or filter criteria.') }}</p>
+                            @if($category)
+                                <h3 class="text-xl font-semibold text-gray-900">{{ __('No products in this category yet') }}</h3>
+                                <p class="mt-2 text-gray-600">{{ __('Check back soon or browse our full catalog.') }}</p>
+                            @else
+                                <h3 class="text-xl font-semibold text-gray-900">{{ __('No products found') }}</h3>
+                                <p class="mt-2 text-gray-600">{{ __('Try adjusting your search or filter criteria.') }}</p>
+                            @endif
                         </div>
                         <div class="flex gap-4">
                             <a href="{{ route('products.index') }}" class="inline-flex items-center rounded-lg border border-gray-300 bg-white px-6 py-3 font-medium text-gray-700 transition-colors duration-200 hover:bg-gray-50">
-                                {{ __('Clear Filters') }}
+                                {{ __('View all products') }}
                             </a>
+                            @unless($category)
                             <a href="{{ route('contact.index') }}" class="inline-flex items-center rounded-lg bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 font-semibold text-white transition-all duration-200 hover:from-amber-600 hover:to-orange-600 hover:shadow-lg">
                                 {{ __('Contact Us') }}
                             </a>
+                            @endunless
                         </div>
                     </div>
                 </div>

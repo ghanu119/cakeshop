@@ -44,6 +44,9 @@
 
                 </div>
             </nav>
+            @if(($navCategories ?? collect())->isNotEmpty())
+                @include('products.partials._category-pills', ['categories' => $navCategories])
+            @endif
         </header>
 
         <main class="pt-20 min-h-[calc(100vh-5rem)]">

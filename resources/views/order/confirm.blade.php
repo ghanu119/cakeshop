@@ -12,7 +12,7 @@
         <p class="mb-2">
             {{ __('Product') }}:
             @if($order->product && ! $order->product->trashed())
-                <a href="{{ route('products.show', $order->product->slug) }}" class="font-medium text-gray-900 underline hover:no-underline">{{ $order->displayProductName() }}</a>
+                <a href="{{ route('product.show', $order->product->slug) }}" class="font-medium text-gray-900 underline hover:no-underline">{{ $order->displayProductName() }}</a>
             @else
                 <span class="font-medium text-gray-900">{{ $order->displayProductName() }}</span>
                 @if($order->product?->trashed())
