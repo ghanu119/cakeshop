@@ -109,6 +109,30 @@ class OrderPaymentConfirmationTest extends TestCase
         $confirm->assertDontSee(__('Submit payment details'), false);
     }
 
+    public function test_submit_payment_requires_transaction_amount_and_date(): void
+    {
+        $order = Order::factory()->create();
+
+        $response = $this->post(route('order.submit-payment.store', $order), [
+            'phone' => $order->guest_phone,
+        ]);
+
+        $response->assertSessionHasErrors(['payment_reference', 'payment_amount', 'payment_made_at']);
+    }
+
+    public function test_submit_payment_form_marks_required_fields(): void
+    {
+        $order = Order::factory()->create();
+
+        $response = $this->get(route('order.submit-payment', $order));
+
+        $response->assertOk();
+        $response->assertSee('name="payment_reference"', false);
+        $response->assertSee('name="payment_amount"', false);
+        $response->assertSee('name="payment_made_at"', false);
+        $response->assertSee('required', false);
+    }
+
     public function test_confirm_page_shows_order_type_and_delivery_address(): void
     {
         $order = Order::factory()->deliveryFulfillment('42 Baker Street, Suite 5')->create([

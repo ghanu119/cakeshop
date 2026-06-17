@@ -31,22 +31,22 @@
             <x-form-errors show-system-errors :show-validation-summary="true" />
                 <input type="hidden" name="phone" value="{{ $order->guest_phone }}" />
                 <div>
-                    <label for="payment_reference" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Transaction / UPI reference') }}</label>
-                    <x-input type="text" name="payment_reference" id="payment_reference" value="{{ old('payment_reference', $order->payment_reference) }}" class="block w-full" />
+                    <label for="payment_reference" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Transaction / UPI reference') }} *</label>
+                    <x-input type="text" name="payment_reference" id="payment_reference" value="{{ old('payment_reference', $order->payment_reference) }}" required class="block w-full" />
                     @error('payment_reference')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
                 <div>
-                    <label for="payment_amount" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Amount paid') }}</label>
-                    <x-input type="number" name="payment_amount" id="payment_amount" value="{{ old('payment_amount', $order->payment_amount ?? $order->amount) }}" step="0.01" min="0" class="block w-full" />
+                    <label for="payment_amount" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Amount paid') }} *</label>
+                    <x-input type="number" name="payment_amount" id="payment_amount" value="{{ old('payment_amount', $order->payment_amount ?? $order->amount) }}" step="0.01" min="0" required class="block w-full" />
                     @error('payment_amount')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
                 <div>
-                    <label for="payment_made_at" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Date & time of payment') }}</label>
-                    <x-input type="datetime-local" name="payment_made_at" id="payment_made_at" value="{{ $paymentMadeAtValue }}" class="block w-full" />
+                    <label for="payment_made_at" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Date & time of payment') }} *</label>
+                    <x-input type="datetime-local" name="payment_made_at" id="payment_made_at" value="{{ $paymentMadeAtValue }}" required class="block w-full" />
                     @error('payment_made_at')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror

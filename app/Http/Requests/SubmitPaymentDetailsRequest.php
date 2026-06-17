@@ -18,9 +18,9 @@ class SubmitPaymentDetailsRequest extends FormRequest
     {
         return [
             'phone' => ['required', 'string'],
-            'payment_reference' => ['nullable', 'string', 'max:255'],
-            'payment_amount' => ['nullable', 'numeric', 'min:0'],
-            'payment_made_at' => ['nullable', 'date'],
+            'payment_reference' => ['required', 'string', 'max:255'],
+            'payment_amount' => ['required', 'numeric', 'min:0'],
+            'payment_made_at' => ['required', 'date'],
             'payment_proof' => ['nullable', 'image', 'max:5120'],
         ];
     }
