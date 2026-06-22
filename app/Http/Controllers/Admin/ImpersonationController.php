@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Services\CustomerContext;
+use App\Support\AuthGuards;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -15,7 +16,8 @@ class ImpersonationController extends Controller
 
     public function stop(Request $request): RedirectResponse
     {
-        abort_unless($request->user()?->can('customers.impersonate'), 403);
+        $admin = $request->user(AuthGuards::STAFF);
+        abort_unless($admin?->can('customers.impersonate'), 403);
 
         $customerId = $this->customerContext->stopImpersonation();
 

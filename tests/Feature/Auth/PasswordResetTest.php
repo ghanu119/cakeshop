@@ -9,13 +9,13 @@ class PasswordResetTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_forgot_password_redirects_to_admin_login(): void
+    public function test_forgot_password_redirects_to_storefront_auth(): void
     {
-        $this->get('/forgot-password')->assertRedirect('/admin/login');
+        $this->get('/forgot-password')->assertRedirect('/?auth=1');
     }
 
-    public function test_reset_password_redirects_to_admin_login(): void
+    public function test_reset_password_redirects_to_storefront_auth(): void
     {
-        $this->get('/reset-password/some-token')->assertRedirect('/admin/login');
+        $this->get('/reset-password/some-token')->assertRedirect('/?auth=1');
     }
 }

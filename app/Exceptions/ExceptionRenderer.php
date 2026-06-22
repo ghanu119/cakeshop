@@ -248,20 +248,8 @@ class ExceptionRenderer
             return null;
         }
 
-        if ($request->is('account/login')) {
-            return route('account.login');
-        }
-
-        if ($request->is('account/verify-otp')) {
-            $email = $request->input('email', $request->query('email'));
-
-            return is_string($email) && $email !== ''
-                ? route('account.verify-otp', ['email' => $email])
-                : route('account.login');
-        }
-
-        if ($request->is('account/register', 'account/register/*')) {
-            return route('account.register');
+        if ($request->is('account/login', 'account/verify-otp', 'account/register', 'account/register/*')) {
+            return route('home', ['auth' => 1]);
         }
 
         if (in_array($request->method(), ['PUT', 'PATCH'], true)
@@ -282,24 +270,12 @@ class ExceptionRenderer
             return route('admin.login');
         }
 
-        if ($request->is('account/login')) {
-            return route('account.login');
-        }
-
-        if ($request->is('account/verify-otp')) {
-            $email = $request->input('email', $request->query('email'));
-
-            return is_string($email) && $email !== ''
-                ? route('account.verify-otp', ['email' => $email])
-                : route('account.login');
-        }
-
-        if ($request->is('account/register', 'account/register/*')) {
-            return route('account.register');
+        if ($request->is('account/login', 'account/verify-otp', 'account/register', 'account/register/*')) {
+            return route('home', ['auth' => 1]);
         }
 
         if ($request->is('account', 'account/*')) {
-            return route('account.login');
+            return route('home', ['auth' => 1]);
         }
 
         if ($request->is('order/*')) {

@@ -3,6 +3,7 @@
 namespace Tests\Concerns;
 
 use App\Models\User;
+use App\Support\AuthGuards;
 use Database\Seeders\RoleAndPermissionSeeder;
 
 trait CreatesStorefrontCustomers
@@ -19,5 +20,10 @@ trait CreatesStorefrontCustomers
         $this->seedRolesIfNeeded();
 
         return User::factory()->customer()->create($attributes);
+    }
+
+    protected function actingAsStorefrontCustomer(User $user): static
+    {
+        return $this->actingAs($user, AuthGuards::CUSTOMER);
     }
 }

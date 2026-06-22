@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Setting;
 use App\Services\CustomerAuthService;
 use App\Services\CustomerContext;
+use App\Support\AuthGuards;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,12 +20,7 @@ class LoginController extends Controller
      */
     public function showLoginForm(Request $request): View|RedirectResponse
     {
-        $customer = $request->user();
-
-        return view('admin.auth.login', [
-            'customerSignedIn' => $customer?->hasRole('Customer') ?? false,
-            'customerName' => $customer?->name,
-        ]);
+        return view('admin.auth.login');
     }
 
     /**
@@ -41,7 +37,7 @@ class LoginController extends Controller
         $remember = ! empty($credentials['remember']);
         unset($credentials['remember']);
 
-        if (! Auth::attempt($credentials, $remember)) {
+        if (! Auth::guard(AuthGuards::STAFF)->attempt($credentials, $remember)) {
             throw ValidationException::withMessages([
                 'email' => [__('auth.failed')],
             ]);
@@ -49,16 +45,14 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        $user = Auth::user();
+        $user = Auth::guard(AuthGuards::STAFF)->user();
 
         if ($user->email_verified_at === null) {
             $user->forceFill(['email_verified_at' => now()])->save();
         }
 
         if (! $user->hasRole('Admin') && ! $user->hasRole('Kitchen')) {
-            Auth::logout();
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+            Auth::guard(AuthGuards::STAFF)->logout();
 
             throw ValidationException::withMessages([
                 'email' => [__('You do not have access to the admin area.')],

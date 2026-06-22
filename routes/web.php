@@ -10,25 +10,26 @@ use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\FeatureController;
 use App\Http\Controllers\Admin\FlavorController;
 use App\Http\Controllers\Admin\ImpersonationController;
-use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\NotificationController;
+use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LogoutController;
+use App\Http\Controllers\CategoryController as FrontendCategoryController;
+use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Kitchen\OrderController as KitchenOrderController;
-use App\Http\Controllers\CategoryController as FrontendCategoryController;
-use App\Http\Controllers\ContactController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController as FrontendProductController;
 use App\Http\Controllers\SitemapController;
+use App\Support\AuthGuards;
 use Illuminate\Support\Facades\Route;
 
 Route::bind('customer', function (string $value) {
-    $user = \App\Models\User::withTrashed()->role('Customer')->find($value);
+    $user = \App\Models\User::withTrashed()->role('Customer', AuthGuards::STAFF)->find($value);
 
     if (! $user) {
         abort(404);
@@ -56,17 +57,13 @@ Route::get('sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('robots.txt', [\App\Http\Controllers\RobotsController::class, 'index'])->name('robots');
 
 Route::prefix('account')->name('account.')->middleware(['account.guest'])->group(function () {
-    Route::middleware('guest')->group(function () {
-        Route::get('login', [AccountAuthController::class, 'showLogin'])->name('login');
-        Route::post('login', [AccountAuthController::class, 'sendOtp'])->middleware('throttle:60,1')->name('login.send-otp');
-        Route::get('verify-otp', [AccountAuthController::class, 'showVerifyOtp'])->name('verify-otp');
-        Route::post('verify-otp', [AccountAuthController::class, 'verifyOtp'])->middleware('throttle:10,15')->name('verify-otp.submit');
-        Route::get('register', [AccountAuthController::class, 'showRegister'])->name('register');
-        Route::post('register', [AccountAuthController::class, 'register'])->middleware('throttle:10,15')->name('register.submit');
-        Route::get('register/check-phone', [AccountAuthController::class, 'checkPhone'])->name('register.check-phone');
+    Route::middleware('guest:'.App\Support\AuthGuards::CUSTOMER)->group(function () {
+        Route::get('login', [AccountAuthController::class, 'redirectToAuthModal'])->name('login');
+        Route::get('verify-otp', [AccountAuthController::class, 'redirectToAuthModal'])->name('verify-otp');
+        Route::get('register', [AccountAuthController::class, 'redirectToAuthModal'])->name('register');
     });
 
-    Route::middleware(['auth', 'role:Customer'])->group(function () {
+    Route::middleware(['customer.session'])->group(function () {
         Route::get('/', [AccountDashboardController::class, 'index'])->name('dashboard');
         Route::get('orders', [AccountOrderController::class, 'index'])->name('orders.index');
         Route::get('orders/{order}', [AccountOrderController::class, 'show'])->name('orders.show');
@@ -78,10 +75,10 @@ Route::prefix('account')->name('account.')->middleware(['account.guest'])->group
 });
 
 Route::prefix('order')->name('order.')->group(function () {
-    Route::middleware(['customer.auth'])->group(function () {
-        Route::get('product/{product:slug}', [OrderController::class, 'placeForm'])->name('place');
-        Route::post('product/{product:slug}', [OrderController::class, 'place'])->name('store');
-    });
+    Route::get('product/{product:slug}', [OrderController::class, 'placeForm'])->name('place');
+    Route::post('checkout/send-otp', [OrderController::class, 'sendCheckoutOtp'])->middleware('throttle:60,1')->name('checkout.send-otp');
+    Route::post('checkout/verify-otp', [OrderController::class, 'verifyCheckoutOtp'])->middleware('throttle:10,15')->name('checkout.verify-otp');
+    Route::post('product/{product:slug}', [OrderController::class, 'place'])->name('store');
     Route::get('confirm/{order}', [OrderController::class, 'confirm'])->name('confirm');
     Route::get('payment-qr/download', [OrderController::class, 'downloadPaymentQr'])->name('payment-qr.download');
     Route::get('history', [OrderController::class, 'historyForm'])->name('history');
@@ -92,11 +89,11 @@ Route::prefix('order')->name('order.')->group(function () {
     Route::post('submit-payment/{order}', [OrderController::class, 'submitPayment'])->name('submit-payment.store');
 });
 
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth:web'])->group(function () {
     Route::post('logout', [LogoutController::class, 'destroy'])->name('logout');
 });
 
-Route::middleware(['ensure.admin.https', 'auth', 'verified', 'role:Admin|Kitchen'])->group(function () {
+Route::middleware(['ensure.admin.https', 'auth:web', 'verified', 'role:Admin|Kitchen'])->group(function () {
     Route::prefix('admin')->name('admin.')->group(function () {
         Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
         Route::middleware(['permission:orders.view'])->group(function () {
@@ -159,21 +156,21 @@ Route::middleware(['ensure.admin.https', 'auth', 'verified', 'role:Admin|Kitchen
     });
 });
 
-Route::get('dashboard', fn () => redirect()->route('admin.dashboard', [], 301))->name('dashboard')->middleware(['auth', 'verified', 'role:Admin|Kitchen']);
+Route::get('dashboard', fn () => redirect()->route('admin.dashboard', [], 301))->name('dashboard')->middleware(['auth:web', 'verified', 'role:Admin|Kitchen']);
 
 Route::get('profile', function () {
-    $user = auth()->user();
-
-    if ($user?->hasRole('Customer')) {
+    if (auth(App\Support\AuthGuards::CUSTOMER)->check()) {
         return redirect()->route('account.profile.edit');
     }
 
-    if ($user?->hasAnyRole(['Admin', 'Kitchen'])) {
+    $staff = auth(App\Support\AuthGuards::STAFF)->user();
+
+    if ($staff?->hasAnyRole(['Admin', 'Kitchen'])) {
         return redirect()->route('admin.profile.edit');
     }
 
-    return redirect()->route('account.login');
-})->middleware(['auth'])->name('profile');
+    return redirect()->route('home', ['auth' => 1]);
+})->middleware(['auth:web,customer'])->name('profile');
 
 Route::prefix('admin')->middleware(['ensure.admin.https', 'admin.guest'])->group(function () {
     Route::get('login', [\App\Http\Controllers\Admin\Auth\LoginController::class, 'showLoginForm'])->name('admin.login');

@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\CustomerAuthService;
 use App\Services\CustomerContext;
 use App\Services\OrderService;
 use App\Services\ProductVariantService;
@@ -14,7 +15,7 @@ class PlaceOrderRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return app(CustomerContext::class)->effectiveCustomer() !== null;
+        return true;
     }
 
     public function rules(): array
@@ -28,9 +29,12 @@ class PlaceOrderRequest extends FormRequest
         $product = $this->route('product');
         $messageMax = $product?->messageOnCakeMaxLength() ?? Order::defaultMessageOnCakeMaxLength();
 
+        $customer = app(CustomerContext::class)->effectiveCustomer();
+        $isImpersonating = app(CustomerContext::class)->isImpersonating();
+
         $rules = [
             'guest_name' => ['required', 'string', 'max:255'],
-            'guest_email' => ['nullable', 'email', 'max:255'],
+            'guest_email' => [$isImpersonating ? 'nullable' : 'required', 'email', 'max:255'],
             'guest_phone' => ['required', 'string', 'max:50'],
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
             'message_on_cake' => ['nullable', 'string', 'max:'.$messageMax],
@@ -55,6 +59,20 @@ class PlaceOrderRequest extends FormRequest
             $product = $this->route('product');
             if (! $product) {
                 return;
+            }
+
+            $customer = app(CustomerContext::class)->effectiveCustomer();
+
+            if ($customer === null) {
+                $verifiedEmail = app(CustomerAuthService::class)->verifiedEmail();
+                $submittedEmail = strtolower(trim((string) $this->input('guest_email', '')));
+
+                if ($verifiedEmail === null || $verifiedEmail !== $submittedEmail) {
+                    $validator->errors()->add(
+                        'guest_email',
+                        __('Please verify your email with the code we sent before placing your order.')
+                    );
+                }
             }
 
             $variantService = app(ProductVariantService::class);

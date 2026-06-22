@@ -96,42 +96,8 @@
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
             {{-- Left Column (Main Details) --}}
             <div class="space-y-6 lg:col-span-8">
-                
-                @include('admin.orders.partials._preparation-highlight', ['order' => $order, 'tz' => $tz])
 
                 @include('admin.orders.partials._fulfillment-highlight', ['order' => $order])
-
-                {{-- Delivery Highlight --}}
-                <div class="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 p-6 shadow-sm">
-                    <div>
-                        <p class="mb-1 text-sm font-bold uppercase tracking-wider text-indigo-600">{{ __('Scheduled Delivery') }}</p>
-                        <h2 class="text-2xl font-bold text-indigo-900">{{ $deliveryAt?->format('F d, Y') }}</h2>
-                        <p class="mt-0.5 text-lg font-medium text-indigo-700">{{ $deliveryAt?->format('h:i A') }}</p>
-                    </div>
-                    @if($deliveryAt)
-                        <div class="text-right">
-                            @if(in_array($order->order_status, ['completed', 'cancelled', 'delivered']))
-                                <p class="mb-1 text-sm font-bold uppercase tracking-wider text-gray-500">{{ __('Status') }}</p>
-                                <p class="text-xl font-bold text-gray-700">
-                                    @if($order->order_status === 'delivered')
-                                        {{ __('Delivered') }}
-                                    @elseif($order->order_status === 'completed')
-                                        {{ __('Completed') }}
-                                    @else
-                                        {{ __('Cancelled') }}
-                                    @endif
-                                </p>
-                            @else
-                                <p class="mb-1 text-sm font-bold uppercase tracking-wider {{ $deliveryAt->isPast() ? 'text-red-500' : 'text-indigo-600' }}">
-                                    {{ $deliveryAt->isPast() ? __('Overdue by') : __('Time Left') }}
-                                </p>
-                                <p class="text-xl font-bold {{ $deliveryAt->isPast() ? 'text-red-600' : 'text-indigo-900' }}">
-                                    {{ $deliveryAt->diffForHumans(null, true) }}
-                                </p>
-                            @endif
-                        </div>
-                    @endif
-                </div>
 
                 {{-- Order Details Card --}}
                 <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
@@ -139,9 +105,18 @@
                         <h3 class="font-semibold text-gray-900">{{ __('Order Information') }}</h3>
                     </div>
                     <div class="p-6">
-                        {{-- Customer Info --}}
+                        {{-- Order contact --}}
                         <div class="mb-8">
-                            <h4 class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">{{ __('Customer Details') }}</h4>
+                            @if($order->user_id && $order->hasDistinctContactFromAccount())
+                                @php $order->loadMissing('user'); @endphp
+                                <div class="mb-4 rounded-lg border border-violet-100 bg-violet-50/60 px-4 py-3 text-sm text-violet-900">
+                                    {{ __('Placed on account of :name (:email). Contact details below are for the order recipient.', [
+                                        'name' => $order->user->name,
+                                        'email' => $order->user->email ?? __('no email'),
+                                    ]) }}
+                                </div>
+                            @endif
+                            <h4 class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">{{ __('Contact for this order') }}</h4>
                             @if($order->isInStoreOrder())
                                 <div class="mb-4 rounded-lg border border-violet-100 bg-violet-50/60 px-4 py-3 text-sm text-violet-900">
                                     <span class="font-semibold">{{ __('Order source') }}:</span>
@@ -172,6 +147,10 @@
                                 </div>
                             </div>
                         </div>
+
+                        @if($order->user_id)
+                            @include('admin.orders.partials._linked-account', ['order' => $order])
+                        @endif
 
                         {{-- Cake Customization --}}
                         @if($order->message_on_cake || $order->instructions)
@@ -205,6 +184,40 @@
 
             {{-- Right Column (Sidebar) --}}
             <div class="space-y-6 lg:col-span-4">
+
+                @include('admin.orders.partials._preparation-highlight', ['order' => $order, 'tz' => $tz])
+
+                {{-- Delivery Highlight --}}
+                <div class="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 p-6 shadow-sm">
+                    <div>
+                        <p class="mb-1 text-sm font-bold uppercase tracking-wider text-indigo-600">{{ __('Scheduled Delivery') }}</p>
+                        <h2 class="text-2xl font-bold text-indigo-900">{{ $deliveryAt?->format('F d, Y') }}</h2>
+                        <p class="mt-0.5 text-lg font-medium text-indigo-700">{{ $deliveryAt?->format('h:i A') }}</p>
+                    </div>
+                    @if($deliveryAt)
+                        <div class="text-right">
+                            @if(in_array($order->order_status, ['completed', 'cancelled', 'delivered']))
+                                <p class="mb-1 text-sm font-bold uppercase tracking-wider text-gray-500">{{ __('Status') }}</p>
+                                <p class="text-xl font-bold text-gray-700">
+                                    @if($order->order_status === 'delivered')
+                                        {{ __('Delivered') }}
+                                    @elseif($order->order_status === 'completed')
+                                        {{ __('Completed') }}
+                                    @else
+                                        {{ __('Cancelled') }}
+                                    @endif
+                                </p>
+                            @else
+                                <p class="mb-1 text-sm font-bold uppercase tracking-wider {{ $deliveryAt->isPast() ? 'text-red-500' : 'text-indigo-600' }}">
+                                    {{ $deliveryAt->isPast() ? __('Overdue by') : __('Time Left') }}
+                                </p>
+                                <p class="text-xl font-bold {{ $deliveryAt->isPast() ? 'text-red-600' : 'text-indigo-900' }}">
+                                    {{ $deliveryAt->diffForHumans(null, true) }}
+                                </p>
+                            @endif
+                        </div>
+                    @endif
+                </div>
                 
                 {{-- Order Summary Card --}}
                 <div class="rounded-xl border border-gray-200 bg-white shadow-sm">

@@ -133,6 +133,31 @@ class Order extends Model implements HasMedia
         return $this->belongsTo(User::class);
     }
 
+    public function hasDistinctContactFromAccount(): bool
+    {
+        if ($this->user_id === null) {
+            return false;
+        }
+
+        $this->loadMissing('user');
+
+        if ($this->user === null) {
+            return false;
+        }
+
+        $contactName = trim((string) $this->guest_name);
+        $contactEmail = strtolower(trim((string) ($this->guest_email ?? '')));
+        $contactPhone = \App\Support\PhoneNormalizer::normalize((string) $this->guest_phone) ?? trim((string) $this->guest_phone);
+
+        $accountName = trim((string) $this->user->name);
+        $accountEmail = strtolower(trim((string) ($this->user->email ?? '')));
+        $accountPhone = \App\Support\PhoneNormalizer::normalize((string) $this->user->phone) ?? trim((string) ($this->user->phone ?? ''));
+
+        return $contactName !== $accountName
+            || $contactEmail !== $accountEmail
+            || $contactPhone !== $accountPhone;
+    }
+
     public function placedBy()
     {
         return $this->belongsTo(User::class, 'placed_by_user_id');
@@ -365,7 +390,8 @@ class Order extends Model implements HasMedia
     {
         if (! $this->isPaymentVerified()
             || ! $this->isProcessing()
-            || ! $this->hasPreparationDeadline()) {
+            || ! $this->hasPreparationDeadline()
+            || ! $this->isDeliveryToday()) {
             return false;
         }
 
@@ -375,11 +401,15 @@ class Order extends Model implements HasMedia
         }
 
         $bounds = self::todayBoundsInShopTz();
+        $nowUtc = $bounds['now']->copy()->utc();
 
-        return $bounds['now'] <= $this->preparation_at;
+        if ($this->preparation_at->lte($nowUtc)) {
+            return true;
+        }
 
-        // $visibleUntilUtc = $bounds['now']->copy()->addHours((int) $leadHours)->utc();
-        // return $this->delivery_at <= $visibleUntilUtc;
+        $visibleUntilUtc = $bounds['now']->copy()->addHours((int) $leadHours)->utc();
+
+        return $this->preparation_at <= $visibleUntilUtc;
     }
 
     public function canKitchenUpdateStatus(): bool

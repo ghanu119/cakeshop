@@ -14,7 +14,9 @@
         <x-table.wrapper>
             <x-table.header>
                 <x-table.th>{{ __('Order no') }}</x-table.th>
-                <x-table.th>{{ __('Guest') }}</x-table.th>
+                @role('Admin')
+                    <x-table.th>{{ __('Guest') }}</x-table.th>
+                @endrole
                 <x-table.th>{{ __('Product') }}</x-table.th>
                 <x-table.th>{{ __('Quantity') }}</x-table.th>
                 @role('Admin')
@@ -28,10 +30,12 @@
                 @forelse($orders as $order)
                     <x-table.row>
                         <x-table.cell class="font-mono text-sm">{{ $order->order_no }}</x-table.cell>
-                        <x-table.cell>
-                            <div>{{ $order->guest_name }}</div>
-                            <div class="text-sm text-gray-500">{{ $order->guest_phone }}</div>
-                        </x-table.cell>
+                        @role('Admin')
+                            <x-table.cell>
+                                <div>{{ $order->guest_name }}</div>
+                                <div class="text-sm text-gray-500">{{ $order->guest_phone }}</div>
+                            </x-table.cell>
+                        @endrole
                         <x-table.cell>
                             <div>{{ $order->displayProductName() }}</div>
                             @include('order.partials._order-options', [
@@ -94,7 +98,7 @@
                     </x-table.row>
                 @empty
                     <x-table.row>
-                        <x-table.cell colspan="{{ auth()->user()->hasRole('Admin') ? 8 : 7 }}" class="text-center text-gray-500">
+                        <x-table.cell colspan="{{ auth()->user()->hasRole('Admin') ? 8 : 6 }}" class="text-center text-gray-500">
                             {{ __('No orders for today. Orders appear here after payment is verified, delivery is today, and status is set to Processing with a preparation time.') }}
                         </x-table.cell>
                     </x-table.row>

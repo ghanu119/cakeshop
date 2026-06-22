@@ -4,7 +4,10 @@ namespace App\Services;
 
 use App\Models\ImpersonationLog;
 use App\Models\User;
+use App\Services\CustomerAuthService;
+use App\Support\AuthGuards;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class CustomerContext
 {
@@ -19,9 +22,7 @@ class CustomerContext
     public function effectiveCustomer(): ?User
     {
         if (! $this->request->hasSession()) {
-            $user = auth()->user();
-
-            return ($user && $user->isCustomer()) ? $user : null;
+            return $this->customerFromGuard();
         }
 
         if ($customerId = $this->request->session()->get(self::SESSION_IMPERSONATED_CUSTOMER_ID)) {
@@ -31,18 +32,12 @@ class CustomerContext
                 return $customer;
             }
 
-            $this->clearImpersonation();
-
-            return null;
+            if ($customerId) {
+                $this->clearImpersonation();
+            }
         }
 
-        $user = auth()->user();
-
-        if ($user && $user->isCustomer()) {
-            return $user;
-        }
-
-        return null;
+        return $this->customerFromGuard();
     }
 
     public function isImpersonating(): bool
@@ -66,6 +61,9 @@ class CustomerContext
 
     public function startImpersonation(User $admin, User $customer): void
     {
+        Auth::guard(AuthGuards::CUSTOMER)->logout();
+        $this->request->session()->forget(CustomerAuthService::SESSION_VERIFIED_EMAIL);
+
         $this->request->session()->put(self::SESSION_IMPERSONATOR_ID, $admin->id);
         $this->request->session()->put(self::SESSION_IMPERSONATED_CUSTOMER_ID, $customer->id);
 
@@ -125,15 +123,26 @@ class CustomerContext
         ]);
     }
 
+    private function customerFromGuard(): ?User
+    {
+        $user = Auth::guard(AuthGuards::CUSTOMER)->user();
+
+        if ($user && $user->isCustomer()) {
+            return $user;
+        }
+
+        return null;
+    }
+
     private function impersonatorMatchesSession(): bool
     {
         if (! $this->request->hasSession()) {
             return false;
         }
 
-        $admin = auth()->user();
+        $admin = Auth::guard(AuthGuards::STAFF)->user();
 
-        if (! $admin || ! $admin->hasRole('Admin')) {
+        if (! $admin || ! $admin->hasRole('Admin', AuthGuards::STAFF)) {
             return false;
         }
 

@@ -7,6 +7,7 @@ use App\Jobs\WebPushStaffNotificationJob;
 use App\Models\Order;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\AuthGuards;
 use App\Notifications\KitchenOrderQueuedTodayNotification;
 use App\Notifications\KitchenPaymentVerifiedTodayNotification;
 use App\Notifications\StaffOrderNotification;
@@ -162,7 +163,7 @@ class InAppOrderNotificationService
      */
     private function eligibleStaffUsers(string $role): Collection
     {
-        return User::role($role)
+        return User::role($role, AuthGuards::STAFF)
             ->whereNotNull('email_verified_at')
             ->get();
     }

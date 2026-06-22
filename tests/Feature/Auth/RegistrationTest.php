@@ -2,7 +2,6 @@
 
 namespace Tests\Feature\Auth;
 
-use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -10,8 +9,8 @@ class RegistrationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_registration_route_redirects_to_account_login(): void
+    public function test_registration_route_redirects_to_auth_modal(): void
     {
-        $this->get('/register')->assertRedirect('/account/login');
+        $this->get('/register')->assertRedirect('/?auth=1');
     }
 }

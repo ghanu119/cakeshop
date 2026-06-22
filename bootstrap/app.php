@@ -13,7 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withBroadcasting(
         __DIR__.'/../routes/channels.php',
-        ['middleware' => ['web', 'auth']],
+        ['middleware' => ['web', 'auth:web']],
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
@@ -22,17 +22,18 @@ return Application::configure(basePath: dirname(__DIR__))
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
             'ensure.admin.https' => \App\Http\Middleware\EnsureAdminHttps::class,
             'customer.auth' => \App\Http\Middleware\EnsureCustomerAuthenticated::class,
+            'customer.session' => \App\Http\Middleware\EnsureCustomerGuardAuthenticated::class,
             'account.guest' => \App\Http\Middleware\RedirectStaffFromAccount::class,
             'admin.guest' => \App\Http\Middleware\RedirectStaffFromAdminLogin::class,
         ]);
         $middleware->redirectUsersTo(function (\Illuminate\Http\Request $request) {
-            $user = $request->user();
-
-            if ($user?->hasRole('Customer')) {
+            if ($request->user(\App\Support\AuthGuards::CUSTOMER)) {
                 return route('account.dashboard');
             }
 
-            if ($user?->hasAnyRole(['Admin', 'Kitchen'])) {
+            $staff = $request->user(\App\Support\AuthGuards::STAFF);
+
+            if ($staff?->hasAnyRole(['Admin', 'Kitchen'])) {
                 return route('admin.dashboard');
             }
 

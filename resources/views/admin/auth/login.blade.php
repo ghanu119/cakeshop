@@ -23,12 +23,6 @@
                 <x-alert variant="success" dismissible class="mb-4">{{ session('status') }}</x-alert>
             @endif
 
-            @if (! empty($customerSignedIn))
-                <x-alert variant="info" class="mb-4">
-                    {{ __('You are signed in as customer :name. Logging in here will switch to your staff account.', ['name' => $customerName]) }}
-                </x-alert>
-            @endif
-
             <form method="post" action="{{ route('admin.login.post') }}" class="space-y-6">
                 @csrf
                 <x-form-errors show-system-errors show-field-errors />
@@ -53,12 +47,6 @@
                     </button>
                 </div>
             </form>
-
-            @if (Route::has('password.request'))
-                <p class="mt-4 text-center text-sm text-gray-500">
-                    <a href="{{ route('password.request') }}" class="text-indigo-600 hover:text-indigo-500">{{ __('Forgot your password?') }}</a>
-                </p>
-            @endif
         </div>
 
         <p class="mt-6 text-center text-sm text-gray-500">

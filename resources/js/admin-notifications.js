@@ -28,9 +28,36 @@ function isAdminHttp() {
     return location.protocol === 'http:' && /\.(test|localhost)$/i.test(location.hostname);
 }
 
+const POLL_OPTIONS = { preventNavigation: true };
+
 function httpsAdminUrl() {
-    return window.__httpsAdminUrl
-        || `https://${location.hostname}${location.pathname}${location.search}${location.hash}`;
+    if (location.protocol === 'https:') {
+        return location.href;
+    }
+
+    return `https://${location.hostname}${location.pathname}${location.search}${location.hash}`;
+}
+
+function resolveNotificationUrl(rawUrl) {
+    const fallback = '/admin/dashboard';
+
+    if (!rawUrl || rawUrl === '#') {
+        return fallback;
+    }
+
+    try {
+        const target = rawUrl.startsWith('/')
+            ? new URL(rawUrl, location.origin)
+            : new URL(rawUrl);
+
+        if (!target.pathname.startsWith('/admin')) {
+            return fallback;
+        }
+
+        return `${target.pathname}${target.search}${target.hash}`;
+    } catch (error) {
+        return fallback;
+    }
 }
 
 function redirectToHttpsAdmin() {
@@ -200,7 +227,7 @@ function showOsNotificationFromPage(item) {
 
         notification.onclick = () => {
             window.focus();
-            const url = item?.url;
+            const url = resolveNotificationUrl(item?.url);
             if (url && url !== '#') {
                 window.location.href = url;
             }
@@ -307,9 +334,10 @@ function getUnreadListItemCount() {
 
 function buildNotificationListItem(item) {
     const li = document.createElement('li');
+    const url = resolveNotificationUrl(item.url);
     li.setAttribute('data-notification-id', item.id);
     li.innerHTML = `
-        <a href="${item.url ?? '#'}" class="block px-4 py-3 hover:bg-gray-50" data-notification-link>
+        <a href="${url}" class="block px-4 py-3 hover:bg-gray-50" data-notification-link>
             <p class="text-sm font-semibold text-gray-900">${item.title ?? ''}</p>
             <p class="mt-0.5 text-xs text-gray-600">${item.message ?? ''}</p>
             <p class="mt-1 text-[10px] text-gray-400">${item.created_human ?? ''}</p>
@@ -371,7 +399,7 @@ async function fetchUnreadList() {
         return [];
     }
 
-    const result = await adminApi('get', `${routes.index}?unread_only=1`);
+    const result = await adminApi('get', `${routes.index}?unread_only=1`, undefined, POLL_OPTIONS);
 
     if (!result.ok) {
         return [];
@@ -416,7 +444,7 @@ function applyHighlightTargets(targets) {
 async function refreshUnreadCount() {
     if (!routes.unreadCount) return null;
 
-    const result = await adminApi('get', routes.unreadCount);
+    const result = await adminApi('get', routes.unreadCount, undefined, POLL_OPTIONS);
     if (result.ok && result.data?.count !== undefined) {
         updateBadge(result.data.count);
         fetchErrorShown = false;
@@ -436,7 +464,7 @@ async function fetchSince({ toast = false } = {}) {
     if (!routes.since) return;
 
     const params = lastSince ? `?after=${encodeURIComponent(lastSince)}` : '';
-    const result = await adminApi('get', routes.since + params);
+    const result = await adminApi('get', routes.since + params, undefined, POLL_OPTIONS);
 
     if (!result.ok) {
         return;
@@ -551,7 +579,7 @@ function initEcho() {
             type: payload.type ?? null,
             title: payload.title,
             message: payload.message,
-            url: payload.url,
+            url: resolveNotificationUrl(payload.url),
             highlight_target: payload.highlight_target,
             created_human: payload.created_human ?? 'Just now',
             created_at: payload.created_at ?? null,
@@ -775,7 +803,7 @@ async function sendTestPushAlert() {
             id: 'test-alert',
             title: 'Test order alert',
             message: 'Browser notifications are working on this device.',
-            url: window.__httpsAdminUrl ?? '/admin/dashboard',
+            url: window.__httpsAdminDashboardUrl ?? '/admin/dashboard',
         });
 
         if (!osShown) {
@@ -990,7 +1018,7 @@ function initServiceWorkerMessages() {
             type: payload.type ?? payload.data?.type ?? null,
             title: payload.title ?? 'Notification',
             message: payload.body ?? payload.message ?? '',
-            url: payload.data?.url ?? payload.url ?? '#',
+            url: resolveNotificationUrl(payload.data?.url ?? payload.url ?? '#'),
             highlight_target: payload.highlight_target ?? null,
             created_at: new Date().toISOString(),
             created_human: 'Just now',

@@ -6,18 +6,21 @@
             inset: 0;
             z-index: 9999;
             display: none;
-            align-items: center;
-            justify-content: center;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior: contain;
             padding: 1rem;
+            padding-bottom: max(1rem, env(safe-area-inset-bottom));
             box-sizing: border-box;
         }
 
         #order-place-confirm-modal.is-open {
-            display: flex;
+            display: block;
         }
 
         #order-place-confirm-modal .order-confirm-backdrop {
-            position: absolute;
+            position: fixed;
             inset: 0;
             background-color: rgba(28, 25, 23, 0.55);
             backdrop-filter: blur(4px);
@@ -28,7 +31,7 @@
             z-index: 1;
             width: 100%;
             max-width: 28rem;
-            margin: 0 auto;
+            margin: 1.5rem auto;
             border-radius: 1rem;
             border: 1px solid #fde68a;
             background-color: #fff;
@@ -39,7 +42,15 @@
 
         @media (min-width: 640px) {
             #order-place-confirm-modal .order-confirm-panel {
+                margin: 2rem auto;
                 padding: 2rem;
+            }
+        }
+
+        @media (max-height: 640px) {
+            #order-place-confirm-modal .order-confirm-panel {
+                margin-top: 0.75rem;
+                margin-bottom: 0.75rem;
             }
         }
     </style>
@@ -52,6 +63,11 @@
     aria-modal="true"
     aria-labelledby="order-place-confirm-title"
     aria-hidden="true"
+    data-send-otp-url="{{ route('order.checkout.send-otp') }}"
+    data-verify-otp-url="{{ route('order.checkout.verify-otp') }}"
+    data-otp-required-message="{{ __('Please enter the 6-digit verification code.') }}"
+    data-otp-sending-message="{{ __('Sending verification code...') }}"
+    data-otp-verifying-label="{{ __('Verifying...') }}"
 >
     <div class="order-confirm-backdrop" data-order-confirm-backdrop></div>
     <div class="order-confirm-panel">
@@ -76,6 +92,24 @@
                 <dd id="order-confirm-order-type" class="mt-1 text-base font-bold text-teal-900">—</dd>
             </div>
         </dl>
+
+        <div id="order-confirm-otp-section" class="mt-6 hidden rounded-xl border border-stone-200 bg-stone-50 p-4">
+            <p id="order-confirm-otp-status" class="text-sm text-stone-600">{{ __('Enter the verification code we sent to your email.') }}</p>
+            <label for="order-confirm-otp-code" class="mb-1 mt-3 block text-sm font-medium text-stone-700">{{ __('Verification code') }}</label>
+            <input
+                type="text"
+                id="order-confirm-otp-code"
+                inputmode="numeric"
+                maxlength="6"
+                autocomplete="one-time-code"
+                class="block w-full rounded-lg border-stone-300 text-center text-lg tracking-[0.3em] shadow-sm focus:border-amber-500 focus:ring-amber-500"
+                placeholder="000000"
+            />
+            <p id="order-confirm-otp-error" class="mt-2 hidden text-sm text-red-600"></p>
+            <button type="button" data-order-confirm-resend-otp class="mt-2 text-sm text-amber-700 hover:underline">
+                {{ __('Resend code') }}
+            </button>
+        </div>
 
         <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
             <button

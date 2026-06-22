@@ -6,7 +6,7 @@
     @php
         $tz = settings('timezone') ?? 'Asia/Kolkata';
         $isAdmin = auth()->user()->hasRole('Admin');
-        $tableColspan = $isAdmin ? 8 : 7;
+        $tableColspan = $isAdmin ? 8 : 6;
     @endphp
     <header class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -38,7 +38,9 @@
                 <x-table.th class="w-16">{{ __('Image') }}</x-table.th>
                 <x-table.th>{{ __('Product') }}</x-table.th>
                 <x-table.th>{{ __('Order no') }}</x-table.th>
-                <x-table.th>{{ __('Guest') }}</x-table.th>
+                @role('Admin')
+                    <x-table.th>{{ __('Guest') }}</x-table.th>
+                @endrole
                 <x-table.th>{{ __('Due in') }}</x-table.th>
                 @role('Admin')
                     <x-table.th>{{ __('Delivery at') }}</x-table.th>
@@ -72,10 +74,12 @@
                             <div class="mt-1 text-xs text-gray-500">{{ __('Qty') }}: {{ $order->quantity }}</div>
                         </x-table.cell>
                         <x-table.cell class="font-mono text-sm">{{ $order->order_no }}</x-table.cell>
-                        <x-table.cell>
-                            <div>{{ $order->guest_name }}</div>
-                            <div class="text-sm text-gray-500">{{ $order->guest_phone }}</div>
-                        </x-table.cell>
+                        @role('Admin')
+                            <x-table.cell>
+                                <div>{{ $order->guest_name }}</div>
+                                <div class="text-sm text-gray-500">{{ $order->guest_phone }}</div>
+                            </x-table.cell>
+                        @endrole
                         <x-table.cell>
                             @include('kitchen.orders.partials._days-until-delivery-badge', ['order' => $order, 'size' => 'lg'])
                         </x-table.cell>

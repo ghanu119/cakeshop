@@ -4,7 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\Order;
 use App\Models\User;
-use App\Services\CustomerDeletionService;
+use App\Support\AuthGuards;
 use Database\Seeders\RoleAndPermissionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -30,7 +30,8 @@ class CustomerDeletionTest extends TestCase
             ->delete(route('account.profile.destroy'))
             ->assertRedirect(route('home'));
 
-        $this->assertGuest();
+        $this->assertGuest(AuthGuards::CUSTOMER);
+        $this->assertGuest(AuthGuards::STAFF);
         $trashed = User::withTrashed()->find($customer->id);
         $this->assertNotNull($trashed->deleted_at);
         $this->assertStringContainsString('-deleted-', $trashed->email);

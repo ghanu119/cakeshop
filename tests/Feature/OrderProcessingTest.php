@@ -58,6 +58,67 @@ class OrderProcessingTest extends TestCase
         $response->assertSessionHasErrors('preparation_at');
     }
 
+    public function test_admin_can_process_order_after_delivery_time_passed(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2025-06-22 18:00:00', 'Asia/Kolkata'));
+
+        $admin = $this->adminUser();
+        $tz = 'Asia/Kolkata';
+        $product = Product::factory()->create();
+        $order = Order::factory()
+            ->verified()
+            ->for($product)
+            ->create([
+                'delivery_at' => Carbon::parse('2025-06-22 14:00:00', $tz)->utc(),
+                'order_status' => 'pending',
+            ]);
+
+        $prepAt = Carbon::now($tz)->format('Y-m-d\TH:i');
+
+        $response = $this->actingAs($admin)->post(route('admin.orders.update-status', $order), [
+            'order_status' => 'processing',
+            'preparation_at' => $prepAt,
+        ]);
+
+        $response->assertRedirect();
+        $order->refresh();
+        $this->assertSame('processing', $order->order_status);
+        $this->assertNotNull($order->preparation_at);
+
+        $kitchenResponse = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
+        $kitchenResponse->assertOk();
+        $kitchenResponse->assertSee($order->order_no, false);
+    }
+
+    public function test_kitchen_can_complete_overdue_processing_order(): void
+    {
+        Carbon::setTestNow(Carbon::parse('2025-06-22 18:00:00', 'Asia/Kolkata'));
+        Setting::set('kitchen_lead_hours', '4');
+        Setting::flushCache();
+
+        $admin = $this->adminUser();
+        $kitchen = $this->kitchenUser();
+        $tz = 'Asia/Kolkata';
+        $product = Product::factory()->create();
+        $order = Order::factory()
+            ->verified()
+            ->for($product)
+            ->create([
+                'delivery_at' => Carbon::parse('2025-06-22 14:00:00', $tz)->utc(),
+                'order_status' => 'processing',
+                'preparation_at' => Carbon::parse('2025-06-22 14:00:00', $tz)->utc(),
+            ]);
+
+        $this->assertTrue($order->canKitchenUpdateStatus());
+
+        $response = $this->actingAs($kitchen)->post(route('admin.kitchen.orders.update-status', $order), [
+            'order_status' => 'completed',
+        ]);
+
+        $response->assertRedirect(route('admin.kitchen.orders.index'));
+        $this->assertSame('completed', $order->fresh()->order_status);
+    }
+
     public function test_processing_order_with_prep_appears_on_kitchen_index(): void
     {
         $admin = $this->adminUser();

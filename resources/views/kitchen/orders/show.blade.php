@@ -73,10 +73,6 @@
         <div class="grid grid-cols-1 gap-6 lg:grid-cols-12">
             {{-- Left Column (Main Details) --}}
             <div class="space-y-6 lg:col-span-8">
-                
-                @if(!$readOnly)
-                    @include('admin.orders.partials._preparation-highlight', ['order' => $order, 'tz' => $tz])
-                @endif
 
                 @role('Admin')
                     {{-- Scheduled delivery (admin only) --}}
@@ -112,30 +108,40 @@
                         <h3 class="font-semibold text-gray-900">{{ __('Order Information') }}</h3>
                     </div>
                     <div class="p-6">
-                        {{-- Customer Info --}}
-                        <div class="mb-8">
-                            <h4 class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">{{ __('Customer Details') }}</h4>
-                            <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                                <div>
-                                    <p class="mb-1 text-sm font-medium text-gray-500">{{ __('Name') }}</p>
-                                    <p class="font-semibold text-gray-900">{{ $order->guest_name }}</p>
+                        @role('Kitchen')
+                            @include('admin.orders.partials._product-image-preview', [
+                                'order' => $order,
+                                'prominent' => true,
+                            ])
+                        @endrole
+
+                        @role('Admin')
+                            {{-- Order contact (admin only — kitchen staff must not see customer/guest contact) --}}
+                            <div class="mb-8">
+                                <h4 class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">{{ __('Contact for this order') }}</h4>
+                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                    <div>
+                                        <p class="mb-1 text-sm font-medium text-gray-500">{{ __('Name') }}</p>
+                                        <p class="font-semibold text-gray-900">{{ $order->guest_name }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1 text-sm font-medium text-gray-500">{{ __('Phone') }}</p>
+                                        <p class="font-semibold text-gray-900"><a href="tel:{{ preg_replace('/\s+/', '', $order->guest_phone) }}" class="hover:text-indigo-600">{{ $order->guest_phone }}</a></p>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1 text-sm font-medium text-gray-500">{{ __('Email') }}</p>
+                                        <p class="break-all font-semibold text-gray-900">
+                                            @if($order->guest_email)
+                                                <a href="mailto:{{ $order->guest_email }}" class="hover:text-indigo-600">{{ $order->guest_email }}</a>
+                                            @else
+                                                —
+                                            @endif
+                                        </p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p class="mb-1 text-sm font-medium text-gray-500">{{ __('Phone') }}</p>
-                                    <p class="font-semibold text-gray-900"><a href="tel:{{ preg_replace('/\s+/', '', $order->guest_phone) }}" class="hover:text-indigo-600">{{ $order->guest_phone }}</a></p>
-                                </div>
-                                <div>
-                                    <p class="mb-1 text-sm font-medium text-gray-500">{{ __('Email') }}</p>
-                                    <p class="break-all font-semibold text-gray-900">
-                                        @if($order->guest_email)
-                                            <a href="mailto:{{ $order->guest_email }}" class="hover:text-indigo-600">{{ $order->guest_email }}</a>
-                                        @else
-                                            —
-                                        @endif
-                                    </p>
-                                </div>
+                                @include('admin.orders.partials._linked-account', ['order' => $order])
                             </div>
-                        </div>
+                        @endrole
 
                         {{-- Cake Customization --}}
                         @if($order->message_on_cake || $order->instructions)
@@ -162,14 +168,20 @@
                             </div>
                         @endif
 
-                        @include('admin.orders.partials._product-image-preview', ['order' => $order])
+                        @role('Admin')
+                            @include('admin.orders.partials._product-image-preview', ['order' => $order])
+                        @endrole
                     </div>
                 </div>
             </div>
 
             {{-- Right Column (Sidebar) --}}
             <div class="space-y-6 lg:col-span-4">
-                
+
+                @if(!$readOnly)
+                    @include('admin.orders.partials._preparation-highlight', ['order' => $order, 'tz' => $tz])
+                @endif
+
                 {{-- Order Summary Card --}}
                 <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
                     <div class="border-b border-gray-100 bg-gray-50/80 px-6 py-4">

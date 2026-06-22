@@ -1,6 +1,6 @@
 @php
     $customerContext = app(\App\Services\CustomerContext::class);
-    $customerUser = auth()->user()?->isCustomer() ? auth()->user() : null;
+    $customerUser = auth('customer')->user();
     $isImpersonating = $customerContext->isImpersonating();
     $effectiveCustomer = $customerContext->effectiveCustomer();
 @endphp
@@ -14,5 +14,5 @@
         <button type="submit" class="nav-link rounded-lg px-3 py-2 text-base font-medium text-stone-500 hover:text-stone-800">{{ __('Sign out') }}</button>
     </form>
 @else
-    <a href="{{ route('account.login') }}" class="nav-link rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white hover:bg-stone-800">{{ __('Sign in') }}</a>
+    <x-open-auth-modal-button class="nav-link rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white hover:bg-stone-800" />
 @endif

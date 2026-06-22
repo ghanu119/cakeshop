@@ -248,7 +248,7 @@ class NotificationController extends Controller
             'type' => $data['type'] ?? null,
             'title' => $data['title'] ?? '',
             'message' => $data['message'] ?? '',
-            'url' => $data['url'] ?? '#',
+            'url' => StaffNotificationUrl::toAppPath($data['url'] ?? null),
             'highlight_target' => $data['highlight_target'] ?? null,
             'order_no' => $data['order_no'] ?? null,
             'read_at' => $notification->read_at?->toIso8601String(),

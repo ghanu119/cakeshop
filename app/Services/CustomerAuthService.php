@@ -7,6 +7,7 @@ use App\Models\CustomerAccountEvent;
 use App\Models\EmailLoginOtp;
 use App\Models\User;
 use App\Models\User\RegisteredVia;
+use App\Support\AuthGuards;
 use App\Support\PhoneNormalizer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -86,12 +87,14 @@ class CustomerAuthService
         }
 
         $otp->forceFill(['consumed_at' => now()])->save();
-        $this->request->session()->put(self::SESSION_VERIFIED_EMAIL, $email);
+        session([self::SESSION_VERIFIED_EMAIL => $email]);
     }
 
     public function verifiedEmail(): ?string
     {
-        return $this->request->session()->get(self::SESSION_VERIFIED_EMAIL);
+        $email = session(self::SESSION_VERIFIED_EMAIL);
+
+        return is_string($email) && $email !== '' ? $email : null;
     }
 
     public function findCustomerByEmail(string $email): ?User
@@ -138,9 +141,9 @@ class CustomerAuthService
             ]);
         }
 
-        Auth::login($customer);
-        $this->request->session()->regenerate();
-        $this->request->session()->forget(self::SESSION_VERIFIED_EMAIL);
+        Auth::guard(AuthGuards::CUSTOMER)->login($customer);
+        session()->regenerate();
+        session()->forget(self::SESSION_VERIFIED_EMAIL);
 
         $this->orderLinkingService->linkGuestOrdersForUser($customer);
     }
@@ -204,9 +207,58 @@ class CustomerAuthService
         return $existing;
     }
 
+    public function assertOtpVerifiedFor(string $email): void
+    {
+        $verified = $this->verifiedEmail();
+
+        if ($verified === null || strtolower(trim($email)) !== $verified) {
+            throw ValidationException::withMessages([
+                'guest_email' => [__('Please verify your email with the code we sent before placing your order.')],
+            ]);
+        }
+    }
+
+    public function resolveCustomerForVerifiedEmail(string $email, string $phone, string $name): User
+    {
+        $email = strtolower(trim($email));
+        $verified = $this->verifiedEmail();
+
+        if ($verified === null || $verified !== $email) {
+            throw ValidationException::withMessages([
+                'email' => [__('Your session has expired. Please verify your email again.')],
+            ]);
+        }
+
+        $byEmail = $this->findCustomerByEmail($email);
+
+        if ($byEmail !== null) {
+            return $byEmail;
+        }
+
+        $byPhone = $this->findCustomerByPhone($phone);
+
+        if ($byPhone === null) {
+            return $this->createCustomer($name, $phone, $email);
+        }
+
+        if (! $byPhone->hasEmail()) {
+            return $this->claimPhoneOnlyAccount($byPhone, $name);
+        }
+
+        return $byPhone;
+    }
+
+    public function authenticateCustomerForVerifiedEmail(string $email, string $phone, string $name): User
+    {
+        $customer = $this->resolveCustomerForVerifiedEmail($email, $phone, $name);
+        $this->loginCustomer($customer);
+
+        return $customer;
+    }
+
     public function clearVerifiedSession(): void
     {
-        $this->request->session()->forget(self::SESSION_VERIFIED_EMAIL);
+        session()->forget(self::SESSION_VERIFIED_EMAIL);
     }
 
     public function maskEmail(?string $email): string
@@ -225,7 +277,7 @@ class CustomerAuthService
     {
         return ValidationException::withMessages([
             $field => [$message],
-        ])->redirectTo(route('account.verify-otp', ['email' => $email]));
+        ]);
     }
 
     private function ensureCanSendOtp(string $email): void
@@ -252,6 +304,6 @@ class CustomerAuthService
 
         throw ValidationException::withMessages([
             'email' => [__('Too many sign-in code requests. Please wait :minutes minute(s) and try again.', ['minutes' => $minutes])],
-        ])->redirectTo(route('account.login'));
+        ]);
     }
 }

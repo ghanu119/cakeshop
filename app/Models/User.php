@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\User\RegisteredVia;
 use App\Models\User\UserGender;
+use App\Support\AuthGuards;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -121,7 +122,7 @@ class User extends Authenticatable
 
     public function scopeCustomers(Builder $query): Builder
     {
-        return $query->role('Customer');
+        return $query->role('Customer', AuthGuards::STAFF);
     }
 
     public function scopeActiveCustomers(Builder $query): Builder
@@ -131,12 +132,12 @@ class User extends Authenticatable
 
     public function isCustomer(): bool
     {
-        return $this->hasRole('Customer');
+        return $this->hasRole('Customer', AuthGuards::STAFF);
     }
 
     public function isStaff(): bool
     {
-        return $this->hasAnyRole(['Admin', 'Kitchen']);
+        return $this->hasAnyRole(['Admin', 'Kitchen'], AuthGuards::STAFF);
     }
 
     public function hasEmail(): bool

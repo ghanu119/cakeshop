@@ -4,9 +4,14 @@
     $paymentBadgeLabel = $paymentBadgeLabel ?? __('Payment verified');
     $paymentBadgeInStore = $paymentBadgeInStore ?? false;
     $tz = $preparationRules['timezone'];
+    $deliveryPast = $preparationRules['deliveryPast'] ?? false;
     $prepMin = $preparationRules['min']->format('Y-m-d\TH:i');
     $prepMax = $preparationRules['max']?->format('Y-m-d\TH:i');
-    $prepValue = old('preparation_at', $order->preparation_at?->setTimezone($tz)->format('Y-m-d\TH:i'));
+    $prepDefault = $order->preparation_at?->setTimezone($tz)->format('Y-m-d\TH:i');
+    if (! $prepDefault && $deliveryPast) {
+        $prepDefault = $preparationRules['min']->format('Y-m-d\TH:i');
+    }
+    $prepValue = old('preparation_at', $prepDefault);
     $currentStatus = old('order_status', $order->order_status);
     $showPrepPanel = $canSetPreparationTime && $currentStatus === 'processing';
     $kitchenStatusOptions = ['completed', 'cancelled'];
@@ -123,7 +128,11 @@
                 @error('preparation_at')
                     <p class="mt-2 text-sm text-red-600">{{ $message }}</p>
                 @enderror
-                <p class="mt-2 text-xs text-sky-800/80">{{ __("Kitchen will see this order in Today's orders after you update.") }}</p>
+                @if($deliveryPast)
+                    <p class="mt-2 text-xs text-amber-800/90">{{ __('Delivery time has passed. Set prepare-by to now so the kitchen can start immediately.') }}</p>
+                @else
+                    <p class="mt-2 text-xs text-sky-800/80">{{ __("Kitchen will see this order in Today's orders after you update.") }}</p>
+                @endif
             </div>
         @else
             <p class="max-w-md text-right text-xs text-gray-500">{{ __('Preparation time is set by an administrator.') }}</p>

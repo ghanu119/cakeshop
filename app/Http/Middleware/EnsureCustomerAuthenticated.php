@@ -19,8 +19,6 @@ class EnsureCustomerAuthenticated
             return $next($request);
         }
 
-        return redirect()->guest(route('account.login', [
-            'intended' => $request->fullUrl(),
-        ]));
+        return redirect()->guest(route('home', ['auth' => 1]));
     }
 }

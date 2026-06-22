@@ -37,8 +37,7 @@ class OrderFulfillmentTest extends TestCase
         $this->assertStringContainsString('/order/product/'.$product->slug, $url);
         $this->assertStringNotContainsString('/order/product/'.$product->id, $url);
         $response = $this->get($url);
-        $response->assertRedirect();
-        $this->assertStringContainsString('account/login', $response->headers->get('Location'));
+        $response->assertOk();
     }
 
     public function test_checkout_shows_order_type_when_theme_setting_is_null(): void
@@ -219,6 +218,9 @@ class OrderFulfillmentTest extends TestCase
             ->format('Y-m-d\TH:i');
 
         return [
+            'guest_name' => 'Test Customer',
+            'guest_email' => 'customer@example.com',
+            'guest_phone' => '9876543210',
             'quantity' => 1,
             'delivery_at' => $delivery,
         ];

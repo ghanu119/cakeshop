@@ -12,6 +12,8 @@ use App\Notifications\KitchenOrderQueuedTodayNotification;
 use App\Notifications\KitchenPaymentVerifiedTodayNotification;
 use App\Notifications\NewOrderAdminNotification;
 use App\Notifications\OrderCompletedAdminNotification;
+use App\Mail\CustomerLoginOtp;
+use App\Services\CustomerAuthService;
 use App\Services\InAppOrderNotificationService;
 use App\Services\OrderService;
 use Carbon\Carbon;
@@ -50,7 +52,12 @@ class InAppOrderNotificationTest extends TestCase
         $kitchen = $this->kitchenUser();
 
         $product = $this->simpleProduct();
-        $this->actingAs($this->createStorefrontCustomer())->post(route('order.store', $product), $this->validOrderPayload());
+        $email = 'customer@example.com';
+        $this->verifyGuestEmail($email);
+
+        $this->post(route('order.store', $product), $this->validOrderPayload([
+            'guest_email' => $email,
+        ]))->assertRedirect();
 
         $this->assertDatabaseHas('notifications', [
             'notifiable_id' => $adminOne->id,
@@ -179,6 +186,18 @@ class InAppOrderNotificationTest extends TestCase
         $response->assertSee('payment_review', false);
     }
 
+    public function test_new_order_notification_stores_relative_admin_url(): void
+    {
+        $admin = $this->adminUser();
+        $order = Order::factory()->for(Product::factory()->create())->create();
+
+        $admin->notify(new NewOrderAdminNotification($order));
+
+        $notification = $admin->unreadNotifications()->first();
+        $this->assertNotNull($notification);
+        $this->assertSame('/admin/orders/'.$order->getRouteKey(), $notification->data['url']);
+    }
+
     public function test_mark_read_api_sets_read_at(): void
     {
         $admin = $this->adminUser();
@@ -193,6 +212,20 @@ class InAppOrderNotificationTest extends TestCase
             ->assertJson(['success' => true]);
 
         $this->assertNotNull($notification->fresh()->read_at);
+    }
+
+    private function verifyGuestEmail(string $email): void
+    {
+        app(CustomerAuthService::class)->sendOtp($email);
+
+        $code = null;
+        Mail::assertSent(CustomerLoginOtp::class, function (CustomerLoginOtp $mail) use (&$code) {
+            $code = $mail->code;
+
+            return true;
+        });
+
+        app(CustomerAuthService::class)->verifyOtp($email, $code);
     }
 
     private function adminUser(): User

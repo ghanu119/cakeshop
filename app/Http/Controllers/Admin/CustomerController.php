@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreCustomerRequest;
 use App\Models\User;
+use App\Support\AuthGuards;
 use App\Services\CustomerContext;
 use App\Services\CustomerDeletionService;
 use App\Services\CustomerService;
@@ -94,9 +95,11 @@ class CustomerController extends Controller
     public function impersonate(Request $request, User $customer): RedirectResponse
     {
         abort_unless($customer->isCustomer() && ! $customer->trashed(), 404);
-        abort_unless($request->user()->can('customers.impersonate'), 403);
 
-        $this->customerContext->startImpersonation($request->user(), $customer);
+        $admin = $request->user(AuthGuards::STAFF);
+        abort_unless($admin && $admin->can('customers.impersonate'), 403);
+
+        $this->customerContext->startImpersonation($admin, $customer);
 
         return redirect()->route('products.index')
             ->with('status', __('You are now shopping for :name.', ['name' => $customer->name]));

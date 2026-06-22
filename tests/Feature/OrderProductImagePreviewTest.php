@@ -53,6 +53,7 @@ class OrderProductImagePreviewTest extends TestCase
         $kitchen = $this->kitchenUser();
         $product = $this->productWithImages(2);
         $order = $this->verifiedOrderTodayForProduct($product);
+        $order->update(['message_on_cake' => 'Happy Birthday']);
 
         $prepAt = Carbon::now('Asia/Kolkata')->addHours(2)->format('Y-m-d\TH:i');
         $this->actingAs($admin)->post(route('admin.orders.update-status', $order), [
@@ -67,6 +68,14 @@ class OrderProductImagePreviewTest extends TestCase
         $response->assertSee('data-image-lightbox-items', false);
         $response->assertSee(__('Product reference'), false);
         $response->assertSee('admin-product-ref-gallery__thumb', false);
+        $response->assertSee('admin-product-ref-gallery w-full', false);
+
+        $content = $response->getContent();
+        $productRefPos = strpos($content, (string) __('Product reference'));
+        $customizationPos = strpos($content, (string) __('Cake Customization'));
+        $this->assertNotFalse($productRefPos);
+        $this->assertNotFalse($customizationPos);
+        $this->assertLessThan($customizationPos, $productRefPos);
     }
 
     public function test_better_buns_confirm_shows_gallery_and_product_link(): void

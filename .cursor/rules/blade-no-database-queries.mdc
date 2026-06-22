@@ -1,0 +1,51 @@
+---
+description: Never run Eloquent or DB queries in Blade views — pass data from controllers, services, or Livewire
+globs: "**/*.blade.php,**/*Controller.php,app/Livewire/**,app/View/**"
+alwaysApply: true
+---
+
+# No database queries in Blade
+
+**Never** call Eloquent models, query builders, or the DB facade inside Blade files (including `@php` blocks and inline expressions).
+
+## Forbidden in Blade
+
+- `Model::where()`, `::find()`, `::first()`, `::all()`, `::get()`, `::count()`, `::query()`, etc.
+- `DB::table()`, `DB::select()`, `DB::raw()`, or any `DB::` usage
+- Relationship queries: `$user->orders()->where(...)`, `auth()->user()->posts()->latest()`
+- Static model helpers that hit the database: `Setting::getValue()`, `SiteSetting::first()`, etc.
+
+```blade
+{{-- ❌ BAD --}}
+@php $orders = \App\Models\Order::where('status', 'pending')->get(); @endphp
+{{ \App\Models\Product::find($id)->name }}
+@json(\App\Models\Setting::getWebPushPublicKey())
+```
+
+## Do this instead
+
+1. **Controller / Service** — Query in a Service (preferred) or controller action; pass results to the view via `compact()` or a view data array.
+2. **Livewire** — Load data in the component class (`mount`, computed properties, or action methods); expose only plain values/collections to the template.
+3. **View Composer** — For shared layout data (nav counts, settings, feature flags), use a `ViewComposer` class registered in a service provider.
+4. **Blade** — Only display, format, and branch on data already passed in. `@php` may format or derive display values from existing variables, never fetch from the database.
+
+```php
+// ✅ GOOD — Controller
+public function index(OrderService $orders): View
+{
+    return view('account.orders.index', [
+        'orders' => $orders->listForCustomer(auth()->id()),
+    ]);
+}
+```
+
+```blade
+{{-- ✅ GOOD — Blade --}}
+@foreach ($orders as $order)
+    {{ $order->reference }}
+@endforeach
+```
+
+## When touching existing violations
+
+If a Blade file already queries the database, refactor by moving the query upstream and passing the result as a view variable. Do not add new inline queries.

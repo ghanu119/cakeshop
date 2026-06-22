@@ -6,6 +6,7 @@ use App\Models\AccountDeletionLog;
 use App\Models\CustomerAccountEvent;
 use App\Models\Order;
 use App\Models\User;
+use App\Support\AuthGuards;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -28,10 +29,8 @@ class CustomerDeletionService
             $this->customerContext->stopImpersonation();
         }
 
-        if (Auth::id() === $customer->id) {
-            Auth::logout();
-            $this->request->session()->invalidate();
-            $this->request->session()->regenerateToken();
+        if (Auth::guard(AuthGuards::CUSTOMER)->id() === $customer->id) {
+            Auth::guard(AuthGuards::CUSTOMER)->logout();
         }
 
         $customer->deletion_reason = $reason;

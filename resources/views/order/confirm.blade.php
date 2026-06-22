@@ -30,6 +30,20 @@
         <p class="mb-4">{{ __('Amount') }}: ₹ {{ number_format($order->amount, 2) }}</p>
 
         <div class="mb-4 border-t border-stone-200 pt-4">
+            <h2 class="mb-3 text-sm font-bold uppercase tracking-wider text-stone-500">{{ __('Order contact') }}</h2>
+            <p class="mb-1">{{ __('Name') }}: {{ $order->guest_name }}</p>
+            <p class="mb-1">{{ __('Phone') }}: {{ $order->guest_phone }}</p>
+            @if($order->guest_email)
+                <p class="mb-1">{{ __('Email') }}: {{ $order->guest_email }}</p>
+            @endif
+            @auth('customer')
+                @if($order->hasDistinctContactFromAccount())
+                    <p class="mt-2 text-sm text-stone-500">{{ __('Saved to your account · Contact details above are for this order.') }}</p>
+                @endif
+            @endauth
+        </div>
+
+        <div class="mb-4 border-t border-stone-200 pt-4">
             @include('order.partials._order-fulfillment-summary', ['order' => $order])
         </div>
 

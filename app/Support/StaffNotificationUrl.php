@@ -30,4 +30,20 @@ class StaffNotificationUrl
 
         return $url;
     }
+
+    /**
+     * Normalize a staff notification target to a same-origin relative path.
+     */
+    public static function toAppPath(?string $url): string
+    {
+        $sanitized = self::sanitize($url);
+        $path = parse_url($sanitized, PHP_URL_PATH) ?? '/admin/dashboard';
+        $query = parse_url($sanitized, PHP_URL_QUERY);
+
+        if ($query !== null && $query !== '') {
+            return $path.'?'.$query;
+        }
+
+        return $path;
+    }
 }

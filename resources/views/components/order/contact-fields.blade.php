@@ -7,7 +7,8 @@
     $contactName = old('guest_name', $customer?->name ?? '');
     $contactPhone = old('guest_phone', $customer?->phone ?? '');
     $contactEmail = old('guest_email', $customer?->email ?? '');
-    $emailRequired = ! ($customer && blank($customer->email));
+    $isImpersonating = app(\App\Services\CustomerContext::class)->isImpersonating();
+    $emailRequired = ! $isImpersonating;
     $inputClass = $variant === 'checkout'
         ? 'w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm'
         : 'block w-full';
@@ -20,25 +21,29 @@
 @endphp
 
 <div {{ $attributes->merge(['class' => $variant === 'checkout' ? 'mb-10' : 'space-y-4', 'data-order-contact-section' => true]) }}>
-    @if($variant === 'checkout')
-        <div class="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-stone-100 pb-4">
-            <h3 class="text-xl font-bold text-stone-900 flex items-center gap-3">
-                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold shadow-sm">1</span>
-                {{ __('Contact Information') }}
-            </h3>
-            @if($customer)
-                <button
-                    type="button"
-                    data-clear-order-contact
-                    class="inline-flex items-center rounded-lg border border-stone-300 bg-white px-3 py-1.5 text-sm font-medium text-stone-700 transition hover:bg-stone-50"
-                >
-                    {{ __('Clear') }}
-                </button>
+    <div class="mb-4 flex flex-wrap items-center justify-between gap-3 @if($variant === 'checkout') border-b border-stone-100 pb-4 @endif">
+        <div>
+            @if($variant === 'checkout')
+                <h3 class="text-xl font-bold text-stone-900 flex items-center gap-3">
+                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold shadow-sm">1</span>
+                    {{ __('Who is this order for?') }}
+                </h3>
+            @else
+                <h3 class="text-lg font-bold text-stone-900">{{ __('Who is this order for?') }}</h3>
+            @endif
+            @if($customer && $isImpersonating)
+                <p class="mt-1 text-sm text-amber-800">
+                    @if($customer->hasEmail())
+                        {{ __('Prefilled from this customer account. Change if ordering for someone else.') }}
+                    @else
+                        {{ __('Prefilled from this customer account. Email is optional when none is on file.') }}
+                    @endif
+                </p>
+            @elseif($customer)
+                <p class="mt-1 text-sm text-amber-800">{{ __('Prefilled from your account. Change if ordering for someone else.') }}</p>
             @endif
         </div>
-    @elseif($customer)
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <p class="text-sm text-amber-800">{{ __('Contact details prefilled from your account.') }}</p>
+        @if($customer)
             <button
                 type="button"
                 data-clear-order-contact
@@ -46,17 +51,13 @@
             >
                 {{ __('Clear') }}
             </button>
-        </div>
-    @endif
-
-    @if($variant === 'checkout' && $customer)
-        <p class="mb-4 text-sm text-amber-800">{{ __('Prefilled from your account. Use Clear to enter different details.') }}</p>
-    @endif
+        @endif
+    </div>
 
     <div @class(['grid grid-cols-1 md:grid-cols-2 gap-6' => $variant === 'checkout', 'space-y-4' => $variant !== 'checkout'])>
-        <div @if($variant === 'checkout') class="" @endif>
+        <div>
             <label for="guest_name" class="{{ $labelClass }}">
-                {{ $variant === 'checkout' ? __('Your Name') : __('Your name') }}
+                {{ __('Your name') }}
                 <span class="text-red-500">*</span>
             </label>
             @if($variant === 'checkout')
@@ -69,7 +70,7 @@
 
         <div>
             <label for="guest_phone" class="{{ $labelClass }}">
-                {{ $variant === 'checkout' ? __('Phone Number') : __('Phone') }}
+                {{ __('Phone') }}
                 <span class="text-red-500">*</span>
             </label>
             @if($variant === 'checkout')
@@ -82,11 +83,11 @@
 
         <div @if($variant === 'checkout') class="md:col-span-2" @endif>
             <label for="guest_email" class="{{ $labelClass }}">
-                {{ $variant === 'checkout' ? __('Email Address') : __('Email') }}
+                {{ __('Email') }}
                 @if($emailRequired)
                     <span class="text-red-500">*</span>
                 @else
-                    <span class="text-stone-400 font-medium">({{ __('Optional') }})</span>
+                    <span class="text-xs font-normal text-stone-500">({{ __('Optional') }})</span>
                 @endif
             </label>
             @if($variant === 'checkout')

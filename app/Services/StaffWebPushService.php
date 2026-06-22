@@ -33,7 +33,7 @@ class StaffWebPushService
         $message = [
             'title' => $payload['title'] ?? 'Cake Shop',
             'body' => $payload['body'] ?? '',
-            'url' => StaffNotificationUrl::sanitize($payload['url'] ?? null),
+            'url' => StaffNotificationUrl::toAppPath($payload['url'] ?? null),
         ];
 
         if (! empty($payload['id'])) {

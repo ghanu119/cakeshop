@@ -68,6 +68,20 @@
                 </div>
 
                 @include('order.partials._order-fulfillment-summary', ['order' => $order])
+
+                <div class="mt-8 border-t border-stone-100 pt-6">
+                    <h2 class="mb-4 text-sm font-bold uppercase tracking-wider text-stone-400">{{ __('Order contact') }}</h2>
+                    <dl class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2">
+                        <div><dt class="text-stone-500">{{ __('Name') }}</dt><dd class="font-medium text-stone-900">{{ $order->guest_name }}</dd></div>
+                        <div><dt class="text-stone-500">{{ __('Phone') }}</dt><dd class="font-medium text-stone-900">{{ $order->guest_phone }}</dd></div>
+                        @if($order->guest_email)
+                            <div class="sm:col-span-2"><dt class="text-stone-500">{{ __('Email') }}</dt><dd class="font-medium text-stone-900">{{ $order->guest_email }}</dd></div>
+                        @endif
+                    </dl>
+                    @if($order->hasDistinctContactFromAccount())
+                        <p class="mt-3 text-sm text-stone-500">{{ __('Saved to your account · Contact details above are for this order.') }}</p>
+                    @endif
+                </div>
             </div>
 
             @include('order.partials._order-confirm-payment', ['order' => $order])

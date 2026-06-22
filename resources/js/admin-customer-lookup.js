@@ -12,9 +12,23 @@ document.addEventListener('DOMContentLoaded', () => {
     let timer = null;
     let lastMatchState = panel.dataset.serverRendered === 'true';
 
-    const renderConflict = (message) => {
+    const renderConflict = (message, emailMatch, phoneMatch) => {
         panel.classList.remove('hidden');
-        panel.innerHTML = `<p class="font-semibold text-amber-900">${message}</p>`;
+        let html = `<p class="font-semibold text-amber-900">${message}</p>`;
+
+        if (emailMatch && phoneMatch) {
+            const emailLabel = emailMatch.email || 'No email';
+            const phoneEmailLabel = phoneMatch.email || 'No email';
+            html += `
+            <p class="mt-2 text-sm text-amber-800">
+                Email: ${emailMatch.name} · ${emailLabel} · ${emailMatch.phone}
+            </p>
+            <p class="mt-1 text-sm text-amber-800">
+                Phone: ${phoneMatch.name} · ${phoneEmailLabel} · ${phoneMatch.phone}
+            </p>`;
+        }
+
+        panel.innerHTML = html;
         submit.disabled = true;
         lastMatchState = true;
     };
@@ -70,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 panel.removeAttribute('data-lookup-warning');
 
                 if (data.conflict) {
-                    renderConflict(data.message);
+                    renderConflict(data.message, data.email_match, data.phone_match);
                     return;
                 }
 

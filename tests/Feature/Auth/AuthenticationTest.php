@@ -9,13 +9,13 @@ class AuthenticationTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_login_redirects_to_account_login(): void
+    public function test_login_redirects_to_auth_modal(): void
     {
-        $this->get('/login')->assertRedirect('/account/login');
+        $this->get('/login')->assertRedirect('/?auth=1');
     }
 
-    public function test_register_redirects_to_account_login(): void
+    public function test_register_redirects_to_auth_modal(): void
     {
-        $this->get('/register')->assertRedirect('/account/login');
+        $this->get('/register')->assertRedirect('/?auth=1');
     }
 }

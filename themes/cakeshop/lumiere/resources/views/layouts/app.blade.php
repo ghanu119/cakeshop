@@ -15,6 +15,7 @@
         <link href="https://fonts.bunny.net/css?family=cormorant-garamond:400,500,600,700,400italic,600italic|inter:400,500,600,700&display=swap" rel="stylesheet" />
 
         @stack('styles')
+        @include('partials._storefront-livewire-head')
         {!! theme_style('css/app.css') !!}
         @vite(['resources/js/app.js'])
         <x-app-messages-script />
@@ -61,6 +62,9 @@
                         <a href="{{ route('products.index') }}" class="block rounded-lg px-3 py-2.5 text-base font-medium transition-colors {{ request()->routeIs('products.*') ? 'nav-link-active font-semibold' : 'text-stone-700 hover:bg-stone-100' }}">{{ __('Shop') }}</a>
                         <a href="{{ route('about') }}" class="block rounded-lg px-3 py-2.5 text-base font-medium transition-colors {{ request()->routeIs('about') ? 'nav-link-active font-semibold' : 'text-stone-700 hover:bg-stone-100' }}">{{ __('About Us') }}</a>
                         <a href="{{ route('contact.index') }}" class="block rounded-lg px-3 py-2.5 text-base font-medium transition-colors {{ request()->routeIs('contact.*') ? 'nav-link-active font-semibold' : 'text-stone-700 hover:bg-stone-100' }}">{{ __('Contact') }}</a>
+                        <div class="mt-2 border-t border-stone-200 pt-2">
+                            @include('partials._account-nav')
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -166,5 +170,6 @@
             </div>
         </footer>
         @stack('scripts')
+        @include('partials._storefront-auth-footer')
     </body>
 </html>

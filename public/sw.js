@@ -1,4 +1,4 @@
-const SW_VERSION = '4';
+const SW_VERSION = '5';
 
 function safeAdminUrl(rawUrl) {
     try {
@@ -7,17 +7,15 @@ function safeAdminUrl(rawUrl) {
             return fallback;
         }
 
-        const target = new URL(rawUrl, self.location.origin);
-
-        if (target.origin !== self.location.origin) {
-            return fallback;
-        }
+        const target = rawUrl.startsWith('/')
+            ? new URL(rawUrl, self.location.origin)
+            : new URL(rawUrl, self.location.origin);
 
         if (!target.pathname.startsWith('/admin')) {
             return fallback;
         }
 
-        return target.href;
+        return `${target.pathname}${target.search}${target.hash}`;
     } catch (e) {
         return '/admin/dashboard';
     }
@@ -111,6 +109,7 @@ self.addEventListener('push', (event) => {
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
     const url = safeAdminUrl(event.notification.data?.url);
+    const absoluteUrl = new URL(url, self.location.origin).href;
 
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
@@ -122,7 +121,7 @@ self.addEventListener('notificationclick', (event) => {
                 if ('focus' in client) {
                     return client.focus().then((focusedClient) => {
                         if ('navigate' in focusedClient) {
-                            return focusedClient.navigate(url);
+                            return focusedClient.navigate(absoluteUrl);
                         }
 
                         return focusedClient;
@@ -131,7 +130,7 @@ self.addEventListener('notificationclick', (event) => {
             }
 
             if (self.clients.openWindow) {
-                return self.clients.openWindow(url);
+                return self.clients.openWindow(absoluteUrl);
             }
 
             return undefined;

@@ -2,17 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PlaceOrderRequest;
+use App\Http\Requests\SubmitPaymentDetailsRequest;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\SiteSetting;
+use App\Models\User;
+use App\Services\CustomerAuthService;
 use App\Services\CustomerContext;
+use App\Services\OrderNotificationService;
 use App\Services\OrderService;
 use App\Services\ProductVariantService;
-use App\Services\OrderNotificationService;
-use App\Http\Requests\PlaceOrderRequest;
-use App\Http\Requests\SubmitPaymentDetailsRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -22,7 +26,8 @@ class OrderController extends Controller
         private OrderService $orderService,
         private ProductVariantService $productVariantService,
         private OrderNotificationService $orderNotificationService,
-        private CustomerContext $customerContext
+        private CustomerContext $customerContext,
+        private CustomerAuthService $customerAuthService
     ) {}
 
     public function placeForm(Product $product): View
@@ -55,6 +60,57 @@ class OrderController extends Controller
         ));
     }
 
+    public function sendCheckoutOtp(Request $request): JsonResponse
+    {
+        if ($this->customerContext->effectiveCustomer() !== null) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+        ]);
+
+        $email = strtolower(trim($validated['email']));
+
+        $existingUser = User::where('email', $email)->first();
+        if ($existingUser?->isStaff()) {
+            throw ValidationException::withMessages([
+                'email' => [__('This email cannot be used for customer checkout.')],
+            ]);
+        }
+
+        $this->customerAuthService->sendOtp($email);
+
+        return response()->json([
+            'message' => __('We sent a verification code to your email.'),
+        ]);
+    }
+
+    public function verifyCheckoutOtp(Request $request): JsonResponse
+    {
+        if ($this->customerContext->effectiveCustomer() !== null) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'email' => ['required', 'email', 'max:255'],
+            'code' => ['required', 'string', 'size:6'],
+        ]);
+
+        $email = strtolower(trim($validated['email']));
+
+        try {
+            $this->customerAuthService->verifyOtp($email, $validated['code']);
+        } catch (ValidationException $exception) {
+            return response()->json([
+                'message' => collect($exception->errors())->flatten()->first()
+                    ?? __('The code you entered is incorrect.'),
+            ], 422);
+        }
+
+        return response()->json(['verified' => true]);
+    }
+
     public function place(PlaceOrderRequest $request, Product $product): RedirectResponse
     {
         if (! $product->isActive()) {
@@ -64,17 +120,23 @@ class OrderController extends Controller
         $validated = $request->validated();
         $customer = $this->customerContext->effectiveCustomer();
 
-        if ($customer) {
-            if (blank($validated['guest_name'] ?? null)) {
-                $validated['guest_name'] = $customer->name;
-            }
-            if (blank($validated['guest_phone'] ?? null)) {
-                $validated['guest_phone'] = $customer->phone;
-            }
-            if (blank($validated['guest_email'] ?? null)) {
-                $validated['guest_email'] = $customer->email;
-            }
+        $contact = [
+            'guest_name' => $validated['guest_name'],
+            'guest_email' => $validated['guest_email'] ?? null,
+            'guest_phone' => $validated['guest_phone'],
+        ];
+
+        if ($customer === null) {
+            $this->customerAuthService->assertOtpVerifiedFor((string) $contact['guest_email']);
+            $customer = $this->customerAuthService->resolveCustomerForVerifiedEmail(
+                (string) $contact['guest_email'],
+                (string) $contact['guest_phone'],
+                (string) $contact['guest_name'],
+            );
+            $this->customerAuthService->loginCustomer($customer);
         }
+
+        $validated = array_merge($validated, $contact);
 
         $duplicateQuery = Order::query()
             ->where('product_id', $product->id)

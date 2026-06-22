@@ -29,7 +29,7 @@
             window.__pusherConfig = @json($pusherFrontendConfig ?? ['enabled' => false, 'key' => null, 'cluster' => 'mt1']);
             window.__authUserId = @json(auth()->id());
             window.__isSecureContext = @json(request()->secure());
-            window.__httpsAdminUrl = @json(preg_replace('#^http:#i', 'https:', route('admin.dashboard')));
+            window.__httpsAdminDashboardUrl = @json(preg_replace('#^http:#i', 'https:', route('admin.dashboard')));
             window.__webPushPublicKey = @json(($webPushEnabled ?? false) ? \App\Models\Setting::getWebPushPublicKey() : null);
             window.__unreadHighlightTargets = @json(($unreadHighlightTargets ?? collect())->values());
             window.__notificationWatermark = @json($notificationWatermark ?? null);

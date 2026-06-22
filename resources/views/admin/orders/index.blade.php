@@ -125,6 +125,10 @@
                         <x-table.cell class="whitespace-nowrap font-mono text-xs font-semibold tracking-tight text-gray-800">{{ $order->order_no }}</x-table.cell>
                         <x-table.cell>
                             <div class="font-medium text-gray-900">{{ $order->guest_name }}</div>
+                            @if($order->hasDistinctContactFromAccount())
+                                @php $order->loadMissing('user'); @endphp
+                                <div class="text-xs text-gray-500">{{ __('Account') }}: {{ $order->user->name }}</div>
+                            @endif
                             <div class="text-xs text-gray-500">{{ $order->guest_phone }}</div>
                         </x-table.cell>
                         <x-table.cell class="max-w-[220px]">

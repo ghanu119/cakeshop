@@ -3,6 +3,7 @@
 namespace App\Notifications\Concerns;
 
 use App\Models\Order;
+use App\Support\StaffNotificationUrl;
 
 trait BuildsStaffNotificationPayload
 {
@@ -30,7 +31,7 @@ trait BuildsStaffNotificationPayload
             'order_no' => $order->order_no,
             'title' => $this->titleFor($order),
             'message' => $this->messageFor($order),
-            'url' => $this->urlFor($order),
+            'url' => StaffNotificationUrl::toAppPath($this->urlFor($order)),
             'highlight_target' => $this->highlightTarget(),
         ];
     }

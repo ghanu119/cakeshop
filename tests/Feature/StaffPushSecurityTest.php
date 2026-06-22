@@ -146,6 +146,21 @@ class StaffPushSecurityTest extends TestCase
         $this->assertStringNotContainsString('evil.example', $safe);
     }
 
+    public function test_staff_notification_url_to_app_path_uses_relative_admin_path(): void
+    {
+        $path = StaffNotificationUrl::toAppPath(route('admin.orders.show', ['order' => 42]));
+
+        $this->assertSame('/admin/orders/42', $path);
+        $this->assertStringNotContainsString('://', $path);
+    }
+
+    public function test_staff_notification_url_to_app_path_falls_back_to_dashboard(): void
+    {
+        $path = StaffNotificationUrl::toAppPath('https://evil.example/admin/orders/1');
+
+        $this->assertSame('/admin/dashboard', $path);
+    }
+
     /**
      * @return array<string, mixed>
      */

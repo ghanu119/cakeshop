@@ -62,7 +62,7 @@ class OrderEmailNotificationTest extends TestCase
         });
     }
 
-    public function test_phone_only_customer_can_place_order_without_guest_email_in_payload(): void
+    public function test_phone_only_customer_must_provide_guest_email_on_checkout(): void
     {
         $customer = $this->createStorefrontCustomer([
             'email' => null,
@@ -74,7 +74,7 @@ class OrderEmailNotificationTest extends TestCase
 
         $response = $this->actingAs($customer)->post(route('order.store', $product), $payload);
 
-        $response->assertRedirect();
+        $response->assertSessionHasErrors('guest_email');
         Mail::assertNotSent(OrderConfirmation::class);
     }
 

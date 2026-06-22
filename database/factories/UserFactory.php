@@ -2,9 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Support\AuthGuards;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Spatie\Permission\Models\Role;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\User>
@@ -49,7 +51,7 @@ class UserFactory extends Factory
             'password' => null,
             'registered_via' => 'front_otp',
         ])->afterCreating(function (\App\Models\User $user) {
-            $user->assignRole('Customer');
+            $user->assignRole(Role::findByName('Customer', AuthGuards::STAFF));
         });
     }
 }

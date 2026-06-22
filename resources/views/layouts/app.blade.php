@@ -18,6 +18,7 @@
         @endif
 
         @stack('styles')
+        @include('partials._storefront-livewire-head')
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         <x-app-messages-script />
     </head>
@@ -45,7 +46,7 @@
                     <div class="flex items-center gap-4">
                         @php
                             $customerContext = app(\App\Services\CustomerContext::class);
-                            $customerUser = auth()->user()?->isCustomer() ? auth()->user() : null;
+                            $customerUser = auth('customer')->user();
                             $isImpersonating = $customerContext->isImpersonating();
                             $effectiveCustomer = $customerContext->effectiveCustomer();
                         @endphp
@@ -61,7 +62,7 @@
                             </form>
                         @else
                             <a href="{{ route('products.index') }}" class="text-sm font-medium text-stone-700 hover:text-amber-700">{{ __('Menu') }}</a>
-                            <a href="{{ route('account.login') }}" class="rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white hover:bg-stone-800">{{ __('Sign in') }}</a>
+                            <x-open-auth-modal-button class="rounded-lg bg-stone-900 px-4 py-2 text-sm font-medium text-white hover:bg-stone-800" />
                         @endif
                     </div>
                 </div>
@@ -232,5 +233,6 @@
             });
         </script>
         @stack('scripts')
+        @include('partials._storefront-auth-footer')
     </body>
 </html>

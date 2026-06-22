@@ -57,7 +57,7 @@ class WebPushStaffNotificationJob implements ShouldQueue
         $payload = [
             'title' => $this->payload['title'],
             'body' => $this->payload['body'],
-            'url' => StaffNotificationUrl::sanitize($this->payload['url'] ?? null),
+            'url' => StaffNotificationUrl::toAppPath($this->payload['url'] ?? null),
         ];
 
         $subject = preg_replace('#^http:#i', 'https:', (string) (Setting::get('webpush_subject') ?: config('app.url')));

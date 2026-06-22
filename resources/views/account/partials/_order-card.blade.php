@@ -11,6 +11,9 @@
         <p class="font-medium text-stone-900">{{ $order->displayProductName() }}</p>
         <p class="mt-1 text-sm text-stone-500">
             {{ $order->order_no }}
+            @if($order->hasDistinctContactFromAccount())
+                · {{ __('For') }} {{ $order->guest_name }}
+            @endif
             @if($showAmount)
                 · ₹ {{ number_format($order->amount, 2) }}
             @else

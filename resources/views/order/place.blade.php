@@ -24,7 +24,7 @@
         @if($hasVariants)
             <p class="mb-2 text-sm font-medium text-gray-700">{{ __('Estimated total') }}: <span id="order-estimated-total">{{ $symbol }}{{ number_format($product->price, 2) }}</span></p>
         @endif
-        <form method="post" action="{{ route('order.store', $product) }}" class="space-y-4">
+        <form method="post" action="{{ route('order.store', $product) }}" class="space-y-4" @if(!$customer) data-guest-checkout @endif>
             @csrf
             <x-form-errors show-system-errors :show-validation-summary="true" />
             @if($hasVariants && $variantChoices->isNotEmpty())
@@ -55,7 +55,11 @@
                 'product' => $product,
                 'hasFlavors' => $hasFlavors,
             ])
-            <x-order.contact-fields :customer="$customer" />
+            @if($customer)
+                <x-order.contact-fields :customer="$customer" />
+            @else
+                <livewire:order.contact-verification />
+            @endif
             @if(uses_better_buns_checkout())
                 @include('order.partials._fulfillment-order-fields', ['initialFulfillmentType' => $initialFulfillmentType])
             @else
@@ -88,5 +92,7 @@
             <x-button type="submit" variant="primary" data-submitting-text="{{ __('Processing...') }}">{{ __('Place order') }}</x-button>
         </form>
     </x-card>
+
+    @include('order.partials._place-order-confirm-modal')
 </div>
 @endsection

@@ -15,6 +15,7 @@
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600,700|outfit:400,500,600,700,800&display=swap" rel="stylesheet" />
 
         @stack('styles')
+        @include('partials._storefront-livewire-head')
         {!! theme_style('css/app.css') !!}
         @vite(['resources/js/app.js'])
         <x-app-messages-script />
@@ -69,6 +70,9 @@
                         @endthemeIs
                         <a href="{{ route('contact.index') }}" class="block rounded-lg px-3 py-2.5 text-base font-medium transition-colors {{ request()->routeIs('contact.*') ? 'bg-amber-50 text-amber-600 font-semibold' : 'text-stone-700 hover:bg-amber-50/80 hover:text-amber-600' }}">{{ __('Contact') }}</a>
                         <a href="{{ route('about') }}" class="block rounded-lg px-3 py-2.5 text-base font-medium transition-colors {{ request()->routeIs('about') ? 'bg-amber-50 text-amber-600 font-semibold' : 'text-stone-700 hover:bg-amber-50/80 hover:text-amber-600' }}">{{ __('About') }}</a>
+                        <div class="mt-2 border-t border-amber-100 pt-2">
+                            @include('partials._account-nav')
+                        </div>
                     </div>
                 </div>
             </nav>
@@ -187,5 +191,6 @@
             });
         </script>
         @stack('scripts')
+        @include('partials._storefront-auth-footer')
     </body>
 </html>

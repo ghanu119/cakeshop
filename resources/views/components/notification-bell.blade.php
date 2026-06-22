@@ -56,7 +56,7 @@
             @forelse($items as $notification)
                 @php $data = $notification->data; @endphp
                 <li data-notification-id="{{ $notification->id }}">
-                    <a href="{{ $data['url'] ?? '#' }}" class="block px-4 py-3 hover:bg-gray-50" data-notification-link>
+                    <a href="{{ \App\Support\StaffNotificationUrl::toAppPath($data['url'] ?? null) }}" class="block px-4 py-3 hover:bg-gray-50" data-notification-link>
                         <p class="text-sm font-semibold text-gray-900">{{ $data['title'] ?? '' }}</p>
                         <p class="mt-0.5 text-xs text-gray-600">{{ $data['message'] ?? '' }}</p>
                         <p class="mt-1 text-[10px] text-gray-400">

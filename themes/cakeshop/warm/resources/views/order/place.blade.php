@@ -37,6 +37,7 @@
             action="{{ route('order.store', $product) }}"
             class="order-place-layout lg:grid lg:grid-cols-12 lg:gap-10 xl:gap-12 items-start"
             data-order-place-confirm
+            @if(!$customer) data-guest-checkout @endif
             @if(!empty($hasVariants)) data-has-variants @endif
             @if(!empty($hasFlavors)) data-has-flavors @endif
             @if(uses_better_buns_checkout()) data-show-order-type @endif
@@ -47,7 +48,11 @@
             <div class="order-place-main lg:col-span-7 xl:col-span-8 bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-amber-100/50 p-6 sm:p-10 mb-10 lg:mb-0">
                 <x-form-errors show-system-errors :show-validation-summary="true" class="mb-8" />
 
-                <x-order.contact-fields :customer="$customer" variant="checkout" />
+                @if($customer)
+                    <x-order.contact-fields :customer="$customer" variant="checkout" />
+                @else
+                    <livewire:order.contact-verification />
+                @endif
 
                 {{-- Order Details Section --}}
                 <div class="mb-2">

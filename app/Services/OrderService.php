@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Product;
-use App\Services\CustomerContext;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -34,6 +33,7 @@ class OrderService
     public const ADMIN_PAYMENT_REVIEW_PREVIEW_LIMIT = 5;
 
     public const ADMIN_IN_KITCHEN_PREVIEW_LIMIT = 4;
+
     public function __construct(
         private ProductVariantService $productVariantService
     ) {}
@@ -219,9 +219,9 @@ class OrderService
 
         $order = new Order;
         $order->user_id = $customer?->id;
-        $order->guest_name = $data['guest_name'] ?? $customer?->name ?? '';
-        $order->guest_email = $data['guest_email'] ?? $customer?->email;
-        $order->guest_phone = $data['guest_phone'] ?? $customer?->phone ?? '';
+        $order->guest_name = $data['guest_name'] ?? '';
+        $order->guest_email = $data['guest_email'] ?? null;
+        $order->guest_phone = $data['guest_phone'] ?? '';
         $order->product_id = $product->id;
         $order->product_name = $product->name_en;
         $order->quantity = (int) ($data['quantity'] ?? 1);
@@ -340,14 +340,20 @@ class OrderService
         $min = $now->copy()->subMinutes(5);
 
         $max = null;
+        $deliveryPast = false;
         if ($order->delivery_at) {
-            $max = $order->delivery_at->copy()->setTimezone($timezone);
+            $deliveryInTz = $order->delivery_at->copy()->setTimezone($timezone);
+            $deliveryPast = $deliveryInTz->isPast();
+            if (! $deliveryPast) {
+                $max = $deliveryInTz;
+            }
         }
 
         return [
             'min' => $min,
             'max' => $max,
             'timezone' => $timezone,
+            'deliveryPast' => $deliveryPast,
         ];
     }
 

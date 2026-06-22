@@ -1,5 +1,5 @@
 @php
-    $accountCustomer = auth()->user()?->isCustomer() ? auth()->user() : null;
+    $accountCustomer = auth('customer')->user();
     $linkClass = 'flex w-full sm:w-auto items-center justify-center gap-2 rounded-full border border-stone-200 bg-white px-5 py-2.5 font-semibold text-stone-500 shadow-sm transition-colors hover:text-stone-900';
     $wrapperClass = $wrapperClass ?? 'mt-8';
 @endphp

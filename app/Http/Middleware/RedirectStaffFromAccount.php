@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Support\AuthGuards;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -10,12 +11,18 @@ class RedirectStaffFromAccount
 {
     public function handle(Request $request, Closure $next): Response
     {
-        $user = $request->user();
+        $staff = $request->user(AuthGuards::STAFF);
 
-        if ($user && $user->hasAnyRole(['Admin', 'Kitchen'])) {
-            return redirect()->route('admin.dashboard');
+        if (! $staff || ! $staff->hasAnyRole(['Admin', 'Kitchen'])) {
+            return $next($request);
         }
 
-        return $next($request);
+        $customer = $request->user(AuthGuards::CUSTOMER);
+
+        if ($customer && $customer->isCustomer()) {
+            return $next($request);
+        }
+
+        return redirect()->route('admin.dashboard');
     }
 }
