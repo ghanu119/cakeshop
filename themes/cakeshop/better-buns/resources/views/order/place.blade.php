@@ -55,8 +55,8 @@
                 @endif
 
                 {{-- Order Details Section --}}
-                <div class="mt-10 border-t border-stone-100 pt-10 mb-2">
-                    <div class="mb-6 flex items-center gap-3 border-b border-stone-100 pb-4">
+                <div class="mt-10 border-stone-100 pt-10 mb-2">
+                    <div class="mb-6 flex items-center gap-3 border-b border-stone-100 pb-2">
                         <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white shadow-sm">2</span>
                         <h3 class="text-xl font-bold text-stone-900">{{ __('Order Details') }}</h3>
                     </div>
@@ -156,7 +156,7 @@
                         @if(!empty($hasVariants) && $variantChoices->isNotEmpty())
                         <div class="mt-8 pt-6 border-t border-amber-200/70" aria-live="polite" aria-atomic="true">
                             <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-amber-600 mb-2.5">{{ __('Selected weight') }}</p>
-                            <div class="flex items-center gap-3 rounded-xl border border-amber-300/80 bg-amber-50/80 px-3.5 py-2.5">
+                            <div class="flex items-center gap-3 rounded-xl border border-amber-300/80 bg-amber-50/80 px-3 py-2.5">
                                 <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500 text-white shrink-0" aria-hidden="true">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V11"/></svg>
                                 </span>
@@ -167,7 +167,7 @@
                         @if(!empty($hasFlavors) && $product->flavors->isNotEmpty())
                         <div class="mt-6 pt-6 border-t border-rose-200/70" aria-live="polite" aria-atomic="true">
                             <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-rose-600 mb-2.5">{{ __('Selected flavor') }}</p>
-                            <div class="flex items-center gap-3 rounded-xl border border-rose-200/80 bg-rose-50/80 px-3.5 py-2.5">
+                            <div class="flex items-center gap-3 rounded-xl border border-rose-200/80 bg-rose-50/80 px-3 py-2.5">
                                 <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500 text-white shrink-0" aria-hidden="true">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
                                 </span>
