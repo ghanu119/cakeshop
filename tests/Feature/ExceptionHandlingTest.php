@@ -3,13 +3,20 @@
 namespace Tests\Feature;
 
 use App\Exceptions\ExceptionRenderer;
+use App\Jobs\SendCriticalErrorMail;
 use App\Models\User;
+use App\Services\CriticalErrorReporter;
 use Database\Seeders\RoleAndPermissionSeeder;
+use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
+use Illuminate\Encryption\MissingAppKeyException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Route;
 use PDOException;
 use RuntimeException;
@@ -191,5 +198,121 @@ class ExceptionHandlingTest extends TestCase
         $this->assertNotNull($response);
         $this->assertTrue($response->isRedirect());
         $this->assertStringContainsString('categories/create', $response->headers->get('Location') ?? '');
+    }
+
+    public function test_query_exception_queues_critical_error_mail_in_production(): void
+    {
+        $this->enableCriticalErrorReporting();
+        Queue::fake();
+
+        $this->getJson('/testing/query-error')->assertStatus(500);
+
+        Queue::assertPushed(SendCriticalErrorMail::class, 1);
+    }
+
+    public function test_server_error_queues_critical_error_mail_in_production(): void
+    {
+        $this->enableCriticalErrorReporting();
+        Queue::fake();
+
+        $this->getJson('/testing/server-error')->assertStatus(500);
+
+        Queue::assertPushed(SendCriticalErrorMail::class, 1);
+    }
+
+    public function test_critical_error_mail_is_not_queued_for_csrf_mismatch(): void
+    {
+        $this->enableCriticalErrorReporting();
+        Queue::fake();
+
+        app(CriticalErrorReporter::class)->report(new TokenMismatchException('CSRF token mismatch.'));
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_critical_error_mail_is_not_queued_for_authentication_exception(): void
+    {
+        $this->enableCriticalErrorReporting();
+        Queue::fake();
+
+        app(CriticalErrorReporter::class)->report(new AuthenticationException('Unauthenticated.'));
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_critical_error_mail_is_not_queued_for_model_not_found(): void
+    {
+        $this->enableCriticalErrorReporting();
+        Queue::fake();
+
+        app(CriticalErrorReporter::class)->report(new ModelNotFoundException('Not found.'));
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_critical_error_mail_is_not_queued_for_missing_app_key(): void
+    {
+        $this->enableCriticalErrorReporting();
+        Queue::fake();
+
+        app(CriticalErrorReporter::class)->report(new MissingAppKeyException('No application encryption key has been specified.'));
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_critical_error_mail_is_not_queued_outside_production(): void
+    {
+        Config::set('app.env', 'local');
+        config([
+            'error-reporting.enabled' => false,
+            'error-reporting.recipient' => 'ops@example.com',
+        ]);
+        Queue::fake();
+
+        $this->getJson('/testing/server-error')->assertStatus(500);
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_critical_error_mail_is_not_queued_without_recipient(): void
+    {
+        Config::set('app.env', 'production');
+        config([
+            'error-reporting.enabled' => true,
+            'error-reporting.recipient' => null,
+        ]);
+        Queue::fake();
+
+        $this->getJson('/testing/server-error')->assertStatus(500);
+
+        Queue::assertNothingPushed();
+    }
+
+    public function test_identical_critical_errors_are_throttled(): void
+    {
+        $this->enableCriticalErrorReporting();
+        Cache::flush();
+        Queue::fake();
+
+        $reporter = app(CriticalErrorReporter::class);
+        $exception = new RuntimeException('duplicate failure');
+
+        $request = Request::create('/testing/server-error', 'GET');
+        $this->app->instance('request', $request);
+
+        $reporter->report($exception);
+        $reporter->report($exception);
+
+        Queue::assertPushed(SendCriticalErrorMail::class, 1);
+    }
+
+    private function enableCriticalErrorReporting(): void
+    {
+        Config::set('app.env', 'production');
+        config([
+            'error-reporting.enabled' => true,
+            'error-reporting.recipient' => 'ops@example.com',
+            'error-reporting.throttle_minutes' => 15,
+        ]);
     }
 }

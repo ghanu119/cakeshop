@@ -162,10 +162,6 @@ class ExceptionRenderer
             return ApiResponse::validation($e->errors(), $message);
         }
 
-        if ($status >= 500 || $e instanceof QueryException || $e instanceof PDOException) {
-            report($e);
-        }
-
         return ApiResponse::error($message, $status, $code ? ['code' => $code] : null, $code);
     }
 
@@ -196,13 +192,7 @@ class ExceptionRenderer
         }
 
         if ($this->isFormSubmission($request) && ($status >= 500 || $e instanceof QueryException || $e instanceof PDOException)) {
-            report($e);
-
             return $this->redirectFormWithError($request, $message);
-        }
-
-        if ($status >= 500 || $e instanceof QueryException || $e instanceof PDOException) {
-            report($e);
         }
 
         if ($this->hasErrorView($status)) {

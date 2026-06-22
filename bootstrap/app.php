@@ -53,5 +53,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface::class,
         ]);
 
+        $exceptions->report(function (\Throwable $e): void {
+            app(\App\Services\CriticalErrorReporter::class)->report($e);
+        });
+
         $exceptions->render(fn (\Throwable $e, \Illuminate\Http\Request $request) => app(\App\Exceptions\ExceptionRenderer::class)->render($e, $request));
     })->create();
