@@ -55,11 +55,11 @@
                 @endif
 
                 {{-- Order Details Section --}}
-                <div class="mb-2">
-                    <h3 class="text-xl font-bold text-stone-900 mb-6 flex items-center gap-3 border-b border-stone-100 pb-4">
-                        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold shadow-sm">2</span>
-                        {{ __('Order Details') }}
-                    </h3>
+                <div class="mt-10 border-t border-stone-100 pt-10 mb-2">
+                    <div class="mb-6 flex items-center gap-3 border-b border-stone-100 pb-4">
+                        <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500 text-sm font-bold text-white shadow-sm">2</span>
+                        <h3 class="text-xl font-bold text-stone-900">{{ __('Order Details') }}</h3>
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         @if(!empty($hasVariants) && $variantChoices->isNotEmpty())
                         <div class="md:col-span-2">
@@ -97,16 +97,16 @@
                             'flavorLabelTarget' => '#order-summary-flavor',
                         ])
                         @include('order.partials._fulfillment-order-fields', ['initialFulfillmentType' => $initialFulfillmentType])
-                        <div>
-                            <label for="delivery_at" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Delivery Date & Time') }} <span class="text-red-500">*</span></label>
-                            @php
-                                $minDt = $deliveryRules['after']->setTimezone($deliveryRules['timezone'])->format('Y-m-d\TH:i');
-                                $maxDt = $deliveryRules['before']->setTimezone($deliveryRules['timezone'])->format('Y-m-d\TH:i');
-                            @endphp
-                            <input type="datetime-local" name="delivery_at" id="delivery_at" value="{{ old('delivery_at') }}" min="{{ $minDt }}" max="{{ $maxDt }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" required />
-                            <p class="mt-2 text-xs text-stone-500">{{ __('Timezone') }}: {{ $deliveryRules['timezone'] }}</p>
-                            @error('delivery_at')<p class="mt-1 text-sm text-red-600 font-medium flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>{{ $message }}</p>@enderror
-                        </div>
+                        @include('order.partials._delivery-datetime-field', [
+                            'product' => $product,
+                            'deliveryRules' => $deliveryRules,
+                            'deliveryBounds' => $deliveryBounds,
+                            'suggestedDeliveryAt' => $suggestedDeliveryAt ?? '',
+                            'labelClass' => 'mb-2 block text-sm font-bold text-stone-700',
+                            'inputClass' => 'w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm',
+                            'labelLabel' => __('Delivery Date & Time'),
+                            'showTimezone' => true,
+                        ])
                         <div class="md:col-span-2">
                             <label for="message_on_cake" class="mb-2 block text-sm font-bold text-stone-700">{{ __('Message on Cake') }} <span class="text-stone-400 font-medium">({{ __('Optional') }})</span></label>
                             <input type="text" name="message_on_cake" id="message_on_cake" value="{{ old('message_on_cake') }}" placeholder="{{ __('e.g. Happy Birthday John!') }}" maxlength="{{ $messageOnCakeMaxLength }}" class="w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm" />
@@ -147,6 +147,9 @@
                                     <span class="inline-block text-[10px] sm:text-xs font-bold text-amber-600 uppercase tracking-wider mb-1">{{ $product->category->name_en }}</span>
                                 @endif
                                 <h4 class="text-lg sm:text-xl font-bold font-display text-stone-900 leading-tight line-clamp-3">{{ $product->name_en }}</h4>
+                                @if(filled($product->sku))
+                                    <p class="mt-1 text-xs text-stone-500">{{ __('SKU') }}: <span class="font-mono">{{ $product->sku }}</span></p>
+                                @endif
                             </div>
                         </div>
 

@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Http\Requests\Admin\Concerns\ValidatesProductImages;
 use App\Http\Requests\Admin\Concerns\ValidatesProductWeightVariants;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -36,6 +37,10 @@ class UpdateProductRequest extends FormRequest
             'ingredients' => ['nullable', 'string'],
             'short_description' => ['nullable', 'string', 'max:500'],
             'message_on_cake_max_length' => ['nullable', 'integer', 'min:'.Order::MESSAGE_ON_CAKE_MIN_LENGTH, 'max:'.Order::MESSAGE_ON_CAKE_LIMIT_MAX],
+            'sku' => ['nullable', 'string', 'max:64', Rule::unique('products', 'sku')->ignore($this->route('product'))],
+            'earliest_delivery_label' => ['nullable', 'string', 'max:100'],
+            'min_hours_before_delivery' => ['nullable', 'integer', 'min:1', 'max:720'],
+            'show_whatsapp_customize_help' => ['nullable', 'boolean'],
             'status' => ['required', 'string', 'in:active,inactive'],
             'meta_title' => ['nullable', 'string', 'max:255'],
             'meta_description' => ['nullable', 'string', 'max:500'],

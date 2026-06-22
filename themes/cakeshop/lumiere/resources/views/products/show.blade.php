@@ -59,6 +59,7 @@
                     <p class="text-xs font-medium uppercase tracking-widest text-stone-400 mb-2">{{ $product->category->name_en }}</p>
                 @endif
                 <h1 class="heading-display text-3xl sm:text-4xl lg:text-5xl text-stone-900 tracking-tight mb-3">{{ $product->name_en }}</h1>
+                @include('products.partials._product-sku', ['product' => $product])
                 <p class="text-xl text-stone-800 font-medium mb-6">{{ $symbol }}{{ number_format($product->price, 2) }}</p>
 
                 @if($product->short_description)
@@ -98,19 +99,30 @@
                 </div>
                 @endif
 
+                @include('products.partials._whatsapp-customize-help', ['product' => $product])
+
                 {{-- Quantity + Add to Bag --}}
-                <div class="mt-auto flex flex-wrap items-center gap-4">
-                    <div class="lumiere-qty flex items-center rounded-xl border border-stone-300 bg-white overflow-hidden">
-                        <button type="button" id="qty-minus" class="flex h-12 w-12 items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors" aria-label="{{ __('Decrease quantity') }}">−</button>
-                        <input type="number" id="product-qty" name="quantity" value="1" min="1" max="10" class="h-12 w-14 border-0 border-x border-stone-200 bg-transparent text-center text-stone-900 font-medium focus:ring-0 focus:outline-none" readonly />
-                        <button type="button" id="qty-plus" class="flex h-12 w-12 items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors" aria-label="{{ __('Increase quantity') }}">+</button>
+                <div class="mt-auto">
+                    <div class="flex flex-wrap items-center gap-4">
+                        <div class="lumiere-qty flex items-center rounded-xl border border-stone-300 bg-white overflow-hidden">
+                            <button type="button" id="qty-minus" class="flex h-12 w-12 items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors" aria-label="{{ __('Decrease quantity') }}">−</button>
+                            <input type="number" id="product-qty" name="quantity" value="1" min="1" max="10" class="h-12 w-14 border-0 border-x border-stone-200 bg-transparent text-center text-stone-900 font-medium focus:ring-0 focus:outline-none" readonly />
+                            <button type="button" id="qty-plus" class="flex h-12 w-12 items-center justify-center text-stone-600 hover:bg-stone-100 transition-colors" aria-label="{{ __('Increase quantity') }}">+</button>
+                        </div>
+                        <a href="{{ route('order.place', $product) }}" id="add-to-bag-link" class="lumiere-add-to-bag inline-flex min-w-[200px] flex-1 items-center justify-center gap-2 rounded-xl px-8 py-4 text-base font-semibold text-white shadow-md transition-all duration-200 hover:shadow-lg hover:brightness-105 sm:flex-none" style="background: linear-gradient(135deg, #5A5A40 0%, #4a4a35 100%);">
+                            <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                            </svg>
+                            <span id="add-to-bag-text">{{ __('Add to Bag') }} – {{ $symbol }}{{ number_format($product->price, 2) }}</span>
+                        </a>
+                        @include('products.partials._order-delivery-label', [
+                            'product' => $product,
+                            'class' => 'text-stone-700',
+                            'iconClass' => 'text-stone-500',
+                            'valueClass' => 'text-red-600',
+                        ])
                     </div>
-                    <a href="{{ route('order.place', $product) }}" id="add-to-bag-link" class="lumiere-add-to-bag inline-flex flex-1 min-w-[200px] items-center justify-center gap-2 rounded-xl px-8 py-4 text-base font-semibold text-white shadow-md transition-all duration-200 hover:shadow-lg hover:brightness-105" style="background: linear-gradient(135deg, #5A5A40 0%, #4a4a35 100%);">
-                        <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                        </svg>
-                        <span id="add-to-bag-text">{{ __('Add to Bag') }} – {{ $symbol }}{{ number_format($product->price, 2) }}</span>
-                    </a>
+                    @include('products.partials._order-delivery-footnote', ['product' => $product, 'class' => 'text-stone-400'])
                 </div>
             </div>
         </div>

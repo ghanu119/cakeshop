@@ -43,6 +43,7 @@
                     @if($product->category)
                         <p class="mt-2 text-lg text-amber-600">{{ $product->category->name_en }}</p>
                     @endif
+                    @include('products.partials._product-sku', ['product' => $product])
                 </div>
 
                 <div class="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6">
@@ -119,10 +120,21 @@
                     </div>
                 @endif
 
+                @include('products.partials._whatsapp-customize-help', ['product' => $product])
+
                 <div class="pt-6">
-                    <a href="{{ route('order.place', $product) }}{{ !empty($hasVariants) && $defaultVariant ? '?product_variant_id='.$defaultVariant->id : '' }}" id="pdp-order-link" data-base-url="{{ route('order.place', $product) }}" class="inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:from-amber-600 hover:to-orange-600 hover:shadow-xl lg:w-auto">
-                        {{ __('Order this cake') }}
-                    </a>
+                    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-5">
+                        <a href="{{ route('order.place', $product) }}{{ !empty($hasVariants) && $defaultVariant ? '?product_variant_id='.$defaultVariant->id : '' }}" id="pdp-order-link" data-base-url="{{ route('order.place', $product) }}" class="inline-flex w-full shrink-0 items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-8 py-4 text-lg font-semibold text-white shadow-lg transition-all duration-200 hover:from-amber-600 hover:to-orange-600 hover:shadow-xl sm:w-auto">
+                            {{ __('Order this cake') }}
+                        </a>
+                        @include('products.partials._order-delivery-label', [
+                            'product' => $product,
+                            'class' => 'text-stone-700',
+                            'iconClass' => 'text-stone-500',
+                            'valueClass' => 'text-red-600',
+                        ])
+                    </div>
+                    @include('products.partials._order-delivery-footnote', ['product' => $product, 'class' => 'text-stone-500'])
                 </div>
             </div>
         </div>

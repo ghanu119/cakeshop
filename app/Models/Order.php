@@ -57,6 +57,7 @@ class Order extends Model implements HasMedia
         'product_id',
         'product_variant_id',
         'product_name',
+        'product_sku',
         'unit_price',
         'variant_summary',
         'weight_grams',
@@ -248,6 +249,15 @@ class Order extends Model implements HasMedia
         }
 
         return __('Product');
+    }
+
+    public function displayProductSku(): ?string
+    {
+        if ($this->product_sku) {
+            return $this->product_sku;
+        }
+
+        return $this->product?->sku;
     }
 
     public function displayUnitPrice(): float

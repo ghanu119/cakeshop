@@ -224,6 +224,7 @@ class OrderService
         $order->guest_phone = $data['guest_phone'] ?? '';
         $order->product_id = $product->id;
         $order->product_name = $product->name_en;
+        $order->product_sku = $product->sku;
         $order->quantity = (int) ($data['quantity'] ?? 1);
         $order->message_on_cake = $data['message_on_cake'] ?? null;
         $order->instructions = $data['instructions'] ?? null;
@@ -363,11 +364,13 @@ class OrderService
         $order->save();
     }
 
-    public function deliveryAtRules(): array
+    public function deliveryAtRules(?\App\Models\Product $product = null): array
     {
         $timezone = settings('timezone') ?? 'Asia/Kolkata';
         $maxDays = (int) (settings('order_max_future_days') ?? 7);
-        $minHours = (int) (settings('order_min_hours_before_delivery') ?? 4);
+        $minHours = $product !== null
+            ? $product->minHoursBeforeDelivery()
+            : (int) (settings('order_min_hours_before_delivery') ?? 4);
 
         $now = Carbon::now($timezone);
         $minDelivery = $now->copy()->addHours($minHours);
@@ -378,5 +381,71 @@ class OrderService
             'before' => $maxDelivery->utc(),
             'timezone' => $timezone,
         ];
+    }
+
+    public function suggestedDeliveryAt(array $rules): string
+    {
+        $timezone = $rules['timezone'];
+        $min = Carbon::parse($rules['after'])->setTimezone($timezone);
+
+        $minute = (int) $min->format('i');
+        $remainder = $minute % 15;
+        if ($remainder !== 0) {
+            $min->addMinutes(15 - $remainder)->second(0);
+        } else {
+            $min->second(0);
+        }
+
+        return $min->format('Y-m-d\TH:i');
+    }
+
+    /**
+     * @return array{min: string, max: string, min_display: string, max_display: string, timezone: string}
+     */
+    public function deliveryAtBoundsForInput(array $rules): array
+    {
+        $timezone = $rules['timezone'];
+        $min = Carbon::parse($rules['after'])->setTimezone($timezone);
+        $max = Carbon::parse($rules['before'])->setTimezone($timezone);
+
+        return [
+            'min' => $min->format('Y-m-d\TH:i'),
+            'max' => $max->format('Y-m-d\TH:i'),
+            'min_display' => $min->format('M d, Y · h:i A'),
+            'max_display' => $max->format('M d, Y · h:i A'),
+            'timezone' => $timezone,
+        ];
+    }
+
+    public function validateDeliveryAtForProduct(?\App\Models\Product $product, string $deliveryAt): ?string
+    {
+        $rules = $this->deliveryAtRules($product);
+        $bounds = $this->deliveryAtBoundsForInput($rules);
+        $timezone = $bounds['timezone'];
+
+        try {
+            $selected = Carbon::createFromFormat('Y-m-d\TH:i', $deliveryAt, $timezone);
+        } catch (\Throwable) {
+            return __('Please enter a valid delivery date and time.');
+        }
+
+        $min = Carbon::createFromFormat('Y-m-d\TH:i', $bounds['min'], $timezone);
+        $max = Carbon::createFromFormat('Y-m-d\TH:i', $bounds['max'], $timezone);
+
+        if ($selected->lt($min)) {
+            return __('Please choose a time on or after :time (:timezone).', [
+                'time' => $bounds['min_display'],
+                'timezone' => $timezone,
+            ]);
+        }
+
+        if ($selected->gt($max)) {
+            return __('Please choose a time on or before :time (:timezone).', [
+                'time' => $bounds['max_display'],
+                'timezone' => $timezone,
+            ]);
+        }
+
+        return null;
     }
 }

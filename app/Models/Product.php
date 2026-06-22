@@ -27,6 +27,10 @@ class Product extends Model implements HasMedia
         'ingredients',
         'short_description',
         'message_on_cake_max_length',
+        'sku',
+        'earliest_delivery_label',
+        'min_hours_before_delivery',
+        'show_whatsapp_customize_help',
         'price',
         'status',
         'meta_title',
@@ -48,6 +52,47 @@ class Product extends Model implements HasMedia
             'is_featured' => 'boolean',
             'homepage_sort_order' => 'integer',
             'message_on_cake_max_length' => 'integer',
+            'min_hours_before_delivery' => 'integer',
+            'show_whatsapp_customize_help' => 'boolean',
+        ];
+    }
+
+    public function minHoursBeforeDelivery(): int
+    {
+        if ($this->min_hours_before_delivery !== null) {
+            return (int) $this->min_hours_before_delivery;
+        }
+
+        return (int) (settings('order_min_hours_before_delivery') ?? 4);
+    }
+
+    public function displayEarliestDeliveryLabel(): string
+    {
+        if (filled($this->earliest_delivery_label)) {
+            return $this->earliest_delivery_label;
+        }
+
+        $hours = $this->minHoursBeforeDelivery();
+
+        return trans_choice(':count hour|:count hours', $hours, ['count' => $hours]);
+    }
+
+    /**
+     * Earliest selectable delivery/pickup slot for this product (site timezone).
+     *
+     * @return array{datetime: string, timezone: string, hours: int}
+     */
+    public function earliestDeliverySlot(): array
+    {
+        $orderService = app(\App\Services\OrderService::class);
+        $rules = $orderService->deliveryAtRules($this);
+        $slot = $orderService->suggestedDeliveryAt($rules);
+        $timezone = $rules['timezone'];
+
+        return [
+            'datetime' => \Carbon\Carbon::createFromFormat('Y-m-d\TH:i', $slot, $timezone)->format('M d, Y · h:i A'),
+            'timezone' => $timezone,
+            'hours' => $this->minHoursBeforeDelivery(),
         ];
     }
 

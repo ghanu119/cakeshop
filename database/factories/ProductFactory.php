@@ -36,6 +36,7 @@ class ProductFactory extends Factory
             'is_trending' => false,
             'is_featured' => false,
             'homepage_sort_order' => null,
+            'sku' => fake()->unique()->bothify('CAKE-???-###'),
         ];
     }
 

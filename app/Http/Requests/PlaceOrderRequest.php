@@ -20,11 +20,6 @@ class PlaceOrderRequest extends FormRequest
 
     public function rules(): array
     {
-        $orderService = app(OrderService::class);
-        $rules = $orderService->deliveryAtRules();
-        $after = $rules['after']->format('Y-m-d\TH:i');
-        $before = $rules['before']->format('Y-m-d\TH:i');
-
         /** @var Product|null $product */
         $product = $this->route('product');
         $messageMax = $product?->messageOnCakeMaxLength() ?? Order::defaultMessageOnCakeMaxLength();
@@ -39,7 +34,7 @@ class PlaceOrderRequest extends FormRequest
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
             'message_on_cake' => ['nullable', 'string', 'max:'.$messageMax],
             'instructions' => ['nullable', 'string', 'max:1000'],
-            'delivery_at' => ['required', 'date', 'after_or_equal:'.$after, 'before_or_equal:'.$before],
+            'delivery_at' => ['required', 'date_format:Y-m-d\TH:i'],
             'product_variant_id' => ['nullable', 'integer'],
             'flavor_id' => ['nullable', 'integer'],
         ];
@@ -59,6 +54,14 @@ class PlaceOrderRequest extends FormRequest
             $product = $this->route('product');
             if (! $product) {
                 return;
+            }
+
+            $deliveryAt = (string) $this->input('delivery_at', '');
+            if ($deliveryAt !== '') {
+                $deliveryError = app(OrderService::class)->validateDeliveryAtForProduct($product, $deliveryAt);
+                if ($deliveryError !== null) {
+                    $validator->errors()->add('delivery_at', $deliveryError);
+                }
             }
 
             $customer = app(CustomerContext::class)->effectiveCustomer();

@@ -36,7 +36,9 @@ class OrderController extends Controller
             abort(404);
         }
         $customer = $this->customerContext->effectiveCustomer();
-        $deliveryRules = $this->orderService->deliveryAtRules();
+        $deliveryRules = $this->orderService->deliveryAtRules($product);
+        $suggestedDeliveryAt = $this->orderService->suggestedDeliveryAt($deliveryRules);
+        $deliveryBounds = $this->orderService->deliveryAtBoundsForInput($deliveryRules);
         $this->productVariantService->eagerLoadForStorefront($product);
         $product->load([
             'flavors' => fn ($q) => $q->active()->orderByPivot('sort_order'),
@@ -52,6 +54,8 @@ class OrderController extends Controller
             'product',
             'customer',
             'deliveryRules',
+            'deliveryBounds',
+            'suggestedDeliveryAt',
             'variantChoices',
             'defaultVariant',
             'hasVariants',

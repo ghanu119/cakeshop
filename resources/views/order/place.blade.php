@@ -16,6 +16,9 @@
 
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
     <h1 class="mb-6 text-3xl font-bold tracking-tight text-gray-900">{{ __('Order') }}: {{ $product->name_en }}</h1>
+    @if(filled($product->sku))
+        <p class="mb-4 text-sm text-gray-500">{{ __('SKU') }}: <span class="font-mono text-gray-700">{{ $product->sku }}</span></p>
+    @endif
     <x-card class="mb-6">
         <p class="mb-4 text-gray-600">
             <span id="order-unit-price">{{ $symbol }}{{ number_format($product->price, 2) }}</span>
@@ -70,13 +73,12 @@
                 </div>
             @endif
             <div>
-                <label for="delivery_at" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Delivery date and time') }} * ({{ $deliveryRules['timezone'] }})</label>
-                @php
-                    $minDt = $deliveryRules['after']->setTimezone($deliveryRules['timezone'])->format('Y-m-d\TH:i');
-                    $maxDt = $deliveryRules['before']->setTimezone($deliveryRules['timezone'])->format('Y-m-d\TH:i');
-                @endphp
-                <x-input type="datetime-local" name="delivery_at" id="delivery_at" value="{{ old('delivery_at') }}" min="{{ $minDt }}" max="{{ $maxDt }}" class="block w-full" required />
-                @error('delivery_at')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                @include('order.partials._delivery-datetime-field', [
+                    'product' => $product,
+                    'deliveryRules' => $deliveryRules,
+                    'deliveryBounds' => $deliveryBounds,
+                    'suggestedDeliveryAt' => $suggestedDeliveryAt ?? '',
+                ])
             </div>
             <div>
                 <label for="message_on_cake" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Message on cake') }}</label>

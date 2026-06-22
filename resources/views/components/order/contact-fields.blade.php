@@ -20,12 +20,12 @@
         : 'mt-1 text-sm text-red-600';
 @endphp
 
-<div {{ $attributes->merge(['class' => $variant === 'checkout' ? 'mb-10' : 'space-y-4', 'data-order-contact-section' => true]) }}>
+<div {{ $attributes->merge(['class' => $variant === 'checkout' ? 'mb-0' : 'space-y-4', 'data-order-contact-section' => true]) }}>
     <div class="mb-4 flex flex-wrap items-center justify-between gap-3 @if($variant === 'checkout') border-b border-stone-100 pb-4 @endif">
         <div>
             @if($variant === 'checkout')
-                <h3 class="text-xl font-bold text-stone-900 flex items-center gap-3">
-                    <span class="flex items-center justify-center w-8 h-8 rounded-full bg-amber-500 text-white text-sm font-bold shadow-sm">1</span>
+                <h3 class="text-xl font-bold text-stone-900 flex items-center gap-3 whitespace-nowrap">
+                    <span class="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-amber-500 text-white text-sm font-bold shadow-sm">1</span>
                     {{ __('Who is this order for?') }}
                 </h3>
             @else

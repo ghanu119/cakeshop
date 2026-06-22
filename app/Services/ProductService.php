@@ -35,7 +35,8 @@ class ProductService
             $query->where(function ($q) use ($term) {
                 $q->where('name_en', 'like', "%{$term}%")
                     ->orWhere('name_hi', 'like', "%{$term}%")
-                    ->orWhere('name_gu', 'like', "%{$term}%");
+                    ->orWhere('name_gu', 'like', "%{$term}%")
+                    ->orWhere('sku', 'like', "%{$term}%");
             });
         }
 
@@ -223,6 +224,14 @@ class ProductService
         $product->message_on_cake_max_length = isset($data['message_on_cake_max_length']) && $data['message_on_cake_max_length'] !== '' && $data['message_on_cake_max_length'] !== null
             ? (int) $data['message_on_cake_max_length']
             : null;
+        $product->sku = isset($data['sku']) && $data['sku'] !== '' ? $data['sku'] : null;
+        $product->earliest_delivery_label = isset($data['earliest_delivery_label']) && $data['earliest_delivery_label'] !== ''
+            ? $data['earliest_delivery_label']
+            : null;
+        $product->min_hours_before_delivery = isset($data['min_hours_before_delivery']) && $data['min_hours_before_delivery'] !== '' && $data['min_hours_before_delivery'] !== null
+            ? (int) $data['min_hours_before_delivery']
+            : null;
+        $product->show_whatsapp_customize_help = ! empty($data['show_whatsapp_customize_help']);
         if (! empty($data['variants'])) {
             $product->price = $data['price'] ?? 0;
         } else {

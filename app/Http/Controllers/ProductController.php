@@ -67,7 +67,7 @@ class ProductController extends Controller
         return [
             'category',
             'media',
-            'variants' => fn ($q) => $qs->active()->orderBy('sort_order'),
+            'variants' => fn ($q) => $q->active()->orderBy('sort_order'),
             'variants.selections.value',
         ];
     }

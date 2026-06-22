@@ -61,7 +61,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-yGxXsthJ.css",
+    "file": "assets/app-DcYxWlq0.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -148,6 +148,12 @@
     "file": "assets/image-lightbox-CpGYtt6_.js",
     "name": "image-lightbox",
     "src": "resources/js/image-lightbox.js",
+    "isEntry": true
+  },
+  "resources/js/order-delivery-datetime.js": {
+    "file": "assets/order-delivery-datetime-Bqcm7hZi.js",
+    "name": "order-delivery-datetime",
+    "src": "resources/js/order-delivery-datetime.js",
     "isEntry": true
   },
   "resources/js/order-fulfillment-type.js": {

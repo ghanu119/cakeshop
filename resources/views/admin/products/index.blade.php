@@ -25,8 +25,8 @@
                 <input type="hidden" name="direction" value="{{ request('direction') }}" />
             @endif
             <div class="min-w-[200px] flex-1">
-                <label for="search" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Search by name') }}</label>
-                <x-input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="{{ __('Search…') }}" class="block w-full" />
+                <label for="search" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Search by name or SKU') }}</label>
+                <x-input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="{{ __('Search by name or SKU…') }}" class="block w-full" />
             </div>
             <div class="w-48">
                 <label for="category_id" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Category') }}</label>
@@ -74,6 +74,7 @@
         <x-table.wrapper>
             <x-table.header>
                 <x-table.sortable-th column="name_en">{{ __('Name') }}</x-table.sortable-th>
+                <x-table.th>{{ __('SKU') }}</x-table.th>
                 <x-table.sortable-th column="category">{{ __('Category') }}</x-table.sortable-th>
                 <x-table.sortable-th column="price">{{ __('Price') }}</x-table.sortable-th>
                 <x-table.sortable-th column="status">{{ __('Status') }}</x-table.sortable-th>
@@ -90,6 +91,7 @@
                                 <img src="{{ $product->getFirstMediaUrl('product_images', 'thumb') }}" alt="" class="mt-1 h-10 w-10 rounded object-cover" />
                             @endif
                         </x-table.cell>
+                        <x-table.cell class="text-sm text-gray-600">{{ $product->sku ?: '—' }}</x-table.cell>
                         <x-table.cell>{{ $product->category?->name_en }}</x-table.cell>
                         <x-table.cell>₹ {{ number_format($product->price, 2) }}</x-table.cell>
                         <x-table.cell>
@@ -120,7 +122,7 @@
                     </x-table.row>
                 @empty
                     <x-table.row>
-                        <x-table.cell colspan="7" class="text-center text-gray-500">{{ __('No products found.') }}</x-table.cell>
+                        <x-table.cell colspan="8" class="text-center text-gray-500">{{ __('No products found.') }}</x-table.cell>
                     </x-table.row>
                 @endforelse
             </x-table.body>
