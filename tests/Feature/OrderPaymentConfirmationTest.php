@@ -109,6 +109,30 @@ class OrderPaymentConfirmationTest extends TestCase
         $confirm->assertDontSee(__('Submit payment details'), false);
     }
 
+    public function test_submit_payment_requires_transaction_amount_and_date(): void
+    {
+        $order = Order::factory()->create();
+
+        $response = $this->post(route('order.submit-payment.store', $order), [
+            'phone' => $order->guest_phone,
+        ]);
+
+        $response->assertSessionHasErrors(['payment_reference', 'payment_amount', 'payment_made_at']);
+    }
+
+    public function test_submit_payment_form_marks_required_fields(): void
+    {
+        $order = Order::factory()->create();
+
+        $response = $this->get(route('order.submit-payment', $order));
+
+        $response->assertOk();
+        $response->assertSee('name="payment_reference"', false);
+        $response->assertSee('name="payment_amount"', false);
+        $response->assertSee('name="payment_made_at"', false);
+        $response->assertSee('required', false);
+    }
+
     public function test_confirm_page_shows_order_type_and_delivery_address(): void
     {
         $order = Order::factory()->deliveryFulfillment('42 Baker Street, Suite 5')->create([
@@ -170,15 +194,9 @@ class OrderPaymentConfirmationTest extends TestCase
         $response->assertSee(__('Copy UPI ID'), false);
         $response->assertSee(__('Download QR code'), false);
         $response->assertSee(route('order.payment-qr.download'), false);
-        $response->assertSee(__('Pay with UPI app'), false);
-        $response->assertSee('data-upi-pay-button', false);
-        $response->assertSee('id="upi-pay-config"', false);
-        $response->assertSee(__('Google Pay'), false);
-        $response->assertSee(__('PhonePe'), false);
-        $response->assertSee('upi://pay?', false);
-        $response->assertSee('pa=shop%40upi', false);
-        $response->assertSee('am=749.50', false);
-        $response->assertSee('tn='.$order->order_no, false);
+        $response->assertDontSee(__('Pay with UPI app'), false);
+        $response->assertDontSee('data-upi-pay-button', false);
+        $response->assertDontSee('id="upi-pay-config"', false);
     }
 
     public function test_confirm_page_hides_upi_copy_when_payment_details_submitted(): void

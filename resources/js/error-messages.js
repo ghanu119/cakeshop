@@ -59,13 +59,13 @@ export function resolveUserMessage(error) {
         return messages[code];
     }
 
-    if (response?.data?.message) {
-        return response.data.message;
-    }
-
     const validationMessage = firstValidationMessage(error);
     if (validationMessage) {
         return validationMessage;
+    }
+
+    if (response?.data?.message) {
+        return response.data.message;
     }
 
     if (response?.status === 401) {

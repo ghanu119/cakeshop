@@ -35,7 +35,8 @@ class OrderService
     public const ADMIN_IN_KITCHEN_PREVIEW_LIMIT = 4;
 
     public function __construct(
-        private ProductVariantService $productVariantService
+        private ProductVariantService $productVariantService,
+        private ServiceablePincodeService $pincodeService
     ) {}
 
     public function listForAdmin(Request $request): LengthAwarePaginator
@@ -232,6 +233,7 @@ class OrderService
         $order->delivery_address = $order->fulfillment_type === Order::FULFILLMENT_DELIVERY
             ? ($data['delivery_address'] ?? null)
             : null;
+        $order->delivery_pincode = $this->resolveDeliveryPincode($order->fulfillment_type, $data['delivery_pincode'] ?? null);
         $order->payment_status = 'pending';
         $order->order_status = 'pending';
         $order->payment_method = Order::PAYMENT_METHOD_UPI;
@@ -265,6 +267,23 @@ class OrderService
         }
 
         return $order;
+    }
+
+    private function resolveDeliveryPincode(string $fulfillmentType, mixed $rawPincode): ?string
+    {
+        if ($fulfillmentType !== Order::FULFILLMENT_DELIVERY) {
+            return null;
+        }
+
+        $normalized = $this->pincodeService->normalize((string) ($rawPincode ?? ''));
+
+        if ($normalized === null || ! $this->pincodeService->isServiceable($normalized)) {
+            throw ValidationException::withMessages([
+                'delivery_pincode' => [__('Sorry, we do not deliver to this pincode yet. Please choose Take away or contact us.')],
+            ]);
+        }
+
+        return $normalized;
     }
 
     private function applyFlavorSnapshot(Order $order, Product $product, mixed $flavorId): void

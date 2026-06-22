@@ -67,6 +67,9 @@
                     </div>
                 </div>
             </nav>
+            @if(($navCategories ?? collect())->isNotEmpty())
+                @include('products.partials._category-pills', ['categories' => $navCategories])
+            @endif
         </header>
 
         @include('partials._impersonation-banner')

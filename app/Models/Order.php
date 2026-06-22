@@ -69,6 +69,7 @@ class Order extends Model implements HasMedia
         'instructions',
         'fulfillment_type',
         'delivery_address',
+        'delivery_pincode',
         'serial_number',
         'amount',
         'payment_status',

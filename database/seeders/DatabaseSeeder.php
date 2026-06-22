@@ -15,6 +15,7 @@ class DatabaseSeeder extends Seeder
             RoleAndPermissionSeeder::class,
             UserSeeder::class,
             SettingSeeder::class,
+            ServiceablePincodeSeeder::class,
             VariantOptionSeeder::class,
             FlavorSeeder::class,
             CategorySeeder::class,

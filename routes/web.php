@@ -13,15 +13,16 @@ use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
 use App\Http\Controllers\Admin\SettingsController;
+use App\Http\Controllers\Admin\ServiceablePincodeController;
 use App\Http\Controllers\Admin\TestimonialController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Auth\LogoutController;
-use App\Http\Controllers\CategoryController as FrontendCategoryController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Kitchen\OrderController as KitchenOrderController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\PincodeCheckController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController as FrontendProductController;
 use App\Http\Controllers\SitemapController;
@@ -50,8 +51,14 @@ Route::get('privacy', [PageController::class, 'privacy'])->name('privacy');
 Route::get('cookie-policy', [PageController::class, 'cookiePolicy'])->name('cookie-policy');
 
 Route::get('products', [FrontendProductController::class, 'index'])->name('products.index');
-Route::get('products/{slug}', [FrontendProductController::class, 'show'])->name('products.show');
-Route::get('categories/{slug}', [FrontendCategoryController::class, 'show'])->name('categories.show');
+Route::get('products/{slug}', [FrontendProductController::class, 'index'])->name('products.category');
+Route::get('product/{slug}', [FrontendProductController::class, 'show'])->name('product.show');
+Route::get('categories/{slug}', function (string $slug) {
+    return redirect()->route('products.category', array_merge(
+        ['slug' => $slug],
+        request()->query()
+    ), 301);
+})->name('categories.show');
 
 Route::get('sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('robots.txt', [\App\Http\Controllers\RobotsController::class, 'index'])->name('robots');
@@ -79,6 +86,7 @@ Route::prefix('order')->name('order.')->group(function () {
     Route::post('checkout/send-otp', [OrderController::class, 'sendCheckoutOtp'])->middleware('throttle:60,1')->name('checkout.send-otp');
     Route::post('checkout/verify-otp', [OrderController::class, 'verifyCheckoutOtp'])->middleware('throttle:10,15')->name('checkout.verify-otp');
     Route::post('product/{product:slug}', [OrderController::class, 'place'])->name('store');
+    Route::middleware(['throttle:30,1'])->post('check-pincode', [PincodeCheckController::class, 'check'])->name('pincode.check');
     Route::get('confirm/{order}', [OrderController::class, 'confirm'])->name('confirm');
     Route::get('payment-qr/download', [OrderController::class, 'downloadPaymentQr'])->name('payment-qr.download');
     Route::get('history', [OrderController::class, 'historyForm'])->name('history');
@@ -132,6 +140,7 @@ Route::middleware(['ensure.admin.https', 'auth:web', 'verified', 'role:Admin|Kit
             Route::resource('cake-weights', \App\Http\Controllers\Admin\CakeWeightController::class)
                 ->parameters(['cake-weights' => 'cake_weight'])
                 ->except(['show']);
+            Route::resource('serviceable-pincodes', ServiceablePincodeController::class)->except(['show']);
             Route::redirect('variant-option-types', '/admin/cake-weights')->name('variant-option-types.index');
             Route::redirect('variant-option-types/create', '/admin/cake-weights/create')->name('variant-option-types.create');
             Route::get('variant-option-types/{variant_option_type}/values', fn () => redirect()->route('admin.cake-weights.index'));

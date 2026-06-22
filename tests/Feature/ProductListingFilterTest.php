@@ -221,4 +221,30 @@ class ProductListingFilterTest extends TestCase
 
         $response->assertSessionHasErrors('flavor_ids.0');
     }
+
+    public function test_category_id_filter_returns_matching_products_only(): void
+    {
+        $cakes = Category::factory()->create(['name_en' => 'Cakes', 'slug' => 'cakes-filter']);
+        $pastries = Category::factory()->create(['name_en' => 'Pastries', 'slug' => 'pastries-filter']);
+
+        Product::factory()->create([
+            'category_id' => $cakes->id,
+            'name_en' => 'Chocolate Layer Cake',
+            'status' => 'active',
+        ]);
+        Product::factory()->create([
+            'category_id' => $pastries->id,
+            'name_en' => 'Butter Croissant',
+            'status' => 'active',
+        ]);
+
+        $response = $this->get(route('products.index', ['category_id' => $cakes->id]));
+
+        $response->assertRedirect(route('products.category', ['slug' => $cakes->slug]));
+
+        $categoryPage = $this->get(route('products.category', $cakes->slug));
+        $categoryPage->assertOk();
+        $categoryPage->assertSee('Chocolate Layer Cake', false);
+        $categoryPage->assertDontSee('Butter Croissant', false);
+    }
 }

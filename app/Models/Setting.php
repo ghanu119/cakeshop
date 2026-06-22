@@ -56,6 +56,9 @@ class Setting extends Model
         'twitter_url' => '',
         'product_note' => '',
         'message_on_cake_max_length' => '50',
+        'checkout_delivery_notice' => 'We deliver only within Rajkot. Enter your pincode to check availability.',
+        'checkout_takeaway_notice' => 'Pickup is only available at our store:',
+        'checkout_takeaway_address' => null,
         ...self::NOTIFICATION_DEFAULTS,
     ];
 

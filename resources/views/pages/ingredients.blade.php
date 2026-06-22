@@ -190,7 +190,7 @@
                 <article class="flex flex-col overflow-hidden rounded-2xl border border-stone-100 bg-white shadow-sm transition-shadow duration-200 hover:shadow-[var(--theme-card-shadow)]">
                     <div class="border-b border-amber-100/80 bg-gradient-to-br from-amber-50 to-orange-50/80 px-6 py-5">
                         <h3 class="text-lg font-bold text-stone-900">
-                            <a href="{{ route('products.show', $product->slug) }}" class="transition-colors hover:text-amber-700">{{ $product->name_en }}</a>
+                            <a href="{{ route('product.show', $product->slug) }}" class="transition-colors hover:text-amber-700">{{ $product->name_en }}</a>
                         </h3>
                         @if($product->category)
                             <p class="mt-1 text-sm font-medium text-amber-700">{{ $product->category->name_en }}</p>
@@ -205,7 +205,7 @@
                                 </li>
                             @endforeach
                         </ul>
-                        <a href="{{ route('products.show', $product->slug) }}" class="mt-5 inline-flex items-center text-sm font-semibold text-amber-700 hover:text-amber-800">
+                        <a href="{{ route('product.show', $product->slug) }}" class="mt-5 inline-flex items-center text-sm font-semibold text-amber-700 hover:text-amber-800">
                             {{ __('See cake details') }}
                             <svg class="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
                         </a>

@@ -6,6 +6,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Services\CustomerAuthService;
 use App\Services\CustomerContext;
+use App\Rules\ServiceablePincode;
 use App\Services\OrderService;
 use App\Services\ProductVariantService;
 use Illuminate\Foundation\Http\FormRequest;
@@ -42,6 +43,7 @@ class PlaceOrderRequest extends FormRequest
         if (uses_better_buns_checkout()) {
             $rules['fulfillment_type'] = ['required', 'string', 'in:takeaway,delivery'];
             $rules['delivery_address'] = ['nullable', 'string', 'max:1000', 'required_if:fulfillment_type,delivery'];
+            $rules['delivery_pincode'] = ['nullable', 'string', 'digits:6', 'required_if:fulfillment_type,delivery', new ServiceablePincode];
         }
 
         return $rules;

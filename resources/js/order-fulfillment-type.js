@@ -1,7 +1,9 @@
 document.addEventListener('DOMContentLoaded', function () {
     const picker = document.querySelector('[data-fulfillment-picker]');
-    const panel = document.querySelector('[data-delivery-address-panel]');
+    const fulfillmentLeftColumn = document.querySelector('[data-fulfillment-left-column]');
+    const takeawayPanel = document.querySelector('[data-takeaway-notice-panel]');
     const addressInput = document.querySelector('[data-delivery-address-input]');
+    const pincodeInput = document.querySelector('[data-delivery-pincode-input]');
     const hiddenInput = document.getElementById('fulfillment_type');
 
     if (!picker) {
@@ -10,22 +12,53 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const pills = picker.querySelectorAll('[data-fulfillment-type]');
 
-    function syncAddressPanel() {
-        if (!panel) {
-            return;
+    function deliveryPanels() {
+        const panels = document.querySelectorAll('[data-delivery-panel]');
+
+        if (panels.length > 0) {
+            return panels;
         }
 
+        return document.querySelectorAll('[data-delivery-address-panel], [data-delivery-address-column]');
+    }
+
+    function syncPanels() {
         const selected = picker.querySelector('[data-fulfillment-type][aria-pressed="true"]');
         const isDelivery = selected?.dataset.fulfillmentType === 'delivery';
 
+        deliveryPanels().forEach((panel) => {
+            if (isDelivery) {
+                panel.classList.remove('hidden');
+            } else {
+                panel.classList.add('hidden');
+            }
+        });
+
+        if (fulfillmentLeftColumn) {
+            if (isDelivery) {
+                fulfillmentLeftColumn.classList.remove('md:col-span-2');
+            } else {
+                fulfillmentLeftColumn.classList.add('md:col-span-2');
+            }
+        }
+
+        if (takeawayPanel) {
+            if (isDelivery) {
+                takeawayPanel.classList.add('hidden');
+            } else {
+                takeawayPanel.classList.remove('hidden');
+            }
+        }
+
         if (isDelivery) {
-            panel.classList.remove('hidden');
-            addressInput?.setAttribute('required', 'required');
-            addressInput?.removeAttribute('disabled');
+            pincodeInput?.removeAttribute('disabled');
+            document.dispatchEvent(new CustomEvent('fulfillment:delivery-selected'));
         } else {
-            panel.classList.add('hidden');
+            pincodeInput?.setAttribute('disabled', 'disabled');
+            pincodeInput?.removeAttribute('required');
             addressInput?.removeAttribute('required');
             addressInput?.setAttribute('disabled', 'disabled');
+            document.dispatchEvent(new CustomEvent('fulfillment:takeaway-selected'));
         }
     }
 
@@ -39,12 +72,19 @@ document.addEventListener('DOMContentLoaded', function () {
             pill.setAttribute('aria-pressed', active ? 'true' : 'false');
         });
 
-        syncAddressPanel();
+        syncPanels();
     }
 
     pills.forEach((pill) => {
         pill.addEventListener('click', () => selectFulfillment(pill));
     });
 
-    syncAddressPanel();
+    document.querySelector('[data-switch-to-takeaway]')?.addEventListener('click', () => {
+        const takeawayPill = picker.querySelector('[data-fulfillment-type="takeaway"]');
+        if (takeawayPill) {
+            selectFulfillment(takeawayPill);
+        }
+    });
+
+    syncPanels();
 });

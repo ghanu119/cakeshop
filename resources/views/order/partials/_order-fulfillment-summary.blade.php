@@ -41,6 +41,9 @@
             </div>
             <div class="min-w-0 flex-1">
                 <p class="text-xs font-bold text-teal-800 uppercase tracking-wider mb-0.5">{{ __('Delivery address') }}</p>
+                @if($order->delivery_pincode)
+                    <p class="text-sm font-semibold text-teal-900 mb-1">{{ $order->delivery_pincode }}</p>
+                @endif
                 <p class="text-sm font-medium text-stone-800 whitespace-pre-wrap leading-relaxed">{{ $order->delivery_address }}</p>
             </div>
         </div>

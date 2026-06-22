@@ -70,11 +70,12 @@ class OrderFactory extends Factory
         ]);
     }
 
-    public function deliveryFulfillment(?string $address = null): static
+    public function deliveryFulfillment(?string $address = null, ?string $pincode = '360004'): static
     {
         return $this->state(fn () => [
             'fulfillment_type' => Order::FULFILLMENT_DELIVERY,
             'delivery_address' => $address ?? fake()->address(),
+            'delivery_pincode' => $pincode,
         ]);
     }
 

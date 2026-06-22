@@ -31,13 +31,19 @@
             z-index: 1;
             width: 100%;
             max-width: 28rem;
+            max-height: calc(100vh - 2rem);
             margin: 1.5rem auto;
+            overflow-y: auto;
             border-radius: 1rem;
             border: 1px solid #fde68a;
             background-color: #fff;
-            padding: 1.5rem;
+            padding: 1.25rem;
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
             box-sizing: border-box;
+        }
+
+        #order-place-confirm-modal .order-confirm-panel button {
+            box-shadow: none;
         }
 
         @media (min-width: 640px) {
@@ -111,20 +117,20 @@
             </button>
         </div>
 
-        <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-            <button
-                type="button"
-                data-order-confirm-cancel
-                class="w-full rounded-full border-2 border-stone-200 px-6 py-3 text-sm font-bold text-stone-700 transition hover:border-stone-300 hover:bg-stone-50 sm:w-auto"
-            >
-                {{ __('Go back and edit') }}
-            </button>
+        <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
             <button
                 type="button"
                 data-order-confirm-submit
-                class="w-full rounded-full bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 text-sm font-bold text-white shadow-md transition hover:shadow-lg sm:w-auto"
+                class="inline-flex min-h-[3rem] w-full items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 text-sm font-bold text-white transition hover:from-amber-600 hover:to-orange-600 sm:order-2 sm:w-auto sm:min-w-[10rem]"
             >
                 {{ __('Yes, place order') }}
+            </button>
+            <button
+                type="button"
+                data-order-confirm-cancel
+                class="inline-flex min-h-[3rem] w-full items-center justify-center rounded-xl border border-stone-200 bg-white px-6 py-3 text-sm font-bold text-stone-700 transition hover:border-stone-300 hover:bg-stone-50 sm:order-1 sm:w-auto sm:min-w-[10rem]"
+            >
+                {{ __('Go back and edit') }}
             </button>
         </div>
     </div>

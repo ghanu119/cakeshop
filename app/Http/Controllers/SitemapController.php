@@ -19,7 +19,7 @@ class SitemapController extends Controller
 
         Product::active()->get(['slug', 'updated_at'])->each(function (Product $p) use (&$urls) {
             $urls[] = [
-                'loc' => route('products.show', $p->slug),
+                'loc' => route('product.show', $p->slug),
                 'lastmod' => $p->updated_at?->toW3cString(),
                 'priority' => '0.8',
                 'changefreq' => 'weekly',
@@ -28,7 +28,7 @@ class SitemapController extends Controller
 
         Category::active()->get(['slug', 'updated_at'])->each(function (Category $c) use (&$urls) {
             $urls[] = [
-                'loc' => route('categories.show', $c->slug),
+                'loc' => route('products.category', $c->slug),
                 'lastmod' => $c->updated_at?->toW3cString(),
                 'priority' => '0.7',
                 'changefreq' => 'weekly',

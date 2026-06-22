@@ -110,7 +110,7 @@
                 <div>
                     <label for="payment_upi_id" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Payment UPI ID') }}</label>
                     <x-input type="text" name="payment_upi_id" id="payment_upi_id" value="{{ old('payment_upi_id', $settings['payment_upi_id'] ?? '') }}" class="block w-full font-mono" placeholder="merchant@upi" />
-                    <p class="mt-1 text-sm text-gray-500">{{ __('UPI handle shown on order confirmation. Enables copy and mobile UPI app pay.') }}</p>
+                    <p class="mt-1 text-sm text-gray-500">{{ __('UPI handle shown on order confirmation with a copy button.') }}</p>
                 </div>
                 <div>
                     <label for="payment_instructions" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Payment instructions') }}</label>
@@ -156,6 +156,21 @@
                     <x-input type="number" name="message_on_cake_max_length" id="message_on_cake_max_length" value="{{ old('message_on_cake_max_length', $settings['message_on_cake_max_length'] ?? \App\Models\Order::MESSAGE_ON_CAKE_MAX_LENGTH) }}" min="{{ \App\Models\Order::MESSAGE_ON_CAKE_MIN_LENGTH }}" max="{{ \App\Models\Order::MESSAGE_ON_CAKE_LIMIT_MAX }}" class="block w-full" />
                     <p class="mt-1 text-sm text-gray-500">{{ __('Default limit for the optional inscription on the order form. Individual products can override this. Allowed range: :min–:max characters.', ['min' => \App\Models\Order::MESSAGE_ON_CAKE_MIN_LENGTH, 'max' => \App\Models\Order::MESSAGE_ON_CAKE_LIMIT_MAX]) }}</p>
                     @error('message_on_cake_max_length')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
+                <div class="sm:col-span-2">
+                    <label for="checkout_delivery_notice" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Checkout delivery notice') }}</label>
+                    <textarea name="checkout_delivery_notice" id="checkout_delivery_notice" rows="2" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">{{ old('checkout_delivery_notice', $settings['checkout_delivery_notice'] ?? '') }}</textarea>
+                    <p class="mt-1 text-sm text-gray-500">{{ __('Shown on checkout when customers select delivery.') }}</p>
+                </div>
+                <div class="sm:col-span-2">
+                    <label for="checkout_takeaway_notice" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Checkout takeaway notice') }}</label>
+                    <textarea name="checkout_takeaway_notice" id="checkout_takeaway_notice" rows="2" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">{{ old('checkout_takeaway_notice', $settings['checkout_takeaway_notice'] ?? '') }}</textarea>
+                    <p class="mt-1 text-sm text-gray-500">{{ __('Short line shown above the pickup address when customers select take away.') }}</p>
+                </div>
+                <div class="sm:col-span-2">
+                    <label for="checkout_takeaway_address" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Checkout takeaway pickup address') }}</label>
+                    <textarea name="checkout_takeaway_address" id="checkout_takeaway_address" rows="3" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">{{ old('checkout_takeaway_address', $settings['checkout_takeaway_address'] ?? $settings['address'] ?? '') }}</textarea>
+                    <p class="mt-1 text-sm text-gray-500">{{ __('Full pickup location shown on checkout for take away orders. Leave empty to use the main site address above.') }}</p>
                 </div>
             </div>
         </x-card>
@@ -339,6 +354,14 @@
             <p class="mb-4 text-sm text-gray-500">{{ __('Set the weight sizes customers can pick (250 gm, 500 gm, 1 KG, etc.). You set the price for each weight on every product.') }}</p>
             <a href="{{ route('admin.cake-weights.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
                 {{ __('Manage cake weights') }}
+            </a>
+        </x-card>
+
+        <x-card>
+            <h2 class="mb-2 text-xl font-semibold text-gray-900">{{ __('Serviceable pincodes') }}</h2>
+            <p class="mb-4 text-sm text-gray-500">{{ __('Define which pincodes accept delivery orders. Customers must pass pincode validation before placing a delivery order.') }}</p>
+            <a href="{{ route('admin.serviceable-pincodes.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-700">
+                {{ __('Manage serviceable pincodes') }}
             </a>
         </x-card>
 

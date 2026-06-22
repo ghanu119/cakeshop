@@ -98,88 +98,6 @@ function showCopyToast(message, variant = 'success') {
     }, 2500);
 }
 
-function isAndroidDevice() {
-    return /Android/i.test(navigator.userAgent);
-}
-
-function isIosDevice() {
-    return /iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
-
-function readUpiPayConfig() {
-    const configEl = document.getElementById('upi-pay-config');
-    if (!configEl) {
-        return null;
-    }
-
-    try {
-        const config = JSON.parse(configEl.textContent);
-        if (!config?.url || !config?.query) {
-            return null;
-        }
-
-        return {
-            url: config.url,
-            query: config.query,
-            apps: Array.isArray(config.apps) ? config.apps : [],
-        };
-    } catch {
-        return null;
-    }
-}
-
-function closeUpiAppSheet() {
-    const sheet = document.getElementById('upi-app-sheet');
-    if (!sheet) {
-        return;
-    }
-
-    sheet.hidden = true;
-    sheet.setAttribute('aria-hidden', 'true');
-}
-
-function showUpiAppSheet(apps) {
-    const sheet = document.getElementById('upi-app-sheet');
-    const list = sheet?.querySelector('[data-upi-app-list]');
-    if (!sheet || !list || apps.length === 0) {
-        return false;
-    }
-
-    list.replaceChildren();
-    apps.forEach((app) => {
-        const link = document.createElement('a');
-        link.href = app.url;
-        link.className = 'upi-app-sheet__option';
-        link.textContent = app.label;
-        link.addEventListener('click', () => closeUpiAppSheet());
-        list.appendChild(link);
-    });
-
-    sheet.hidden = false;
-    sheet.setAttribute('aria-hidden', 'false');
-
-    return true;
-}
-
-function openUpiAppChooser(config) {
-    if (!config?.url?.startsWith('upi://')) {
-        return;
-    }
-
-    const { url, query, apps } = config;
-
-    if (isAndroidDevice() && query) {
-        window.location.href = `intent://pay?${query}#Intent;scheme=upi;end`;
-        return;
-    }
-
-    if ((isIosDevice() || apps.length > 0) && showUpiAppSheet(apps)) {
-        return;
-    }
-
-    window.location.href = url;
-}
-
 function initOrderConfirm() {
     const orderPlaced = document.querySelector('[data-order-placed]');
     if (orderPlaced) {
@@ -189,45 +107,7 @@ function initOrderConfirm() {
         }, 4000);
     }
 
-    const upiSheet = document.getElementById('upi-app-sheet');
-    if (upiSheet) {
-        upiSheet.addEventListener('click', (event) => {
-            if (event.target === upiSheet) {
-                closeUpiAppSheet();
-            }
-        });
-
-        upiSheet.querySelector('[data-upi-app-sheet-panel]')?.addEventListener('click', (event) => {
-            event.stopPropagation();
-        });
-
-        upiSheet.querySelector('[data-upi-app-sheet-close]')?.addEventListener('click', () => {
-            closeUpiAppSheet();
-        });
-    }
-
-    document.addEventListener('keydown', (event) => {
-        if (event.key === 'Escape') {
-            closeUpiAppSheet();
-        }
-    });
-
     document.addEventListener('click', (event) => {
-        const upiButton = event.target.closest('[data-upi-pay-button]');
-        if (upiButton) {
-            event.preventDefault();
-            const config = readUpiPayConfig();
-            if (config) {
-                openUpiAppChooser(config);
-            } else {
-                const fallbackUrl = upiButton.getAttribute('href');
-                if (fallbackUrl) {
-                    window.location.href = fallbackUrl;
-                }
-            }
-            return;
-        }
-
         const button = event.target.closest('[data-copy-text]');
         if (!button) {
             return;
@@ -254,7 +134,4 @@ export {
     initOrderConfirm,
     copyTextToClipboard,
     showCopyToast,
-    openUpiAppChooser,
-    closeUpiAppSheet,
-    readUpiPayConfig,
 };
