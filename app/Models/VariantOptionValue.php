@@ -14,6 +14,7 @@ class VariantOptionValue extends Model
     protected $fillable = [
         'variant_option_type_id',
         'label',
+        'person_capacity_label',
         'grams',
         'sort_order',
         'status',

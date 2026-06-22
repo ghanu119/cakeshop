@@ -15,6 +15,7 @@ class StoreCakeWeightRequest extends FormRequest
     {
         return [
             'label' => ['required', 'string', 'max:255'],
+            'person_capacity_label' => ['nullable', 'string', 'max:255'],
             'grams' => ['required', 'integer', 'min:1'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'string', 'in:active,inactive'],

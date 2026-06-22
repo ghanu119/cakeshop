@@ -52,7 +52,7 @@
                         <p class="mt-1 text-4xl font-bold text-stone-900" id="product-unit-price">{{ $symbol }}{{ number_format($product->price, 2) }}</p>
                         <p class="mt-4 text-sm font-semibold text-stone-700">{{ __('Select weight') }}</p>
                         <div
-                            class="variant-picker mt-2 flex flex-wrap gap-2"
+                            class="variant-picker mt-2 flex flex-wrap gap-1"
                             data-variant-picker
                             data-choices="{{ $variantChoices->toJson() }}"
                             data-initial-variant-id="{{ request('product_variant_id', $defaultVariant?->id) }}"
@@ -65,7 +65,15 @@
                         >
                             @foreach($variantChoices as $choice)
                                 @php $isSelected = (string) $initialVariantId === (string) $choice['id']; @endphp
-                                <button type="button" data-variant-id="{{ $choice['id'] }}" class="rounded-full border border-amber-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 hover:bg-amber-50" aria-pressed="{{ $isSelected ? 'true' : 'false' }}">{{ $choice['label'] }}</button>
+                                <div class="flex flex-col items-center" data-variant-option>
+                                    <button type="button" data-variant-id="{{ $choice['id'] }}" class="rounded-full border border-amber-300 bg-white px-3 py-1.5 text-sm font-semibold text-stone-800 hover:bg-amber-50" aria-pressed="{{ $isSelected ? 'true' : 'false' }}">{{ $choice['label'] }}</button>
+                                    @if(!empty($choice['person_capacity_label']))
+                                        <span
+                                            data-variant-capacity
+                                            class="text-xs text-stone-600 {{ $isSelected ? '' : 'hidden' }}"
+                                        >{{ $choice['person_capacity_label'] }}</span>
+                                    @endif
+                                </div>
                             @endforeach
                         </div>
                     @else

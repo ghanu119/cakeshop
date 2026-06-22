@@ -56,6 +56,7 @@ class VariantOptionService
         $value = $value ?? new VariantOptionValue;
         $value->variant_option_type_id = $type->id;
         $value->label = $data['label'];
+        $value->person_capacity_label = $data['person_capacity_label'] ?? null;
         $value->grams = isset($data['grams']) && $data['grams'] !== '' ? (int) $data['grams'] : null;
         $value->sort_order = (int) ($data['sort_order'] ?? 0);
         $value->status = $data['status'] ?? 'active';

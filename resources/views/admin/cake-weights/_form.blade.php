@@ -18,6 +18,21 @@
     </div>
 
     <div>
+        <label for="person_capacity_label" class="mb-1.5 block text-sm font-medium text-gray-700">{{ __('Person capacity label') }}</label>
+        <input
+            type="text"
+            name="person_capacity_label"
+            id="person_capacity_label"
+            value="{{ old('person_capacity_label', $weight?->person_capacity_label) }}"
+            autocomplete="off"
+            placeholder="{{ __('e.g. 4 - 5 People') }}"
+            class="block w-full rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+        />
+        <p class="mt-1.5 text-sm text-gray-500">{{ __('Optional. Shown below the weight picker on product pages (e.g. 8 - 10 People).') }}</p>
+        @error('person_capacity_label')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+    </div>
+
+    <div>
         <label for="grams" class="mb-1.5 block text-sm font-medium text-gray-700">{{ __('Weight (grams)') }} <span class="text-red-500">*</span></label>
         <input
             type="number"

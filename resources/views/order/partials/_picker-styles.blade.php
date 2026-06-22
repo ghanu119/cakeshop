@@ -14,6 +14,14 @@
             color: #78350f !important;
             font-weight: 600;
         }
+        .variant-picker [data-variant-option] {
+            gap: 0;
+        }
+        .variant-picker [data-variant-capacity] {
+            margin: 0.375rem 0 0;
+            padding: 0;
+            line-height: 1.2;
+        }
         .flavor-picker [data-flavor-id][aria-pressed="true"] {
             background-color: #fff1f2 !important;
             border-color: #fb7185 !important;

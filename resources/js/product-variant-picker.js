@@ -14,6 +14,8 @@ export function initProductVariantPicker(root) {
     const orderLink = document.querySelector(root.dataset.orderLinkTarget);
     const startingLabel = document.querySelector(root.dataset.startingLabelTarget);
     const weightLabelEl = document.querySelector(root.dataset.weightLabelTarget);
+    const personCapacityEl = document.querySelector(root.dataset.personCapacityTarget);
+    const options = root.querySelectorAll('[data-variant-option]');
     const pills = root.querySelectorAll('[data-variant-id]');
 
     const symbol = root.dataset.currencySymbol || '₹';
@@ -31,14 +33,39 @@ export function initProductVariantPicker(root) {
         const choice = choices.find((c) => c.id === id);
         if (!choice) return;
 
-        pills.forEach((pill) => {
-            const active = parseInt(pill.dataset.variantId, 10) === id;
-            pill.setAttribute('aria-pressed', active ? 'true' : 'false');
-        });
+        if (options.length) {
+            options.forEach((option) => {
+                const pill = option.querySelector('[data-variant-id]');
+                if (!pill) return;
+
+                const active = parseInt(pill.dataset.variantId, 10) === id;
+                pill.setAttribute('aria-pressed', active ? 'true' : 'false');
+
+                const capacityEl = option.querySelector('[data-variant-capacity]');
+                if (capacityEl) {
+                    capacityEl.classList.toggle('hidden', !active);
+                }
+            });
+        } else {
+            pills.forEach((pill) => {
+                const active = parseInt(pill.dataset.variantId, 10) === id;
+                pill.setAttribute('aria-pressed', active ? 'true' : 'false');
+            });
+        }
 
         if (unitPriceEl) unitPriceEl.textContent = formatMoney(choice.price);
         if (totalEl) totalEl.textContent = formatMoney(choice.price * getQuantity());
         if (weightLabelEl) weightLabelEl.textContent = choice.label;
+        if (personCapacityEl) {
+            const capacity = choice.person_capacity_label?.trim();
+            if (capacity) {
+                personCapacityEl.textContent = capacity;
+                personCapacityEl.classList.remove('hidden');
+            } else {
+                personCapacityEl.textContent = '';
+                personCapacityEl.classList.add('hidden');
+            }
+        }
         if (hiddenInput) hiddenInput.value = id;
         if (startingLabel) startingLabel.classList.add('hidden');
         if (orderLink && orderLink.dataset.baseUrl) {

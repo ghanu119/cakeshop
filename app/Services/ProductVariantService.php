@@ -170,7 +170,7 @@ class ProductVariantService
     }
 
     /**
-     * @return Collection<int, array{id: int, label: string, price: float, grams: ?int, is_default: bool}>
+     * @return Collection<int, array{id: int, label: string, price: float, grams: ?int, is_default: bool, person_capacity_label: ?string}>
      */
     public function choicesForProduct(Product $product): Collection
     {
@@ -189,6 +189,7 @@ class ProductVariantService
                 'price' => (float) $variant->price,
                 'grams' => $weightSelection?->value?->grams,
                 'is_default' => (bool) $variant->is_default,
+                'person_capacity_label' => $weightSelection?->value?->person_capacity_label,
             ];
         })->values();
     }

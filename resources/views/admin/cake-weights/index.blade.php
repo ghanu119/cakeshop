@@ -21,6 +21,7 @@
         <x-table.wrapper>
             <x-table.header>
                 <x-table.th>{{ __('Label') }}</x-table.th>
+                <x-table.th>{{ __('Capacity') }}</x-table.th>
                 <x-table.th>{{ __('Grams') }}</x-table.th>
                 <x-table.th>{{ __('Sort') }}</x-table.th>
                 <x-table.th>{{ __('Status') }}</x-table.th>
@@ -30,6 +31,7 @@
                 @forelse($values as $weight)
                     <x-table.row>
                         <x-table.cell class="font-medium text-gray-900">{{ $weight->label }}</x-table.cell>
+                        <x-table.cell>{{ $weight->person_capacity_label ?: '—' }}</x-table.cell>
                         <x-table.cell>{{ number_format($weight->grams) }} g</x-table.cell>
                         <x-table.cell>{{ $weight->sort_order }}</x-table.cell>
                         <x-table.cell>
@@ -50,7 +52,7 @@
                     </x-table.row>
                 @empty
                     <x-table.row>
-                        <x-table.cell colspan="5" class="py-12 text-center">
+                        <x-table.cell colspan="6" class="py-12 text-center">
                             <p class="text-gray-500">{{ __('No weights yet.') }}</p>
                             <a href="{{ route('admin.cake-weights.create') }}" class="mt-3 inline-flex text-sm font-medium text-indigo-600 hover:text-indigo-800">{{ __('Add your first weight') }}</a>
                         </x-table.cell>
