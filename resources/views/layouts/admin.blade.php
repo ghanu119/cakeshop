@@ -32,12 +32,10 @@
             window.__httpsAdminDashboardUrl = @json(preg_replace('#^http:#i', 'https:', route('admin.dashboard')));
             window.__webPushPublicKey = @json(($webPushEnabled ?? false) ? \App\Models\Setting::getWebPushPublicKey() : null);
             window.__unreadHighlightTargets = @json(($unreadHighlightTargets ?? collect())->values());
-            window.__notificationWatermark = @json($notificationWatermark ?? null);
             window.__promptStaffPush = @json(($webPushEnabled ?? false) && session()->pull('prompt_staff_push', false));
             window.__notificationRoutes = {
                 index: @json(route('admin.notifications.index')),
                 unreadCount: @json(route('admin.notifications.unread-count')),
-                since: @json(route('admin.notifications.since')),
                 read: @json(route('admin.notifications.read', ['id' => '__ID__'])),
                 readAll: @json(route('admin.notifications.read-all')),
                 pushSubscribe: @json(route('admin.push-subscriptions.store')),

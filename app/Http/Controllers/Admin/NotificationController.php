@@ -9,7 +9,6 @@ use App\Http\Responses\ApiResponse;
 use App\Services\StaffPushSubscriptionService;
 use App\Services\StaffWebPushService;
 use App\Support\StaffNotificationUrl;
-use Carbon\Carbon;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -61,35 +60,6 @@ class NotificationController extends Controller
 
             return ApiResponse::error(
                 __('Couldn\'t refresh notification count.'),
-                500
-            );
-        }
-    }
-
-    public function since(Request $request): JsonResponse
-    {
-        try {
-            $after = $request->query('after');
-            $query = $request->user()->notifications()->latest();
-
-            if ($after) {
-                try {
-                    $query->where('created_at', '>', Carbon::parse($after));
-                } catch (\Throwable) {
-                    // Ignore invalid cursor and return recent items.
-                }
-            }
-
-            $items = $query->limit(50)->get();
-
-            return ApiResponse::success([
-                'items' => $items->map(fn (DatabaseNotification $n) => $this->formatNotification($n)),
-            ]);
-        } catch (Throwable $e) {
-            report($e);
-
-            return ApiResponse::error(
-                __('Couldn\'t fetch new notifications. We\'ll try again shortly.'),
                 500
             );
         }

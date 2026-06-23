@@ -33,7 +33,6 @@ class AdminNotificationComposer
             $view->with([
                 'unreadNotificationCount' => $unreadCount,
                 'unreadNotifications' => $unreadNotifications,
-                'notificationWatermark' => $unreadNotifications->first()?->created_at?->toIso8601String(),
                 'unreadHighlightTargets' => $unreadHighlightTargets,
                 'notificationSystemUnavailable' => false,
                 'notificationsEnabled' => Setting::isNotificationsEnabled(),
@@ -46,7 +45,6 @@ class AdminNotificationComposer
             $view->with([
                 'unreadNotificationCount' => 0,
                 'unreadNotifications' => collect(),
-                'notificationWatermark' => null,
                 'unreadHighlightTargets' => collect(),
                 'notificationSystemUnavailable' => true,
                 'notificationsEnabled' => false,

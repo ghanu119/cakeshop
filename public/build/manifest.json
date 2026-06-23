@@ -61,7 +61,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-C3LKYYrb.css",
+    "file": "assets/app-CvLVSWn2.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -109,7 +109,7 @@
     ]
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-B96ras6o.js",
+    "file": "assets/admin-CYtrYnCg.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true,

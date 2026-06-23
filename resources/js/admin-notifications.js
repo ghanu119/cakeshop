@@ -3,17 +3,15 @@ import { unlockNotificationSound, playNewOrderSound } from './admin-notification
 import { clearAdminToasts, showAdminToast } from './admin-toast';
 import { createAdminEcho } from './echo';
 
-const POLL_INTERVAL_MS = 10000;
-const COUNT_POLL_INTERVAL_MS = 5000;
+const COUNT_POLL_INTERVAL_MS = 20000;
 const ORDER_SOUND_TYPES = new Set(['new_order', 'kitchen_order_queued_today', 'kitchen_payment_verified_today']);
 const routes = window.__notificationRoutes ?? {};
 
 let pageLoadMs = Date.now();
 let echo = null;
-let pollTimer = null;
+let isPollingFallback = false;
 let countPollTimer = null;
 let connectTimeout = null;
-let lastSince = null;
 let lastUnreadCount = null;
 let fetchErrorShown = false;
 let disconnectWarningShown = false;
@@ -317,10 +315,10 @@ function setConnectionState(state, { showDisconnectToast = false } = {}) {
         dot.title = 'Connecting to live updates…';
     } else if (state === 'polling') {
         dot.classList.add('bg-amber-400');
-        dot.title = 'Checking for new notifications every 30 seconds';
+        dot.title = 'Checking for new notifications every 20 seconds';
         if (showDisconnectToast && !disconnectWarningShown) {
             disconnectWarningShown = true;
-            showAdminToast('Live updates paused — checking every 30 seconds.', { variant: 'warning' });
+            showAdminToast('Live updates paused — checking every 20 seconds.', { variant: 'warning' });
         }
     } else {
         dot.classList.add('bg-gray-300');
@@ -330,6 +328,14 @@ function setConnectionState(state, { showDisconnectToast = false } = {}) {
 
 function getUnreadListItemCount() {
     return document.querySelectorAll('[data-notification-list] [data-notification-id]').length;
+}
+
+function getKnownNotificationIds() {
+    return new Set(
+        [...document.querySelectorAll('[data-notification-list] [data-notification-id]')]
+            .map((el) => el.getAttribute('data-notification-id'))
+            .filter(Boolean)
+    );
 }
 
 function buildNotificationListItem(item) {
@@ -411,6 +417,19 @@ async function fetchUnreadList() {
     return items;
 }
 
+async function syncUnreadNotifications({ toast = false } = {}) {
+    const knownIds = getKnownNotificationIds();
+    const items = await fetchUnreadList();
+
+    if (toast) {
+        items
+            .filter((item) => !knownIds.has(item.id))
+            .forEach((item) => toastNotificationItem(item, { force: true }));
+    }
+
+    return items;
+}
+
 async function syncNotificationListWithBadge() {
     const count = await refreshUnreadCount();
 
@@ -460,30 +479,6 @@ async function refreshUnreadCount() {
     return null;
 }
 
-async function fetchSince({ toast = false } = {}) {
-    if (!routes.since) return;
-
-    const params = lastSince ? `?after=${encodeURIComponent(lastSince)}` : '';
-    const result = await adminApi('get', routes.since + params, undefined, POLL_OPTIONS);
-
-    if (!result.ok) {
-        return;
-    }
-
-    const items = result.data?.items ?? [];
-    items.forEach((item) => {
-        prependNotificationItem(item);
-        if (toast) {
-            toastNotificationItem(item, { force: true });
-        }
-    });
-
-    if (items.length > 0) {
-        lastSince = items[0].created_at;
-        await refreshUnreadCount();
-    }
-}
-
 async function pollForNewNotifications() {
     const count = await refreshUnreadCount();
     if (count === null) {
@@ -491,17 +486,15 @@ async function pollForNewNotifications() {
     }
 
     if (lastUnreadCount !== null && count > lastUnreadCount) {
-        await fetchSince({ toast: true });
-    }
+        await syncUnreadNotifications({ toast: true });
+    } else {
+        const listCount = getUnreadListItemCount();
 
-    const listCount = getUnreadListItemCount();
-
-    if (count > 0 && listCount === 0) {
-        await fetchUnreadList();
-    } else if (count > 0 && listCount < count) {
-        await fetchUnreadList();
-    } else if (count === 0 && listCount > 0) {
-        renderNotificationList([]);
+        if (count > 0 && (listCount === 0 || listCount < count)) {
+            await fetchUnreadList();
+        } else if (count === 0 && listCount > 0) {
+            renderNotificationList([]);
+        }
     }
 
     lastUnreadCount = count;
@@ -522,17 +515,13 @@ function hideInlineError() {
 }
 
 function startPolling({ showDisconnectToast = false } = {}) {
-    if (pollTimer) return;
+    if (isPollingFallback) return;
+    isPollingFallback = true;
     setConnectionState('polling', { showDisconnectToast });
-    void fetchSince({ toast: false });
-    pollTimer = window.setInterval(() => fetchSince({ toast: false }), POLL_INTERVAL_MS);
 }
 
 function stopPolling() {
-    if (pollTimer) {
-        window.clearInterval(pollTimer);
-        pollTimer = null;
-    }
+    isPollingFallback = false;
 }
 
 function startCountPolling() {
@@ -586,9 +575,6 @@ function initEcho() {
         };
 
         handleIncomingNotificationItem(item);
-        if (item.created_at) {
-            lastSince = item.created_at;
-        }
     });
 
     if (typeof channel.error === 'function') {
@@ -610,7 +596,7 @@ function initEcho() {
             setConnectionState('connected');
             disconnectWarningShown = false;
             stopPolling();
-            fetchSince({ toast: false });
+            void syncNotificationListWithBadge();
         });
         connection.bind('disconnected', () => {
             startPolling({ showDisconnectToast: wasLiveConnected });
@@ -967,7 +953,6 @@ function initBellUi() {
     document.querySelector('[data-notification-retry]')?.addEventListener('click', async () => {
         hideInlineError();
         await syncNotificationListWithBadge();
-        await fetchSince({ toast: false });
     });
 
     document.querySelectorAll('[data-enable-push]').forEach((button) => {
@@ -1051,7 +1036,6 @@ document.addEventListener('DOMContentLoaded', () => {
     applyHighlightTargets(targets);
 
     pageLoadMs = Date.now();
-    lastSince = window.__notificationWatermark ?? new Date(pageLoadMs).toISOString();
 
     initBellUi();
     initEcho();
@@ -1070,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (isTabVisible()) {
             unlockNotificationSound();
             void syncNotificationListWithBadge();
-            void fetchSince({ toast: true });
+            void syncUnreadNotifications({ toast: true });
         }
     });
 

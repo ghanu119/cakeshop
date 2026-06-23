@@ -126,7 +126,6 @@ Route::middleware(['ensure.admin.https', 'auth:web', 'verified', 'role:Admin|Kit
         Route::middleware(['throttle:60,1'])->group(function () {
             Route::get('notifications', [NotificationController::class, 'index'])->name('notifications.index');
             Route::get('notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
-            Route::get('notifications/since', [NotificationController::class, 'since'])->name('notifications.since');
             Route::post('notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
             Route::post('notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
         });
