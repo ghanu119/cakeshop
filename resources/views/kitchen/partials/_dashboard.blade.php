@@ -91,7 +91,7 @@
                             <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 15.546c-.523 0-1.046.151-1.5.454a2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.704 2.704 0 00-3 0 2.704 2.704 0 01-3 0 2.701 2.701 0 00-1.5-.454M9 6v2m3-2v2m3-2v2M9 3h.01M12 3h.01M15 3h.01M21 21v-7a2 2 0 00-2-2H5a2 2 0 00-2 2v7h18z"/></svg>
                         </div>
                         <p class="max-w-sm font-medium text-gray-900">{{ __('Nothing in production yet') }}</p>
-                        <p class="mt-2 max-w-sm text-sm text-gray-500">{{ __('Orders appear here after payment is verified and status is set to Processing with a prep time.') }}</p>
+                        <p class="mt-2 max-w-sm text-sm text-gray-500">{{ __('Orders appear here after payment is verified for today\'s delivery. Status updates unlock once an administrator sets Processing with a prep time.') }}</p>
                     </div>
                 @endif
             </div>

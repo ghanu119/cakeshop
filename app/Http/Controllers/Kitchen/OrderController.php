@@ -19,7 +19,9 @@ class OrderController extends Controller
 
     public function index(): View
     {
-        $orders = $this->orderService->listForKitchen();
+        $orders = request()->user()->hasRole('Admin')
+            ? $this->orderService->listForAdminToday()
+            : $this->orderService->listForKitchen();
 
         return view('kitchen.orders.index', compact('orders'));
     }
@@ -36,11 +38,17 @@ class OrderController extends Controller
      */
     public function show(Order $order): View
     {
-        $order = Order::query()
+        $query = Order::query()
             ->with(['product.media'])
-            ->where('id', $order->id)
-            ->kitchenTodayQueue()
-            ->firstOrFail();
+            ->where('id', $order->id);
+
+        if (request()->user()->hasRole('Admin')) {
+            $query->deliveryToday();
+        } else {
+            $query->kitchenTodayVisible();
+        }
+
+        $order = $query->firstOrFail();
 
         $preparationRules = $this->orderService->preparationAtRules($order);
 
@@ -48,6 +56,7 @@ class OrderController extends Controller
             'order' => $order,
             'preparationRules' => $preparationRules,
             'readOnly' => false,
+            'statusReadOnly' => ! $order->canKitchenUpdateStatus() && ! request()->user()->hasRole('Admin'),
         ]);
     }
 
@@ -72,14 +81,14 @@ class OrderController extends Controller
     {
         $order = Order::query()
             ->where('id', $order->id)
-            ->kitchenTodayQueue()
+            ->kitchenTodayVisible()
             ->firstOrFail();
 
         $this->authorize('update', $order);
 
         if (! $order->canKitchenUpdateStatus()) {
             return redirect()->route('admin.kitchen.orders.show', $order)
-                ->withErrors(['_form' => __('You can only update the status of today\'s processing orders.')]);
+                ->withErrors(['_form' => __('An administrator must set the order to Processing with a preparation time before you can update the status.')]);
         }
 
         if (! $order->isPaymentVerified()) {
@@ -102,7 +111,7 @@ class OrderController extends Controller
 
         $stillOnKitchenQueue = Order::query()
             ->whereKey($order->id)
-            ->kitchenTodayQueue()
+            ->kitchenTodayVisible()
             ->exists();
 
         if (! $stillOnKitchenQueue) {

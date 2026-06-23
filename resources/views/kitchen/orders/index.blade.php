@@ -7,7 +7,12 @@
         $tz = settings('timezone') ?? 'Asia/Kolkata';
     @endphp
     <header data-highlight-target="kitchen_today" class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between {{ in_array('kitchen_today', ($unreadHighlightTargets ?? collect())->toArray(), true) ? 'notification-highlight rounded-2xl px-4 py-3' : '' }}">
-        <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{ __("Today's orders") }}</h1>
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-gray-900">{{ __("Today's orders") }}</h1>
+            @role('Admin')
+                <p class="mt-1 text-sm text-gray-500">{{ __('All orders scheduled for today — every type, payment state, and status.') }}</p>
+            @endrole
+        </div>
     </header>
 
     <x-card :padding="false">
@@ -18,11 +23,19 @@
                     <x-table.th>{{ __('Guest') }}</x-table.th>
                 @endrole
                 <x-table.th>{{ __('Product') }}</x-table.th>
-                <x-table.th>{{ __('Quantity') }}</x-table.th>
+                @unless(auth()->user()->hasRole('Admin'))
+                    <x-table.th>{{ __('Quantity') }}</x-table.th>
+                @endunless
                 @role('Admin')
+                    <x-table.th>{{ __('Type') }}</x-table.th>
                     <x-table.th>{{ __('Delivery at') }}</x-table.th>
                 @endrole
-                <x-table.th>{{ __('Prepare by') }}</x-table.th>
+                @unless(auth()->user()->hasRole('Admin'))
+                    <x-table.th>{{ __('Prepare by') }}</x-table.th>
+                @endunless
+                @role('Admin')
+                    <x-table.th>{{ __('Payment') }}</x-table.th>
+                @endrole
                 <x-table.th>{{ __('Status') }}</x-table.th>
                 <x-table.th class="min-w-[11rem] text-right">{{ __('Actions') }}</x-table.th>
             </x-table.header>
@@ -44,11 +57,44 @@
                                 'flavorClass' => 'text-xs text-rose-700',
                             ])
                         </x-table.cell>
-                        <x-table.cell>{{ $order->quantity }}</x-table.cell>
+                        @unless(auth()->user()->hasRole('Admin'))
+                            <x-table.cell>{{ $order->quantity }}</x-table.cell>
+                        @endunless
                         @role('Admin')
-                            <x-table.cell>{{ $order->delivery_at?->setTimezone($tz)->format('d M Y H:i') }}</x-table.cell>
+                            <x-table.cell>
+                                <x-badge :variant="$order->isDeliveryFulfillment() ? 'info' : 'default'">{{ $order->fulfillmentLabel() }}</x-badge>
+                            </x-table.cell>
+                            <x-table.cell>
+                                @php
+                                    $deliveryAt = $order->delivery_at?->setTimezone($tz);
+                                    $now = \Carbon\Carbon::now($tz);
+                                @endphp
+                                @if($deliveryAt && ! in_array($order->order_status, ['completed', 'cancelled', 'delivered'], true))
+                                    @php
+                                        $totalMinutes = (int) abs($now->diffInMinutes($deliveryAt, false));
+                                        $hours = intdiv($totalMinutes, 60);
+                                        $minutes = $totalMinutes % 60;
+                                        $timeParts = [];
+                                        if ($hours > 0) {
+                                            $timeParts[] = $hours . 'h';
+                                        }
+                                        if ($minutes > 0 || $hours === 0) {
+                                            $timeParts[] = $minutes . 'm';
+                                        }
+                                        $timeLabel = implode(' ', $timeParts);
+                                    @endphp
+                                    @if($deliveryAt->isPast())
+                                        <span class="font-medium text-red-700">{{ $timeLabel }} {{ __('overdue') }}</span>
+                                    @else
+                                        <span class="font-medium text-gray-900">{{ $timeLabel }} {{ __('left') }}</span>
+                                    @endif
+                                @else
+                                    <span class="text-gray-400">—</span>
+                                @endif
+                            </x-table.cell>
                         @endrole
-                        <x-table.cell>
+                        @unless(auth()->user()->hasRole('Admin'))
+                            <x-table.cell>
                             @php
                                 $preparationAt = $order->preparation_at?->setTimezone($tz);
                                 $prepOverdue = $preparationAt && $preparationAt->isPast() && $order->order_status === 'processing';
@@ -62,8 +108,21 @@
                                 @endif
                             @else
                                 <span class="text-gray-400">—</span>
+                                @if($order->isAwaitingKitchenSetup())
+                                    <x-badge variant="warning" class="mt-1">{{ __('Awaiting prep time') }}</x-badge>
+                                @endif
                             @endif
                         </x-table.cell>
+                        @endunless
+                        @role('Admin')
+                            <x-table.cell>
+                                @if($order->isCashOnStore())
+                                    <x-badge variant="default">{{ __('In-store') }}</x-badge>
+                                @else
+                                    <x-badge :variant="$order->payment_status === 'verified' ? 'success' : 'warning'">{{ $order->payment_status }}</x-badge>
+                                @endif
+                            </x-table.cell>
+                        @endrole
                         <x-table.cell>
                             @php
                                 $statusVariant = match($order->order_status) {
@@ -99,7 +158,11 @@
                 @empty
                     <x-table.row>
                         <x-table.cell colspan="{{ auth()->user()->hasRole('Admin') ? 8 : 6 }}" class="text-center text-gray-500">
-                            {{ __('No orders for today. Orders appear here after payment is verified, delivery is today, and status is set to Processing with a preparation time.') }}
+                            @role('Admin')
+                                {{ __('No orders scheduled for delivery today.') }}
+                            @else
+                                {{ __('No orders for today. Orders appear here after payment is verified for today\'s delivery.') }}
+                            @endrole
                         </x-table.cell>
                     </x-table.row>
                 @endforelse

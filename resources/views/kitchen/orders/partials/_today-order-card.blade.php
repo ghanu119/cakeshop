@@ -2,6 +2,13 @@
     $tz = settings('timezone') ?? 'Asia/Kolkata';
     $preparationAt = $order->preparation_at?->setTimezone($tz);
     $prepOverdue = $preparationAt && $preparationAt->isPast() && $order->order_status === 'processing';
+    $awaitingSetup = $order->isAwaitingKitchenSetup();
+    $statusLabel = $awaitingSetup
+        ? __('Awaiting setup')
+        : ($order->isProcessing() ? __('Processing') : __(ucfirst($order->order_status ?? 'pending')));
+    $statusBadgeClass = $awaitingSetup
+        ? 'bg-amber-100/90 text-amber-800'
+        : 'bg-white/90 text-indigo-700';
     $product = $order->product;
     $images = $product ? $product->orderedProductImages() : collect();
     $primary = $images->first();
@@ -26,8 +33,8 @@
             </div>
         @endif
         <div class="absolute inset-x-0 top-0 flex items-start justify-between gap-2 p-3">
-            <span class="rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-indigo-700 shadow-sm backdrop-blur-sm">
-                {{ __('Processing') }}
+            <span class="rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider shadow-sm backdrop-blur-sm {{ $statusBadgeClass }}">
+                {{ $statusLabel }}
             </span>
             <span class="rounded-lg bg-black/50 px-2 py-1 font-mono text-[10px] font-medium text-white backdrop-blur-sm">
                 #{{ $order->order_no }}
@@ -49,7 +56,14 @@
         </div>
     </div>
 
-    @if($preparationAt)
+    @if($awaitingSetup)
+        <div class="flex items-center gap-2.5 border-t border-amber-100 bg-amber-50/80 px-4 py-3">
+            <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-700">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <p class="text-xs font-medium text-amber-800">{{ __('Waiting for admin to set preparation time') }}</p>
+        </div>
+    @elseif($preparationAt)
         <div class="flex items-center justify-between gap-3 border-t px-4 py-3 {{ $prepOverdue ? 'border-red-100 bg-red-50' : 'border-indigo-50 bg-indigo-50/60' }}">
             <div class="flex items-center gap-2.5">
                 <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-full {{ $prepOverdue ? 'bg-red-100 text-red-600' : 'bg-indigo-100 text-indigo-600' }}">

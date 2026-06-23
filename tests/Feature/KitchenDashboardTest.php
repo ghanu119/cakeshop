@@ -114,6 +114,18 @@ class KitchenDashboardTest extends TestCase
         $response->assertSee($order->displayProductName(), false);
     }
 
+    public function test_kitchen_dashboard_shows_verified_today_order_before_processing(): void
+    {
+        $kitchen = $this->kitchenUser();
+        $order = $this->verifiedOrderToday(['order_status' => 'pending']);
+
+        $response = $this->actingAs($kitchen)->get(route('admin.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee($order->displayProductName(), false);
+        $response->assertSee(__('Awaiting setup'), false);
+    }
+
     public function test_kitchen_dashboard_shows_today_and_upcoming_sections(): void
     {
         $kitchen = $this->kitchenUser();

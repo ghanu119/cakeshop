@@ -18,7 +18,7 @@ class KitchenPaymentVerifiedTodayNotification extends StaffOrderNotification
 
     protected function highlightTarget(): string
     {
-        return 'kitchen_upcoming';
+        return 'kitchen_today';
     }
 
     protected function titleFor(Order $order): string
@@ -33,6 +33,6 @@ class KitchenPaymentVerifiedTodayNotification extends StaffOrderNotification
 
     protected function urlFor(Order $order): string
     {
-        return route('admin.kitchen.orders.upcoming.show', $order);
+        return route('admin.kitchen.orders.show', $order);
     }
 }

@@ -30,7 +30,7 @@ class DashboardService
      */
     public function dataForAdmin(): array
     {
-        $inKitchenOrders = $this->orderService->listKitchenTodayForDashboard();
+        $inKitchenOrders = $this->orderService->listKitchenTodayActionableForDashboard();
         $tz = settings('timezone') ?? 'Asia/Kolkata';
         $inKitchenOverdueCount = $inKitchenOrders->filter(function ($order) use ($tz) {
             $prep = $order->preparation_at?->setTimezone($tz);

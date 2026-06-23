@@ -344,6 +344,20 @@ class Order extends Model implements HasMedia
         $query->where('preparation_at', '>', $bounds['end']);
     }
 
+    /**
+     * Today's orders visible to kitchen: payment verified, delivery today, still active.
+     * Includes orders awaiting admin to set Processing + preparation time.
+     */
+    public function scopeKitchenTodayVisible($query): void
+    {
+        $query->paymentVerified()
+            ->deliveryToday()
+            ->whereIn('order_status', ['pending', 'processing']);
+    }
+
+    /**
+     * Today's orders kitchen staff can update (processing, prep time set, within lead window).
+     */
     public function scopeKitchenTodayQueue($query): void
     {
         $query->paymentVerified()
@@ -361,7 +375,9 @@ class Order extends Model implements HasMedia
 
     public function scopeKitchenUpcoming($query): void
     {
-        $query->paymentVerified()->where('order_status', 'pending');
+        $query->paymentVerified()
+            ->deliveryUpcoming()
+            ->whereIn('order_status', ['pending', 'processing']);
     }
 
     public function scopeAwaitingPaymentVerification($query): void
@@ -383,7 +399,15 @@ class Order extends Model implements HasMedia
 
     public function scopeVisibleToKitchen($query): void
     {
-        $query->kitchenTodayQueue();
+        $query->kitchenTodayVisible();
+    }
+
+    public function isAwaitingKitchenSetup(): bool
+    {
+        return $this->isPaymentVerified()
+            && $this->isDeliveryToday()
+            && in_array($this->order_status, ['pending', 'processing'], true)
+            && (! $this->isProcessing() || ! $this->hasPreparationDeadline());
     }
 
     public function isDeliveryToday(): bool

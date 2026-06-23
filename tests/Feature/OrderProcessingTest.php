@@ -136,15 +136,50 @@ class OrderProcessingTest extends TestCase
         $response->assertSee($order->order_no, false);
     }
 
-    public function test_pending_order_with_today_delivery_not_on_kitchen_index(): void
+    public function test_pending_order_with_today_delivery_appears_on_kitchen_index_but_not_actionable(): void
     {
         $admin = $this->adminUser();
+        $kitchen = $this->kitchenUser();
         $order = $this->verifiedOrderToday();
 
-        $response = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
+        $indexResponse = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
+        $indexResponse->assertOk();
+        $indexResponse->assertSee($order->order_no, false);
 
-        $response->assertOk();
-        $response->assertDontSee($order->order_no, false);
+        $showResponse = $this->actingAs($kitchen)->get(route('admin.kitchen.orders.show', $order));
+        $showResponse->assertOk();
+        $showResponse->assertSee(__('Awaiting administrator — status can be updated after Processing is set with a preparation time.'), false);
+
+        $updateResponse = $this->actingAs($kitchen)->post(route('admin.kitchen.orders.update-status', $order), [
+            'order_status' => 'completed',
+        ]);
+        $updateResponse->assertRedirect(route('admin.kitchen.orders.show', $order));
+        $updateResponse->assertSessionHasErrors('_form');
+        $this->assertSame('pending', $order->fresh()->order_status);
+    }
+
+    public function test_verified_today_order_without_prep_time_visible_but_not_actionable(): void
+    {
+        $kitchen = $this->kitchenUser();
+        $order = $this->verifiedOrderToday();
+        $order->order_status = 'processing';
+        $order->preparation_at = null;
+        $order->save();
+
+        $this->assertTrue($order->fresh()->isAwaitingKitchenSetup());
+        $this->assertFalse($order->fresh()->canKitchenUpdateStatus());
+
+        $this->actingAs($kitchen)->get(route('admin.kitchen.orders.index'))
+            ->assertOk()
+            ->assertSee($order->order_no, false);
+
+        $this->actingAs($kitchen)->post(route('admin.kitchen.orders.update-status', $order), [
+            'order_status' => 'completed',
+        ])
+            ->assertRedirect(route('admin.kitchen.orders.show', $order))
+            ->assertSessionHasErrors('_form');
+
+        $this->assertSame('processing', $order->fresh()->order_status);
     }
 
     public function test_processing_order_with_tomorrow_delivery_not_on_kitchen_index(): void
@@ -173,7 +208,7 @@ class OrderProcessingTest extends TestCase
 
         $upcomingResponse = $this->actingAs($admin)->get(route('admin.kitchen.orders.upcoming'));
         $upcomingResponse->assertOk();
-        $upcomingResponse->assertDontSee($order->order_no, false);
+        $upcomingResponse->assertSee($order->order_no, false);
     }
 
     public function test_kitchen_user_cannot_set_processing_or_preparation_time(): void
@@ -301,8 +336,67 @@ class OrderProcessingTest extends TestCase
         $this->assertNull($order->preparation_at);
         $this->assertSame('completed', $order->order_status);
 
+        $kitchenResponse = $this->actingAs($this->kitchenUser())->get(route('admin.kitchen.orders.index'));
+        $kitchenResponse->assertDontSee($order->order_no, false);
+
+        $adminResponse = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
+        $adminResponse->assertSee($order->order_no, false);
+    }
+
+    public function test_admin_today_orders_includes_all_statuses_and_payment_states(): void
+    {
+        $admin = $this->adminUser();
+        $product = Product::factory()->create();
+        $tz = 'Asia/Kolkata';
+
+        $unverified = Order::factory()
+            ->for($product)
+            ->create([
+                'payment_status' => 'pending',
+                'order_status' => 'pending',
+                'delivery_at' => $this->deliveryAtToday(),
+            ]);
+
+        $completed = Order::factory()
+            ->verified()
+            ->for($product)
+            ->create([
+                'order_status' => 'completed',
+                'delivery_at' => $this->deliveryAtToday(),
+            ]);
+
+        $cancelled = Order::factory()
+            ->verified()
+            ->for($product)
+            ->create([
+                'order_status' => 'cancelled',
+                'delivery_at' => $this->deliveryAtToday(),
+            ]);
+
+        $takeaway = Order::factory()
+            ->verified()
+            ->for($product)
+            ->create([
+                'fulfillment_type' => Order::FULFILLMENT_TAKEAWAY,
+                'order_status' => 'processing',
+                'delivery_at' => $this->deliveryAtToday(),
+            ]);
+
         $response = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
-        $response->assertDontSee($order->order_no, false);
+
+        $response->assertOk();
+        $response->assertSee($unverified->order_no, false);
+        $response->assertSee($completed->order_no, false);
+        $response->assertSee($cancelled->order_no, false);
+        $response->assertSee($takeaway->order_no, false);
+        $response->assertSee(__('Take away'), false);
+
+        $kitchen = $this->kitchenUser();
+        $kitchenResponse = $this->actingAs($kitchen)->get(route('admin.kitchen.orders.index'));
+        $kitchenResponse->assertDontSee($unverified->order_no, false);
+        $kitchenResponse->assertDontSee($completed->order_no, false);
+        $kitchenResponse->assertDontSee($cancelled->order_no, false);
+        $kitchenResponse->assertSee($takeaway->order_no, false);
     }
 
     private function adminUser(): User
@@ -422,5 +516,18 @@ class OrderProcessingTest extends TestCase
 
         $response->assertSessionHasErrors('order_status');
         $this->assertSame('processing', $order->fresh()->order_status);
+    }
+
+    private function deliveryAtToday(): Carbon
+    {
+        $tz = 'Asia/Kolkata';
+        $now = Carbon::now($tz);
+        $deliveryAt = $now->copy()->addHours(6);
+
+        if (! $deliveryAt->isSameDay($now)) {
+            $deliveryAt = $now->copy()->endOfDay()->subHours(2);
+        }
+
+        return $deliveryAt->utc();
     }
 }

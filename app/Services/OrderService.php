@@ -97,12 +97,38 @@ class OrderService
     {
         return Order::query()
             ->with(['product.media'])
-            ->kitchenTodayQueue()
+            ->kitchenTodayVisible()
+            ->orderByRaw('CASE WHEN preparation_at IS NULL THEN 0 ELSE 1 END')
+            ->orderBy('preparation_at')
             ->orderBy('delivery_at')
             ->paginate(20);
     }
 
+    /**
+     * All orders scheduled for delivery today — every status, payment state, and fulfillment type.
+     */
+    public function listForAdminToday(): LengthAwarePaginator
+    {
+        return Order::query()
+            ->with(['product.media'])
+            ->deliveryToday()
+            ->orderBy('delivery_at')
+            ->orderByDesc('ordered_at')
+            ->paginate(20);
+    }
+
     public function listKitchenTodayForDashboard(): Collection
+    {
+        return Order::query()
+            ->with(['product.media'])
+            ->kitchenTodayVisible()
+            ->orderByRaw('CASE WHEN preparation_at IS NULL THEN 0 ELSE 1 END')
+            ->orderBy('preparation_at')
+            ->orderBy('delivery_at')
+            ->get();
+    }
+
+    public function listKitchenTodayActionableForDashboard(): Collection
     {
         return Order::query()
             ->with(['product.media'])

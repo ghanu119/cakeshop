@@ -46,8 +46,10 @@ class InAppOrderNotificationService
         $order = $notification->order();
 
         return match ($notification::class) {
-            KitchenPaymentVerifiedTodayNotification::class => $order->isDeliveryToday()
-                && Order::query()->whereKey($order->id)->kitchenUpcoming()->exists(),
+            KitchenPaymentVerifiedTodayNotification::class => Order::query()
+                ->whereKey($order->id)
+                ->kitchenTodayVisible()
+                ->exists(),
             KitchenOrderQueuedTodayNotification::class => Order::query()
                 ->whereKey($order->id)
                 ->kitchenTodayQueue()

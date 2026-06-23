@@ -5,6 +5,7 @@
 @section('content')
     @php
         $readOnly = $readOnly ?? false;
+        $statusReadOnly = $statusReadOnly ?? false;
         $tz = settings('timezone') ?? 'Asia/Kolkata';
         $orderedAt = $order->ordered_at?->setTimezone($tz);
         $deliveryAt = $order->delivery_at?->setTimezone($tz);
@@ -24,6 +25,10 @@
             @if($readOnly)
                 <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
                     {{ __('Read-only — status can be updated on the delivery day when the order is set to Processing.') }}
+                </div>
+            @elseif($statusReadOnly)
+                <div class="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                    {{ __('Awaiting administrator — status can be updated after Processing is set with a preparation time.') }}
                 </div>
             @endif
             
@@ -51,13 +56,25 @@
                             </span>
                         @else
                             @can('orders.update')
-                                @include('admin.orders.partials._status-form', [
-                                    'order' => $order,
-                                    'preparationRules' => $preparationRules,
-                                    'statusFormAction' => route('admin.kitchen.orders.update-status', $order),
-                                    'canSetPreparationTime' => auth()->user()->hasRole('Admin'),
-                                    'paymentBadge' => 'verified',
-                                ])
+                                @if($statusReadOnly)
+                                    <div class="flex flex-wrap items-center justify-end gap-3">
+                                        <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                            {{ __('Payment Verified') }}
+                                        </span>
+                                        <span class="inline-flex items-center rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm font-semibold capitalize text-amber-800">
+                                            {{ __($order->order_status) }}
+                                        </span>
+                                    </div>
+                                @else
+                                    @include('admin.orders.partials._status-form', [
+                                        'order' => $order,
+                                        'preparationRules' => $preparationRules,
+                                        'statusFormAction' => route('admin.kitchen.orders.update-status', $order),
+                                        'canSetPreparationTime' => auth()->user()->hasRole('Admin'),
+                                        'paymentBadge' => 'verified',
+                                    ])
+                                @endif
                             @else
                                 <span class="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 shadow-sm">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>

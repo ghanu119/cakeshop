@@ -84,9 +84,12 @@ class AdminDashboardTest extends TestCase
             'preparation_at' => $this->validPreparationAt($inKitchen),
         ]);
 
-        $kitchenOrders = app(OrderService::class)->listKitchenTodayForDashboard();
+        $kitchenOrders = app(OrderService::class)->listKitchenTodayActionableForDashboard();
         $this->assertTrue($kitchenOrders->contains('id', $inKitchen->id));
         $this->assertFalse($kitchenOrders->contains('id', $pendingToday->id));
+
+        $visibleToday = app(OrderService::class)->listKitchenTodayForDashboard();
+        $this->assertTrue($visibleToday->contains('id', $pendingToday->id));
 
         $response = $this->actingAs($admin)->get(route('admin.dashboard'));
         $response->assertOk();
