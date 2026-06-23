@@ -84,7 +84,7 @@ function syncProductGalleryLayout($root) {
     const isMobile = window.matchMedia('(max-width: 639px)').matches;
     const maxSide = isMobile
         ? Math.min(width, window.innerHeight * 0.5)
-        : Math.min(width, 448);
+        : width;
     const side = Math.max(200, Math.round(maxSide));
 
     $root.css('--product-gallery-size', `${side}px`);

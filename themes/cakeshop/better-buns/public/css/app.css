@@ -133,12 +133,11 @@ footer {
 .js-product-gallery.product-gallery-shell {
     position: relative;
     width: 100%;
-    height: var(--product-gallery-size, min(100vw, 28rem));
-    max-height: min(100vw, 28rem);
+    height: var(--product-gallery-size, 0px);
 }
 @media (max-width: 639px) {
     .js-product-gallery.product-gallery-shell {
-        max-height: min(100vw, 50vh);
+        height: var(--product-gallery-size, 0px);
     }
 }
 .js-product-gallery .product-gallery-main {
@@ -167,7 +166,7 @@ footer {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
     object-position: center;
 }
 .js-product-gallery .slick-prev,
