@@ -61,7 +61,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-DGK44eO_.css",
+    "file": "assets/app-C3LKYYrb.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -109,7 +109,7 @@
     ]
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-DS7xzssW.js",
+    "file": "assets/admin-B96ras6o.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true,
@@ -122,7 +122,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-B0Zd-8gk.js",
+    "file": "assets/app-DPcmDHfL.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -195,7 +195,7 @@
     ]
   },
   "resources/js/product-gallery.js": {
-    "file": "assets/product-gallery-BPjRMAT7.js",
+    "file": "assets/product-gallery-FOxlqhUz.js",
     "name": "product-gallery",
     "src": "resources/js/product-gallery.js",
     "isEntry": true,

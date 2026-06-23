@@ -232,7 +232,7 @@ function applyCardMediaBox($slider) {
         return;
     }
 
-    const height = Math.round(width * 0.75);
+    const height = Math.round(width);
 
     $media.css({
         paddingTop: '0',
@@ -250,8 +250,6 @@ function applyCardMediaBox($slider) {
 
     if ($slider.hasClass('slick-initialized')) {
         $slider.find('.slick-list').css({
-            width: '100%',
-            maxWidth: '100%',
             height: `${height}px`,
         });
         callSlickMethod($slider, 'setPosition');

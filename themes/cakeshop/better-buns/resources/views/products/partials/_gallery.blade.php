@@ -38,6 +38,9 @@
                         </div>
                     @endforeach
                 </div>
+                <div class="product-veg-indicator pointer-events-none">
+                    <x-veg-indicator />
+                </div>
             </div>
             <div class="js-product-gallery-thumbs flex gap-2 overflow-x-auto pb-1">
                 @foreach($galleryImages as $index => $image)
@@ -69,14 +72,20 @@
                         class="product-gallery-img"
                     />
                 </a>
+                <div class="product-veg-indicator pointer-events-none">
+                    <x-veg-indicator />
+                </div>
             </div>
         @endif
     @else
-        <div class="overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 shadow-lg">
+        <div class="product-gallery-shell product-gallery-shell--placeholder overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 to-orange-50 shadow-lg">
             <div class="flex aspect-square w-full items-center justify-center text-amber-200">
                 <svg class="h-24 w-24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
+            </div>
+            <div class="product-veg-indicator pointer-events-none">
+                <x-veg-indicator />
             </div>
         </div>
     @endif

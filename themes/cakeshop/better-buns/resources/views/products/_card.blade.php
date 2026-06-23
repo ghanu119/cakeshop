@@ -60,7 +60,7 @@
                 @endforeach
             </div>
         @elseif($imgUrl)
-            <a href="{{ $productUrl }}" class="product-card-media-cover block" tabindex="-1" aria-hidden="true">
+            <a href="{{ $productUrl }}" class="product-card-media-cover" tabindex="-1" aria-hidden="true">
                 <img src="{{ $imgUrl }}" alt="{{ $product->name_en }}" class="product-card-media-img transition-transform duration-700 group-hover:scale-105" />
             </a>
         @else
@@ -70,6 +70,9 @@
                 </svg>
             </a>
         @endif
+        <div class="product-veg-indicator pointer-events-none">
+            <x-veg-indicator />
+        </div>
         @if($product->is_highlight || $product->is_trending || $product->is_featured)
             <div class="pointer-events-none absolute top-4 right-4 z-30 flex flex-col gap-2">
                 @if($product->is_highlight)
