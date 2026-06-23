@@ -41,6 +41,7 @@
                 pushSubscribe: @json(route('admin.push-subscriptions.store')),
                 pushStatus: @json(route('admin.push-subscriptions.status')),
                 pushTest: @json(route('admin.push-subscriptions.test')),
+                orderSoundUrl: @json(asset('sounds/order_notification.mp3')),
             };
         </script>
         <x-app-messages-script />
