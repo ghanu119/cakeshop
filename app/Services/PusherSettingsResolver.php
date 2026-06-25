@@ -27,13 +27,16 @@ class PusherSettingsResolver
             return;
         }
 
+        $options = $this->pusherOptions($config);
+
         config([
             'broadcasting.default' => 'pusher',
             'broadcasting.connections.pusher.key' => $config['key'],
             'broadcasting.connections.pusher.secret' => $config['secret'],
             'broadcasting.connections.pusher.app_id' => $config['app_id'],
-            'broadcasting.connections.pusher.options.cluster' => $config['cluster'],
-            'broadcasting.connections.pusher.options.useTLS' => true,
+            'broadcasting.connections.pusher.options.cluster' => $options['cluster'],
+            'broadcasting.connections.pusher.options.host' => $options['host'],
+            'broadcasting.connections.pusher.options.useTLS' => $options['useTLS'],
         ]);
 
         $this->registerBroadcastChannels();
@@ -51,6 +54,25 @@ class PusherSettingsResolver
     }
 
     /**
+     * @param  array{key: string, secret: string, app_id: string, cluster: string}  $config
+     * @return array{cluster: string, host: string, useTLS: true}
+     */
+    private function pusherOptions(array $config): array
+    {
+        $configuredHost = (string) config('broadcasting.connections.pusher.options.host', '');
+
+        $host = filled($configuredHost) && ! preg_match('/^api-[a-z0-9]+\.pusher\.com$/', $configuredHost)
+            ? $configuredHost
+            : 'api-'.$config['cluster'].'.pusher.com';
+
+        return [
+            'cluster' => $config['cluster'],
+            'host' => $host,
+            'useTLS' => true,
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function broadcastingOptions(): array
@@ -65,10 +87,7 @@ class PusherSettingsResolver
             'key' => $config['key'],
             'secret' => $config['secret'],
             'app_id' => $config['app_id'],
-            'options' => [
-                'cluster' => $config['cluster'],
-                'useTLS' => true,
-            ],
+            'options' => $this->pusherOptions($config),
         ];
     }
 
@@ -102,7 +121,7 @@ class PusherSettingsResolver
                 $config['key'],
                 $config['secret'],
                 $config['app_id'],
-                ['cluster' => $config['cluster'], 'useTLS' => true]
+                $this->pusherOptions($config)
             );
 
             $pusher->trigger('settings-test', 'ping', ['ok' => true]);

@@ -14,6 +14,7 @@ let countPollTimer = null;
 let connectTimeout = null;
 let lastUnreadCount = null;
 let fetchErrorShown = false;
+let consecutivePollingAuthFailures = 0;
 let disconnectWarningShown = false;
 let wasLiveConnected = false;
 const liveToastedIds = new Set();
@@ -21,12 +22,40 @@ const liveToastedIds = new Set();
 const CONNECT_TIMEOUT_MS = 12000;
 const PUSH_BANNER_DISMISS_KEY = 'staff_push_banner_dismissed';
 const PUSH_SETUP_TOAST_SHOWN_KEY = 'staff_push_setup_toast_shown';
+const SESSION_TOASTED_IDS_KEY = 'staff_notification_toasted_ids';
+const SESSION_TOASTED_IDS_LIMIT = 200;
 
 function isAdminHttp() {
     return location.protocol === 'http:' && /\.(test|localhost)$/i.test(location.hostname);
 }
 
 const POLL_OPTIONS = { preventNavigation: true };
+const POLLING_AUTH_FAILURE_REDIRECT_AT = 2;
+
+function isPollingAuthFailure(result) {
+    return result.code === 'session_expired'
+        || result.code === 'csrf_expired'
+        || result.status === 401
+        || result.status === 419;
+}
+
+function stopCountPolling() {
+    if (countPollTimer) {
+        window.clearInterval(countPollTimer);
+        countPollTimer = null;
+    }
+}
+
+function handlePollingAuthFailure(result) {
+    stopCountPolling();
+
+    if (result.code === 'csrf_expired' || result.status === 419) {
+        window.location.reload();
+        return;
+    }
+
+    window.location.href = '/admin/login';
+}
 
 function httpsAdminUrl() {
     if (location.protocol === 'https:') {
@@ -254,10 +283,59 @@ function isNewSincePageLoad(item) {
     const itemMs = parseInstant(item?.created_at);
 
     if (itemMs === null) {
-        return true;
+        return false;
     }
 
     return itemMs > pageLoadMs;
+}
+
+function loadSessionToastedIds() {
+    try {
+        const raw = sessionStorage.getItem(SESSION_TOASTED_IDS_KEY);
+        if (!raw) {
+            return [];
+        }
+
+        const parsed = JSON.parse(raw);
+
+        return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+    } catch (error) {
+        return [];
+    }
+}
+
+function persistToastedId(id) {
+    if (!id) {
+        return;
+    }
+
+    try {
+        const ids = new Set([...loadSessionToastedIds(), ...liveToastedIds, id]);
+        sessionStorage.setItem(
+            SESSION_TOASTED_IDS_KEY,
+            JSON.stringify([...ids].slice(-SESSION_TOASTED_IDS_LIMIT))
+        );
+    } catch (error) {
+        // sessionStorage may be unavailable in private mode
+    }
+}
+
+function seedSeenNotificationIds() {
+    const ids = new Set([
+        ...getKnownNotificationIds(),
+        ...loadSessionToastedIds(),
+    ]);
+
+    ids.forEach((id) => liveToastedIds.add(id));
+
+    try {
+        sessionStorage.setItem(
+            SESSION_TOASTED_IDS_KEY,
+            JSON.stringify([...ids].slice(-SESSION_TOASTED_IDS_LIMIT))
+        );
+    } catch (error) {
+        // sessionStorage may be unavailable in private mode
+    }
 }
 
 function shouldPlayOrderSound(item) {
@@ -277,6 +355,7 @@ function toastNotificationItem(item, { force = false } = {}) {
 
     if (id) {
         liveToastedIds.add(id);
+        persistToastedId(id);
     }
 
     if (shouldPlayOrderSound(item)) {
@@ -424,7 +503,7 @@ async function syncUnreadNotifications({ toast = false } = {}) {
     if (toast) {
         items
             .filter((item) => !knownIds.has(item.id))
-            .forEach((item) => toastNotificationItem(item, { force: true }));
+            .forEach((item) => toastNotificationItem(item));
     }
 
     return items;
@@ -465,14 +544,26 @@ async function refreshUnreadCount() {
 
     const result = await adminApi('get', routes.unreadCount, undefined, POLL_OPTIONS);
     if (result.ok && result.data?.count !== undefined) {
+        consecutivePollingAuthFailures = 0;
         updateBadge(result.data.count);
         fetchErrorShown = false;
+        hideInlineError();
         return result.data.count;
+    }
+
+    if (isPollingAuthFailure(result)) {
+        consecutivePollingAuthFailures += 1;
+
+        if (consecutivePollingAuthFailures >= POLLING_AUTH_FAILURE_REDIRECT_AT) {
+            handlePollingAuthFailure(result);
+        }
+
+        return null;
     }
 
     if (!fetchErrorShown) {
         fetchErrorShown = true;
-        showAdminToast(result.message, { variant: 'warning' });
+        showAdminToast("Couldn't refresh notifications. Showing your last saved list.", { variant: 'warning' });
         showInlineError();
     }
 
@@ -528,7 +619,9 @@ function startCountPolling() {
     if (countPollTimer) return;
 
     const badgeText = document.querySelector('[data-notification-badge]')?.textContent ?? '0';
-    lastUnreadCount = badgeText === '99+' ? 99 : Number(badgeText) || 0;
+    const badgeCount = badgeText === '99+' ? 99 : Number(badgeText) || 0;
+    const listCount = getUnreadListItemCount();
+    lastUnreadCount = Math.max(badgeCount, listCount);
 
     void pollForNewNotifications();
     countPollTimer = window.setInterval(() => {
@@ -1036,6 +1129,7 @@ document.addEventListener('DOMContentLoaded', () => {
     applyHighlightTargets(targets);
 
     pageLoadMs = Date.now();
+    seedSeenNotificationIds();
 
     initBellUi();
     initEcho();
