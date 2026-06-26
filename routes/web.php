@@ -9,6 +9,9 @@ use App\Http\Controllers\Admin\ContactEnquiryController;
 use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\FeatureController;
 use App\Http\Controllers\Admin\FlavorController;
+use App\Http\Controllers\Admin\SliderController;
+use App\Http\Controllers\Admin\SliderItemController;
+use App\Http\Controllers\Admin\SliderItemImageTempController;
 use App\Http\Controllers\Admin\ImpersonationController;
 use App\Http\Controllers\Admin\NotificationController;
 use App\Http\Controllers\Admin\OrderController as AdminOrderController;
@@ -145,6 +148,18 @@ Route::middleware(['ensure.admin.https', 'auth:web', 'verified', 'role:Admin|Kit
             Route::get('variant-option-types/{variant_option_type}/values', fn () => redirect()->route('admin.cake-weights.index'));
         });
         Route::resource('features', FeatureController::class)->except(['show']);
+        Route::get('sliders', [SliderController::class, 'index'])->name('sliders.index');
+        Route::patch('sliders/{slider}', [SliderController::class, 'update'])->name('sliders.update');
+        Route::post('sliders/items/images/temp', [SliderItemImageTempController::class, 'store'])
+            ->name('sliders.items.images.temp.store');
+        Route::delete('sliders/items/images/temp/{token}', [SliderItemImageTempController::class, 'destroy'])
+            ->name('sliders.items.images.temp.destroy');
+        Route::resource('sliders.items', SliderItemController::class)
+            ->except(['show'])
+            ->parameters(['sliders' => 'slider', 'items' => 'item']);
+        Route::redirect('home-sliders', '/admin/sliders')->name('home-sliders.index');
+        Route::redirect('home-sliders/create', '/admin/sliders')->name('home-sliders.create');
+        Route::redirect('home_sliders', '/admin/sliders');
         Route::resource('testimonials', TestimonialController::class)->except(['show']);
         Route::resource('users', UserController::class)->except(['show']);
         Route::middleware('role:Admin')->group(function () {

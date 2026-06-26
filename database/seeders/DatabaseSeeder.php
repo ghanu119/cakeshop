@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             FlavorSeeder::class,
             CategorySeeder::class,
             FeatureSeeder::class,
+            SliderItemSeeder::class,
             TestimonialSeeder::class,
         ];
 

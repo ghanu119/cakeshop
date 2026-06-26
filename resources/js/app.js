@@ -51,4 +51,22 @@ document.addEventListener('DOMContentLoaded', function () {
             ],
         });
     }
+
+    // Home hero slider (Better Buns) — fade carousel; init for 1+ slides
+    const $homeSlider = $('.js-home-slider');
+    if ($homeSlider.length && $homeSlider.children('.home-slider-slide').length >= 1) {
+        if ($homeSlider.children('.home-slider-slide').length > 1) {
+            $homeSlider.slick({
+                dots: true,
+                arrows: true,
+                infinite: true,
+                fade: true,
+                speed: 600,
+                autoplay: true,
+                autoplaySpeed: 5000,
+                pauseOnHover: true,
+                adaptiveHeight: false,
+            });
+        }
+    }
 });

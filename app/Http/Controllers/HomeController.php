@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Feature;
+use App\Models\Slider;
+use App\Models\SliderItem;
+use App\Services\VideoEmbedService;
 use App\Models\Product;
 use App\Models\Testimonial;
 use App\Services\ProductService;
@@ -30,7 +33,26 @@ class HomeController extends Controller
         $categories = Category::active()->orderBy('sort_order')->get();
         $features = Feature::active()->orderBy('sort_order')->get();
         $testimonials = Testimonial::active()->orderBy('sort_order')->limit(3)->get();
+        $videoEmbed = app(VideoEmbedService::class);
+        $homeSlider = Slider::query()->active()->bySlug(Slider::SLUG_HOME)->first();
+        $sliderItems = $homeSlider
+            ? $homeSlider->items()
+                ->active()
+                ->with('media')
+                ->orderBy('sort_order')
+                ->get()
+                ->filter(fn (SliderItem $item) => $item->hasContent())
+                ->map(function (SliderItem $item) use ($videoEmbed) {
+                    if ($item->isVideo()) {
+                        $item->setAttribute('video_embed', $videoEmbed->resolve($item->video_url));
+                    }
 
-        return view('home', compact('highlights', 'trending', 'featured', 'products', 'categories', 'features', 'testimonials'));
+                    return $item;
+                })
+                ->filter(fn (SliderItem $item) => $item->isImage() || $item->getAttribute('video_embed'))
+                ->values()
+            : collect();
+
+        return view('home', compact('highlights', 'trending', 'featured', 'products', 'categories', 'features', 'testimonials', 'sliderItems'));
     }
 }
