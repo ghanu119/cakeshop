@@ -45,7 +45,7 @@
                         <div class="mb-3 flex items-baseline justify-between gap-4 border-b border-stone-100 pb-3">
                             <h3 class="font-display min-w-0 flex-1 text-lg font-bold leading-snug text-stone-900">
                                 @if($order->product && ! $order->product->trashed())
-                                    <a href="{{ route('products.show', $order->product->slug) }}" class="transition-colors hover:text-amber-700 hover:underline">{{ $order->displayProductName() }}</a>
+                                    <a href="{{ route('product.show', $order->product->slug) }}" class="transition-colors hover:text-amber-700 hover:underline">{{ $order->displayProductName() }}</a>
                                 @else
                                     {{ $order->displayProductName() }}
                                 @endif
