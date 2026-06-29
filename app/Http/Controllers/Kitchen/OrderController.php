@@ -17,11 +17,13 @@ class OrderController extends Controller
         private OrderNotificationService $orderNotificationService
     ) {}
 
-    public function index(): View
+    public function index(): View|RedirectResponse
     {
-        $orders = request()->user()->hasRole('Admin')
-            ? $this->orderService->listForAdminToday()
-            : $this->orderService->listForKitchen();
+        if (request()->user()->hasRole('Admin')) {
+            return redirect()->route('admin.orders.index', ['view' => 'today']);
+        }
+
+        $orders = $this->orderService->listForKitchen();
 
         return view('kitchen.orders.index', compact('orders'));
     }
@@ -36,19 +38,20 @@ class OrderController extends Controller
     /**
      * Show order details (no payment info) for a today's order. Only orders visible to kitchen are allowed.
      */
-    public function show(Order $order): View
+    public function show(Order $order): View|RedirectResponse
     {
-        $query = Order::query()
-            ->with(['product.media'])
-            ->where('id', $order->id);
-
         if (request()->user()->hasRole('Admin')) {
-            $query->deliveryToday();
-        } else {
-            $query->kitchenTodayVisible();
+            return redirect()->route('admin.orders.show', [
+                'order' => $order,
+                'view' => 'today',
+            ]);
         }
 
-        $order = $query->firstOrFail();
+        $order = Order::query()
+            ->with(['product.media'])
+            ->where('id', $order->id)
+            ->kitchenTodayVisible()
+            ->firstOrFail();
 
         $preparationRules = $this->orderService->preparationAtRules($order);
 
@@ -56,7 +59,7 @@ class OrderController extends Controller
             'order' => $order,
             'preparationRules' => $preparationRules,
             'readOnly' => false,
-            'statusReadOnly' => ! $order->canKitchenUpdateStatus() && ! request()->user()->hasRole('Admin'),
+            'statusReadOnly' => ! $order->canKitchenUpdateStatus(),
         ]);
     }
 

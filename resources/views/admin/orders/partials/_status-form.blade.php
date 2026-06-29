@@ -16,6 +16,11 @@
     $showPrepPanel = $canSetPreparationTime && $currentStatus === 'processing';
     $kitchenStatusOptions = ['completed', 'cancelled'];
     $showDeliveredOption = $canSetPreparationTime && $order->isDeliveryFulfillment() && ! $order->isStatusLocked();
+    $statusFormQuery = array_filter([
+        'from' => ! empty($fromKitchen) ? 'kitchen' : null,
+        'delivery_today' => (! empty($fromToday) || request()->boolean('delivery_today')) ? 1 : null,
+        'view' => (! empty($fromToday) || request('view') === 'today') ? 'today' : null,
+    ]);
 @endphp
 
 @if($order->isStatusLocked())
@@ -39,7 +44,7 @@
 <div id="order-status" class="w-full md:w-auto">
     <form
         method="post"
-        action="{{ $statusFormAction }}{{ !empty($fromKitchen) ? '?from=kitchen' : '' }}"
+        action="{{ $statusFormAction }}{{ $statusFormQuery !== [] ? '?' . http_build_query($statusFormQuery) : '' }}"
         class="flex w-full flex-col gap-3 md:w-auto md:items-end"
         data-order-status-form
         data-initial-order-status="{{ $order->order_status }}"

@@ -186,7 +186,7 @@ class AdminDashboardTest extends TestCase
         $today = $this->verifiedOrderToday();
         $tomorrow = $this->verifiedOrderTomorrow();
 
-        $request = Request::create('/admin/orders', 'GET', ['delivery_today' => '1']);
+        $request = Request::create('/admin/orders', 'GET', ['view' => 'today']);
         $paginator = app(OrderService::class)->listForAdmin($request);
 
         $ids = $paginator->getCollection()->pluck('id');

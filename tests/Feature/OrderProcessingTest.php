@@ -85,9 +85,9 @@ class OrderProcessingTest extends TestCase
         $this->assertSame('processing', $order->order_status);
         $this->assertNotNull($order->preparation_at);
 
-        $kitchenResponse = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
-        $kitchenResponse->assertOk();
-        $kitchenResponse->assertSee($order->order_no, false);
+        $todayOrdersResponse = $this->actingAs($admin)->get(route('admin.orders.index', ['view' => 'today']));
+        $todayOrdersResponse->assertOk();
+        $todayOrdersResponse->assertSee($order->order_no, false);
     }
 
     public function test_kitchen_can_complete_overdue_processing_order(): void
@@ -130,10 +130,14 @@ class OrderProcessingTest extends TestCase
             'preparation_at' => $prepAt,
         ])->assertRedirect();
 
-        $response = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
+        $response = $this->actingAs($admin)->get(route('admin.orders.index', ['view' => 'today']));
 
         $response->assertOk();
         $response->assertSee($order->order_no, false);
+
+        $kitchenResponse = $this->actingAs($this->kitchenUser())->get(route('admin.kitchen.orders.index'));
+        $kitchenResponse->assertOk();
+        $kitchenResponse->assertSee($order->order_no, false);
     }
 
     public function test_pending_order_with_today_delivery_appears_on_kitchen_index_but_not_actionable(): void
@@ -142,7 +146,7 @@ class OrderProcessingTest extends TestCase
         $kitchen = $this->kitchenUser();
         $order = $this->verifiedOrderToday();
 
-        $indexResponse = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
+        $indexResponse = $this->actingAs($admin)->get(route('admin.orders.index', ['view' => 'today']));
         $indexResponse->assertOk();
         $indexResponse->assertSee($order->order_no, false);
 
@@ -201,7 +205,7 @@ class OrderProcessingTest extends TestCase
             'preparation_at' => $prepAt,
         ])->assertRedirect();
 
-        $response = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
+        $response = $this->actingAs($admin)->get(route('admin.orders.index', ['view' => 'today']));
 
         $response->assertOk();
         $response->assertDontSee($order->order_no, false);
@@ -339,8 +343,31 @@ class OrderProcessingTest extends TestCase
         $kitchenResponse = $this->actingAs($this->kitchenUser())->get(route('admin.kitchen.orders.index'));
         $kitchenResponse->assertDontSee($order->order_no, false);
 
-        $adminResponse = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
+        $adminResponse = $this->actingAs($admin)->get(route('admin.orders.index', ['view' => 'today']));
+        $adminResponse->assertOk();
         $adminResponse->assertSee($order->order_no, false);
+    }
+
+    public function test_admin_kitchen_orders_index_redirects_to_admin_orders_today(): void
+    {
+        $admin = $this->adminUser();
+
+        $response = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
+
+        $response->assertRedirect(route('admin.orders.index', ['view' => 'today']));
+    }
+
+    public function test_admin_kitchen_orders_show_redirects_to_admin_order_show(): void
+    {
+        $admin = $this->adminUser();
+        $order = $this->verifiedOrderToday();
+
+        $response = $this->actingAs($admin)->get(route('admin.kitchen.orders.show', $order));
+
+        $response->assertRedirect(route('admin.orders.show', [
+            'order' => $order,
+            'view' => 'today',
+        ]));
     }
 
     public function test_admin_today_orders_includes_all_statuses_and_payment_states(): void
@@ -382,7 +409,7 @@ class OrderProcessingTest extends TestCase
                 'delivery_at' => $this->deliveryAtToday(),
             ]);
 
-        $response = $this->actingAs($admin)->get(route('admin.kitchen.orders.index'));
+        $response = $this->actingAs($admin)->get(route('admin.orders.index', ['view' => 'today']));
 
         $response->assertOk();
         $response->assertSee($unverified->order_no, false);
@@ -390,6 +417,7 @@ class OrderProcessingTest extends TestCase
         $response->assertSee($cancelled->order_no, false);
         $response->assertSee($takeaway->order_no, false);
         $response->assertSee(__('Take away'), false);
+        $response->assertSee(__("Today's orders"), false);
 
         $kitchen = $this->kitchenUser();
         $kitchenResponse = $this->actingAs($kitchen)->get(route('admin.kitchen.orders.index'));

@@ -25,6 +25,7 @@ export default defineConfig({
                 'resources/js/account-otp.js',
                 'resources/js/account-register.js',
                 'resources/js/admin-customer-lookup.js',
+                'resources/js/admin-orders-index.js',
             ],
             refresh: true,
         }),

@@ -22,7 +22,15 @@ class OrderController extends Controller
         $this->authorize('viewAny', Order::class);
         $orders = $this->orderService->listForAdmin(request());
 
-        return view('admin.orders.index', compact('orders'));
+        $isTodayEntry = request('view') === 'today';
+        $showTodayChrome = request()->boolean('delivery_today') || $isTodayEntry;
+        $todayListMode = $isTodayEntry || (request()->ajax() && request()->boolean('delivery_today'));
+
+        if (request()->ajax()) {
+            return view('admin.orders.partials._list-results', compact('orders', 'showTodayChrome', 'todayListMode'));
+        }
+
+        return view('admin.orders.index', compact('orders', 'showTodayChrome', 'isTodayEntry', 'todayListMode'));
     }
 
     public function show(Order $order): View
@@ -41,13 +49,23 @@ class OrderController extends Controller
 
         $this->orderNotificationService->notifyPaymentVerified($order->fresh());
 
-        return redirect()->route('admin.orders.show', $order)->with('status', __('Payment verified.'));
+        $showParams = ['order' => $order];
+        if (request()->boolean('delivery_today') || request('view') === 'today') {
+            $showParams['view'] = 'today';
+        }
+
+        return redirect()->route('admin.orders.show', $showParams)->with('status', __('Payment verified.'));
     }
 
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order): RedirectResponse
     {
         if (! $order->isPaymentVerified()) {
-            return redirect()->route('admin.orders.show', $order)
+            $showParams = ['order' => $order];
+            if (request()->boolean('delivery_today') || request('view') === 'today') {
+                $showParams['view'] = 'today';
+            }
+
+            return redirect()->route('admin.orders.show', $showParams)
                 ->withErrors(['_form' => __('Payment must be verified before you can change the order status.')]);
         }
 
@@ -67,8 +85,10 @@ class OrderController extends Controller
             $this->orderNotificationService->notifyKitchenOrderQueued($order);
         }
 
-        $redirect = request()->query('from') === 'kitchen'
-            ? route('admin.kitchen.orders.index')
+        $todayContext = request()->boolean('delivery_today') || request('view') === 'today' || request()->query('from') === 'kitchen';
+
+        $redirect = $todayContext
+            ? route('admin.orders.show', ['order' => $order, 'view' => 'today'])
             : route('admin.orders.show', $order);
 
         return redirect()->to($redirect)->with('status', __('Order status updated.'));

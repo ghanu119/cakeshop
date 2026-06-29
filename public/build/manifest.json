@@ -108,6 +108,16 @@
       "_admin-toast-CFkj4sdH.js"
     ]
   },
+  "resources/js/admin-orders-index.js": {
+    "file": "assets/admin-orders-index-9L_fazNp.js",
+    "name": "admin-orders-index",
+    "src": "resources/js/admin-orders-index.js",
+    "isEntry": true,
+    "imports": [
+      "_jquery-BI420F6r.js",
+      "__commonjsHelpers-CqkleIqs.js"
+    ]
+  },
   "resources/js/admin-product-images.js": {
     "file": "assets/admin-product-images-D_aIuXk6.js",
     "name": "admin-product-images",

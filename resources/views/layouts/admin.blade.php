@@ -128,16 +128,25 @@
                     </a>
                     @endcan
                     @can('orders.view')
+                    @php
+                        $isTodayOrdersView = (request()->routeIs('admin.orders.index') && (request('view') === 'today' || request()->boolean('delivery_today')))
+                            || (request()->routeIs('admin.orders.show') && (request('view') === 'today' || request()->boolean('delivery_today')));
+                    @endphp
                     @role('Admin')
-                    <a href="{{ route('admin.orders.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition duration-200 {{ request()->routeIs('admin.orders.*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                    <a href="{{ route('admin.orders.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition duration-200 {{ request()->routeIs('admin.orders.*') && ! $isTodayOrdersView ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg>
                         Orders
                     </a>
-                    @endrole
+                    <a href="{{ route('admin.orders.index', ['view' => 'today']) }}" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition duration-200 {{ $isTodayOrdersView ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                        Today's orders
+                    </a>
+                    @else
                     <a href="{{ route('admin.kitchen.orders.index') }}" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition duration-200 {{ request()->routeIs('admin.kitchen.orders.index') || request()->routeIs('admin.kitchen.orders.show') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
                         Today's orders
                     </a>
+                    @endrole
                     <a href="{{ route('admin.kitchen.orders.upcoming') }}" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition duration-200 {{ request()->routeIs('admin.kitchen.orders.upcoming*') ? 'bg-indigo-50 text-indigo-700' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                         <svg class="h-5 w-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                         Upcoming orders

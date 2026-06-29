@@ -69,7 +69,7 @@ class OrderService
         if ($request->filled('to_date')) {
             $query->whereDate('ordered_at', '<=', $request->input('to_date'));
         }
-        if ($request->boolean('delivery_today')) {
+        if ($request->boolean('delivery_today') || $request->query('view') === 'today') {
             $query->deliveryToday();
         }
         if ($request->boolean('awaiting_payment_verification')) {
@@ -83,8 +83,9 @@ class OrderService
 
     private function applyAdminListSorting(Builder $query, Request $request): void
     {
-        $sort = $request->input('sort', 'ordered_at');
-        $direction = strtolower((string) $request->input('direction', 'desc')) === 'asc' ? 'asc' : 'desc';
+        $isTodayView = $request->query('view') === 'today' || $request->boolean('delivery_today');
+        $sort = $request->input('sort', $isTodayView ? 'delivery_at' : 'ordered_at');
+        $direction = strtolower((string) $request->input('direction', $isTodayView ? 'asc' : 'desc')) === 'asc' ? 'asc' : 'desc';
 
         if (! in_array($sort, self::ADMIN_SORTABLE_COLUMNS, true)) {
             $sort = 'ordered_at';
@@ -102,19 +103,6 @@ class OrderService
             ->orderByRaw('CASE WHEN preparation_at IS NULL THEN 0 ELSE 1 END')
             ->orderBy('preparation_at')
             ->orderBy('delivery_at')
-            ->paginate(20);
-    }
-
-    /**
-     * All orders scheduled for delivery today — every status, payment state, and fulfillment type.
-     */
-    public function listForAdminToday(): LengthAwarePaginator
-    {
-        return Order::query()
-            ->with(['product.media'])
-            ->deliveryToday()
-            ->orderBy('delivery_at')
-            ->orderByDesc('ordered_at')
             ->paginate(20);
     }
 

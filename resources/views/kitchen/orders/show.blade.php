@@ -71,7 +71,7 @@
                                         'order' => $order,
                                         'preparationRules' => $preparationRules,
                                         'statusFormAction' => route('admin.kitchen.orders.update-status', $order),
-                                        'canSetPreparationTime' => auth()->user()->hasRole('Admin'),
+                                        'canSetPreparationTime' => false,
                                         'paymentBadge' => 'verified',
                                     ])
                                 @endif
@@ -91,74 +91,16 @@
             {{-- Left Column (Main Details) --}}
             <div class="space-y-6 lg:col-span-8">
 
-                @role('Admin')
-                    {{-- Scheduled delivery (admin only) --}}
-                    <div class="flex items-center justify-between rounded-xl border border-indigo-100 bg-indigo-50 p-6 shadow-sm">
-                        <div>
-                            <p class="mb-1 text-sm font-bold uppercase tracking-wider text-indigo-600">{{ __('Scheduled Delivery') }}</p>
-                            <h2 class="text-2xl font-bold text-indigo-900">{{ $deliveryAt?->format('F d, Y') }}</h2>
-                            <p class="mt-0.5 text-lg font-medium text-indigo-700">{{ $deliveryAt?->format('h:i A') }}</p>
-                        </div>
-                        @if($deliveryAt)
-                            <div class="text-right">
-                                @if(in_array($order->order_status, ['completed', 'cancelled']))
-                                    <p class="mb-1 text-sm font-bold uppercase tracking-wider text-gray-500">{{ __('Status') }}</p>
-                                    <p class="text-xl font-bold text-gray-700">
-                                        {{ $order->order_status === 'completed' ? __('Completed') : __('Cancelled') }}
-                                    </p>
-                                @else
-                                    <p class="mb-1 text-sm font-bold uppercase tracking-wider {{ $deliveryAt->isPast() ? 'text-red-500' : 'text-indigo-600' }}">
-                                        {{ $deliveryAt->isPast() ? __('Overdue by') : __('Time Left') }}
-                                    </p>
-                                    <p class="text-xl font-bold {{ $deliveryAt->isPast() ? 'text-red-600' : 'text-indigo-900' }}">
-                                        {{ $deliveryAt->diffForHumans(null, true) }}
-                                    </p>
-                                @endif
-                            </div>
-                        @endif
-                    </div>
-                @endrole
-
                 {{-- Order Details Card --}}
                 <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
                     <div class="border-b border-gray-100 bg-gray-50/80 px-6 py-4">
                         <h3 class="font-semibold text-gray-900">{{ __('Order Information') }}</h3>
                     </div>
                     <div class="p-6">
-                        @role('Kitchen')
-                            @include('admin.orders.partials._product-image-preview', [
-                                'order' => $order,
-                                'prominent' => true,
-                            ])
-                        @endrole
-
-                        @role('Admin')
-                            {{-- Order contact (admin only — kitchen staff must not see customer/guest contact) --}}
-                            <div class="mb-8">
-                                <h4 class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">{{ __('Contact for this order') }}</h4>
-                                <div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                                    <div>
-                                        <p class="mb-1 text-sm font-medium text-gray-500">{{ __('Name') }}</p>
-                                        <p class="font-semibold text-gray-900">{{ $order->guest_name }}</p>
-                                    </div>
-                                    <div>
-                                        <p class="mb-1 text-sm font-medium text-gray-500">{{ __('Phone') }}</p>
-                                        <p class="font-semibold text-gray-900"><a href="tel:{{ preg_replace('/\s+/', '', $order->guest_phone) }}" class="hover:text-indigo-600">{{ $order->guest_phone }}</a></p>
-                                    </div>
-                                    <div>
-                                        <p class="mb-1 text-sm font-medium text-gray-500">{{ __('Email') }}</p>
-                                        <p class="break-all font-semibold text-gray-900">
-                                            @if($order->guest_email)
-                                                <a href="mailto:{{ $order->guest_email }}" class="hover:text-indigo-600">{{ $order->guest_email }}</a>
-                                            @else
-                                                —
-                                            @endif
-                                        </p>
-                                    </div>
-                                </div>
-                                @include('admin.orders.partials._linked-account', ['order' => $order])
-                            </div>
-                        @endrole
+                        @include('admin.orders.partials._product-image-preview', [
+                            'order' => $order,
+                            'prominent' => true,
+                        ])
 
                         {{-- Cake Customization --}}
                         @if($order->message_on_cake || $order->instructions)
@@ -185,9 +127,6 @@
                             </div>
                         @endif
 
-                        @role('Admin')
-                            @include('admin.orders.partials._product-image-preview', ['order' => $order])
-                        @endrole
                     </div>
                 </div>
             </div>

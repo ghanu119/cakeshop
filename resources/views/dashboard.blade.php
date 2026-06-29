@@ -93,12 +93,12 @@
                     </div>
                 </a>
                 @endif
-                <a href="{{ route('admin.kitchen.orders.index') }}" class="group rounded-xl border-2 border-indigo-200 bg-indigo-50/50 p-6 shadow-sm transition duration-200 hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md">
+                <a href="{{ route('admin.orders.index', ['view' => 'today']) }}" class="group rounded-xl border-2 border-indigo-200 bg-indigo-50/50 p-6 shadow-sm transition duration-200 hover:border-indigo-300 hover:bg-indigo-50 hover:shadow-md">
                     <div class="flex items-start justify-between">
                         <div>
                             <p class="text-sm font-medium text-indigo-700">{{ __("Today's orders") }}</p>
-                            <p class="mt-2 text-lg font-semibold text-indigo-900">{{ __('Kitchen view') }}</p>
-                            <span class="mt-2 inline-flex items-center text-sm font-medium text-indigo-700">{{ __("Open kitchen") }} →</span>
+                            <p class="mt-2 text-lg font-semibold text-indigo-900">{{ __('All deliveries today') }}</p>
+                            <span class="mt-2 inline-flex items-center text-sm font-medium text-indigo-700">{{ __('View orders') }} →</span>
                         </div>
                         <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-indigo-100 text-indigo-600">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
@@ -132,7 +132,7 @@
 
             @can('orders.view')
             <div class="mt-8">
-                <a href="{{ route('admin.kitchen.orders.index') }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition duration-200 hover:bg-indigo-700">{{ __("Today's orders") }}</a>
+                <a href="{{ route('admin.orders.index', ['view' => 'today']) }}" class="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition duration-200 hover:bg-indigo-700">{{ __("Today's orders") }}</a>
             </div>
             @endcan
 

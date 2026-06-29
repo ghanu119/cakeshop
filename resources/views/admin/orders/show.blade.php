@@ -8,6 +8,9 @@
         $orderedAt = $order->ordered_at?->setTimezone($tz);
         $deliveryAt = $order->delivery_at?->setTimezone($tz);
         $paymentPending = !$order->isPaymentVerified();
+        $isTodayView = request()->boolean('delivery_today') || request('view') === 'today' || request()->query('from') === 'today';
+        $backRoute = $isTodayView ? route('admin.orders.index', ['view' => 'today']) : route('admin.orders.index');
+        $backLabel = $isTodayView ? __("Back to Today's orders") : __('Back to Orders');
     @endphp
 
     <div class="mx-auto max-w-6xl">
@@ -46,9 +49,9 @@
 
         {{-- Page Header --}}
         <div class="mb-6">
-            <a href="{{ route('admin.orders.index') }}" class="mb-4 inline-flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-gray-700">
+            <a href="{{ $backRoute }}" class="mb-4 inline-flex items-center text-sm font-medium text-gray-500 transition-colors hover:text-gray-700">
                 <svg class="mr-1.5 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
-                {{ __('Back to Orders') }}
+                {{ $backLabel }}
             </a>
             
             <div class="flex flex-col justify-between gap-4 md:flex-row md:items-start">
@@ -74,6 +77,7 @@
                                 'preparationRules' => $preparationRules,
                                 'statusFormAction' => route('admin.orders.update-status', $order),
                                 'fromKitchen' => request()->query('from') === 'kitchen',
+                                'fromToday' => $isTodayView,
                                 'paymentBadge' => 'verified',
                                 'paymentBadgeLabel' => $order->adminPaymentStatusLabel(),
                                 'paymentBadgeInStore' => $order->isCashOnStore(),
