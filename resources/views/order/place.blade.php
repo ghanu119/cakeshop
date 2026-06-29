@@ -91,6 +91,7 @@
                 <textarea name="instructions" id="instructions" rows="3" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">{{ old('instructions') }}</textarea>
                 @error('instructions')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
+            @include('order.partials._coupon-picker', compact('product', 'universalCoupons', 'autoApplyPreview', 'defaultCouponId', 'defaultCouponCode', 'customer'))
             <x-button type="submit" variant="primary" data-submitting-text="{{ __('Processing...') }}">{{ __('Place order') }}</x-button>
         </form>
     </x-card>
@@ -98,3 +99,7 @@
     @include('order.partials._place-order-confirm-modal')
 </div>
 @endsection
+
+@push('scripts')
+    @vite(['resources/js/order-coupon-summary.js'])
+@endpush

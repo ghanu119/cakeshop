@@ -28,7 +28,12 @@
         @endif
         <div class="flex items-center justify-between pt-4 border-t border-stone-200/80">
             <div>
-                <p class="text-2xl font-display font-bold text-stone-900">{{ $symbol }}{{ number_format($product->price, 2) }}</p>
+                @include('products.partials._price-promo', [
+                    'promo' => $product->storefront_promo ?? null,
+                    'symbol' => $symbol,
+                    'size' => 'card',
+                    'originalPrice' => $product->price,
+                ])
                 @if($product->category)
                     <p class="text-xs text-stone-500 mt-1">{{ $product->category->name_en }}</p>
                 @endif

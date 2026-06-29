@@ -63,6 +63,10 @@ class RoleAndPermissionSeeder extends Seeder
             'flavors.create',
             'flavors.update',
             'flavors.delete',
+            'coupons.view',
+            'coupons.create',
+            'coupons.update',
+            'coupons.delete',
         ];
 
         foreach ($permissions as $name) {

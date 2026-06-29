@@ -49,7 +49,12 @@
                 <div class="rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 p-6">
                     @if(!empty($hasVariants) && $variantChoices->isNotEmpty())
                         <p class="text-sm font-medium text-stone-600" id="pdp-price-label">{{ __('Starting from') }}</p>
-                        <p class="mt-1 text-4xl font-bold text-stone-900" id="product-unit-price">{{ $symbol }}{{ number_format($product->price, 2) }}</p>
+                        @include('products.partials._price-promo', [
+                            'promo' => $storefrontPromo ?? null,
+                            'symbol' => $symbol,
+                            'size' => 'pdp',
+                            'originalPrice' => $product->price,
+                        ])
                         <p class="mt-4 text-sm font-semibold text-stone-700">{{ __('Select weight') }}</p>
                         <div
                             class="variant-picker mt-2 flex flex-wrap gap-1"
@@ -58,6 +63,8 @@
                             data-initial-variant-id="{{ request('product_variant_id', $defaultVariant?->id) }}"
                             data-currency-symbol="{{ $symbol }}"
                             data-unit-price-target="#product-unit-price"
+                            data-original-price-target="#product-original-price"
+                            data-coupon-discount="{{ ($storefrontPromo ?? null) ? json_encode($storefrontPromo['coupon_discount']) : '' }}"
                             data-order-link-target="#pdp-order-link"
                             data-order-link-base-url="{{ route('order.place', $product) }}"
                             role="radiogroup"
@@ -78,7 +85,12 @@
                         </div>
                     @else
                         <p class="text-sm font-medium text-stone-600">{{ __('Price') }}</p>
-                        <p class="mt-1 text-4xl font-bold text-stone-900">{{ $symbol }}{{ number_format($product->price, 2) }}</p>
+                        @include('products.partials._price-promo', [
+                            'promo' => $storefrontPromo ?? null,
+                            'symbol' => $symbol,
+                            'size' => 'pdp',
+                            'originalPrice' => $product->price,
+                        ])
                     @endif
                 </div>
 

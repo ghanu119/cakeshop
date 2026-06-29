@@ -40,6 +40,8 @@ class ProductVariantService
         $sortOrder = 0;
         $isFirst = true;
 
+        $rows = $this->sortVariantRowsByWeight($rows, $weightType);
+
         foreach ($rows as $row) {
             $valueId = (int) ($row['variant_option_value_id'] ?? 0);
             $price = (float) ($row['price'] ?? 0);
@@ -174,11 +176,9 @@ class ProductVariantService
      */
     public function choicesForProduct(Product $product): Collection
     {
-        $variants = $product->variants()
-            ->active()
-            ->with(['selections.value.type'])
-            ->orderBy('sort_order')
-            ->get();
+        $variants = $this->variantsOrderedByWeight(
+            $product->variants()->active()
+        );
 
         return $variants->map(function (ProductVariant $variant) {
             $weightSelection = $variant->selections->first(fn ($s) => $s->type?->slug === 'weight');
@@ -196,21 +196,78 @@ class ProductVariantService
 
     public function defaultVariant(Product $product): ?ProductVariant
     {
-        return $product->variants()
-            ->active()
-            ->orderByDesc('is_default')
-            ->orderBy('sort_order')
-            ->first();
+        return $this->variantsOrderedByWeight(
+            $product->variants()->active()
+        )->first();
     }
 
     public function eagerLoadForStorefront(Product $product): Product
     {
         $product->load([
-            'variants' => fn ($q) => $q->active()->orderBy('sort_order'),
+            'variants' => fn ($q) => $q->active(),
             'variants.selections.value',
             'variants.selections.type',
         ]);
 
+        $product->setRelation(
+            'variants',
+            $product->variants
+                ->sortBy(fn (ProductVariant $variant) => $this->weightGramsForVariant($variant) ?? PHP_INT_MAX)
+                ->values()
+        );
+
         return $product;
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $rows
+     * @return array<int, array<string, mixed>>
+     */
+    private function sortVariantRowsByWeight(array $rows, VariantOptionType $weightType): array
+    {
+        if ($rows === []) {
+            return $rows;
+        }
+
+        $valueIds = collect($rows)
+            ->pluck('variant_option_value_id')
+            ->filter(fn ($id) => (int) $id > 0)
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->all();
+
+        $gramsByValueId = VariantOptionValue::query()
+            ->where('variant_option_type_id', $weightType->id)
+            ->whereIn('id', $valueIds)
+            ->pluck('grams', 'id');
+
+        usort($rows, function (array $a, array $b) use ($gramsByValueId): int {
+            $gramsA = $gramsByValueId[(int) ($a['variant_option_value_id'] ?? 0)] ?? PHP_INT_MAX;
+            $gramsB = $gramsByValueId[(int) ($b['variant_option_value_id'] ?? 0)] ?? PHP_INT_MAX;
+
+            return $gramsA <=> $gramsB;
+        });
+
+        return $rows;
+    }
+
+    /**
+     * @param  \Illuminate\Database\Eloquent\Builder<ProductVariant>  $query
+     * @return Collection<int, ProductVariant>
+     */
+    private function variantsOrderedByWeight($query): Collection
+    {
+        return $query
+            ->with(['selections.value.type'])
+            ->get()
+            ->sortBy(fn (ProductVariant $variant) => $this->weightGramsForVariant($variant) ?? PHP_INT_MAX)
+            ->values();
+    }
+
+    private function weightGramsForVariant(ProductVariant $variant): ?int
+    {
+        $weightSelection = $variant->selections->first(fn ($s) => $s->type?->slug === 'weight');
+
+        return $weightSelection?->value?->grams;
     }
 }

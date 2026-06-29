@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\SiteSetting;
 use App\Models\User;
+use App\Services\CouponService;
 use App\Services\CustomerAuthService;
 use App\Services\CustomerContext;
 use App\Services\OrderNotificationService;
@@ -27,7 +28,8 @@ class OrderController extends Controller
         private ProductVariantService $productVariantService,
         private OrderNotificationService $orderNotificationService,
         private CustomerContext $customerContext,
-        private CustomerAuthService $customerAuthService
+        private CustomerAuthService $customerAuthService,
+        private CouponService $couponService,
     ) {}
 
     public function placeForm(Product $product): View
@@ -50,6 +52,39 @@ class OrderController extends Controller
 
         $messageOnCakeMaxLength = $product->messageOnCakeMaxLength();
 
+        $defaultQuantity = max(1, (int) old('quantity', request('quantity', 1)));
+        $unitPrice = (float) ($defaultVariant?->price ?? $product->price);
+        $initialVariantId = (int) old('product_variant_id', request('product_variant_id', $defaultVariant?->id ?? 0));
+
+        if ($initialVariantId > 0 && $hasVariants) {
+            try {
+                $initialVariant = $this->productVariantService->findVariantForProduct($product, $initialVariantId);
+                $unitPrice = (float) $initialVariant->price;
+            } catch (\Throwable) {
+                //
+            }
+        }
+
+        $defaultSubtotal = $unitPrice * $defaultQuantity;
+
+        $universalCoupons = $this->couponService->listUniversalCouponsForCheckout(
+            $product,
+            $customer,
+            $defaultSubtotal
+        );
+
+        $autoApplyPreview = null;
+        if ($universalCoupons->count() === 1 && $universalCoupons->first()['auto_apply']) {
+            $autoApplyPreview = $universalCoupons->first();
+        }
+
+        $defaultCouponId = $this->couponService->defaultCheckoutCouponId($universalCoupons);
+
+        $defaultCoupon = $defaultCouponId
+            ? $universalCoupons->firstWhere('id', $defaultCouponId)
+            : null;
+        $defaultCouponCode = $defaultCoupon['code'] ?? null;
+
         return view('order.place', compact(
             'product',
             'customer',
@@ -60,7 +95,11 @@ class OrderController extends Controller
             'defaultVariant',
             'hasVariants',
             'hasFlavors',
-            'messageOnCakeMaxLength'
+            'messageOnCakeMaxLength',
+            'universalCoupons',
+            'autoApplyPreview',
+            'defaultCouponId',
+            'defaultCouponCode',
         ));
     }
 
@@ -113,6 +152,92 @@ class OrderController extends Controller
         }
 
         return response()->json(['verified' => true]);
+    }
+
+    public function validateCoupon(Request $request, Product $product): JsonResponse
+    {
+        if (! $product->isActive()) {
+            abort(404);
+        }
+
+        $validated = $request->validate([
+            'coupon_code' => ['nullable', 'string', 'max:50'],
+            'coupon_id' => ['nullable', 'integer', 'exists:coupons,id'],
+            'product_variant_id' => ['nullable', 'integer'],
+            'quantity' => ['nullable', 'integer', 'min:1', 'max:10'],
+            'guest_email' => ['nullable', 'email', 'max:255'],
+        ]);
+
+        $customer = $this->customerContext->customerForCheckout($validated['guest_email'] ?? null);
+        $quantity = max(1, (int) ($validated['quantity'] ?? 1));
+
+        $unitPrice = (float) $product->price;
+        if (! empty($validated['product_variant_id']) && $this->productVariantService->hasVariants($product)) {
+            try {
+                $variant = $this->productVariantService->findVariantForProduct($product, (int) $validated['product_variant_id']);
+                $unitPrice = (float) $variant->price;
+            } catch (\Throwable) {
+                //
+            }
+        }
+
+        $subtotal = $unitPrice * $quantity;
+        $manualCode = $validated['coupon_code'] ?? null;
+        $couponId = isset($validated['coupon_id']) ? (int) $validated['coupon_id'] : null;
+        $autoSelectBest = $request->boolean('auto_select_best');
+        $skipAutoApply = $request->boolean('skip_auto_apply');
+
+        if ($manualCode !== null && trim($manualCode) !== '') {
+            $couponId = null;
+        }
+
+        $universalCoupons = $this->couponService->listUniversalCouponsForCheckout(
+            $product,
+            $customer,
+            $subtotal,
+        );
+        $bestCouponId = $this->couponService->defaultCheckoutCouponId($universalCoupons);
+        $bestCoupon = $bestCouponId
+            ? $universalCoupons->firstWhere('id', $bestCouponId)
+            : null;
+        $bestCouponCode = $bestCoupon['code'] ?? null;
+
+        if ($skipAutoApply && ($manualCode === null || trim((string) $manualCode) === '')) {
+            return response()->json([
+                'valid' => false,
+                'discount_amount' => 0,
+                'label' => null,
+                'message' => null,
+                'max_cap' => null,
+                'coupon_code' => null,
+                'reason' => null,
+                'subtotal' => $subtotal,
+                'total' => $subtotal,
+                'best_coupon_id' => $bestCouponId,
+                'best_coupon_code' => $bestCouponCode,
+                'universal_coupons' => $universalCoupons->values()->all(),
+            ]);
+        }
+
+        if ($autoSelectBest && ($manualCode === null || trim((string) $manualCode) === '')) {
+            $couponId = $bestCouponId;
+        }
+
+        $result = $this->couponService->validateForPreview(
+            $product,
+            $customer,
+            $subtotal,
+            $manualCode,
+            $couponId
+        );
+
+        return response()->json(array_merge($result, [
+            'subtotal' => $subtotal,
+            'total' => max(0, $subtotal - ($result['discount_amount'] ?? 0)),
+            'best_coupon_id' => $bestCouponId,
+            'best_coupon_code' => $bestCouponCode,
+            'universal_coupons' => $universalCoupons->values()->all(),
+        ]));
     }
 
     public function place(PlaceOrderRequest $request, Product $product): RedirectResponse

@@ -19,6 +19,26 @@ class CustomerContext
         private Request $request
     ) {}
 
+    public function customerForCheckout(?string $guestEmail = null): ?User
+    {
+        $customer = $this->effectiveCustomer();
+        if ($customer !== null) {
+            return $customer;
+        }
+
+        $guestEmail = $guestEmail !== null ? strtolower(trim($guestEmail)) : '';
+        if ($guestEmail === '') {
+            return null;
+        }
+
+        $verifiedEmail = app(CustomerAuthService::class)->verifiedEmail();
+        if ($verifiedEmail === null || $verifiedEmail !== $guestEmail) {
+            return null;
+        }
+
+        return app(CustomerAuthService::class)->findCustomerByEmail($guestEmail);
+    }
+
     public function effectiveCustomer(): ?User
     {
         if (! $this->request->hasSession()) {

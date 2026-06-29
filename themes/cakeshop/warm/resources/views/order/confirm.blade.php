@@ -78,6 +78,7 @@
                         @if($order->unit_price !== null)
                             <p class="text-stone-500 text-sm">{{ __('Unit price') }}: {{ $symbol }}{{ number_format($order->displayUnitPrice(), 2) }}</p>
                         @endif
+                        @include('order.partials._discount-summary', ['order' => $order])
                     </div>
                     
                     {{-- Price --}}

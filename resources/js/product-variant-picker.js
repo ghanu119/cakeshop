@@ -7,7 +7,18 @@ export function initProductVariantPicker(root) {
     const choices = JSON.parse(root.dataset.choices || '[]');
     if (!choices.length) return;
 
+    function sortChoicesByGrams(list) {
+        return [...list].sort((a, b) => {
+            const gramsA = a.grams ?? Number.MAX_SAFE_INTEGER;
+            const gramsB = b.grams ?? Number.MAX_SAFE_INTEGER;
+            return gramsA - gramsB;
+        });
+    }
+
+    const orderedChoices = sortChoicesByGrams(choices);
+
     const unitPriceEl = document.querySelector(root.dataset.unitPriceTarget);
+    const originalPriceEl = document.querySelector(root.dataset.originalPriceTarget);
     const totalEl = document.querySelector(root.dataset.totalTarget);
     const hiddenInput = document.querySelector(root.dataset.hiddenInputTarget);
     const quantityInput = document.querySelector(root.dataset.quantityTarget);
@@ -19,6 +30,23 @@ export function initProductVariantPicker(root) {
     const pills = root.querySelectorAll('[data-variant-id]');
 
     const symbol = root.dataset.currencySymbol || '₹';
+    let couponDiscount = null;
+    try {
+        couponDiscount = root.dataset.couponDiscount ? JSON.parse(root.dataset.couponDiscount) : null;
+    } catch {
+        couponDiscount = null;
+    }
+
+    function applyCouponDiscount(price) {
+        const subtotal = Number(price);
+        if (!couponDiscount || subtotal <= 0) return subtotal;
+        if (couponDiscount.type === 'fixed') {
+            return Math.max(0, subtotal - Number(couponDiscount.amount));
+        }
+        const raw = subtotal * (Number(couponDiscount.amount) / 100);
+        const cap = couponDiscount.max_cap != null ? Number(couponDiscount.max_cap) : raw;
+        return Math.max(0, subtotal - Math.min(raw, cap, subtotal));
+    }
 
     function formatMoney(amount) {
         return symbol + Number(amount).toFixed(2);
@@ -53,8 +81,17 @@ export function initProductVariantPicker(root) {
             });
         }
 
-        if (unitPriceEl) unitPriceEl.textContent = formatMoney(choice.price);
-        if (totalEl) totalEl.textContent = formatMoney(choice.price * getQuantity());
+        if (unitPriceEl) {
+            const discounted = applyCouponDiscount(choice.price);
+            unitPriceEl.textContent = formatMoney(discounted);
+            if (originalPriceEl && couponDiscount) {
+                originalPriceEl.textContent = formatMoney(choice.price);
+                originalPriceEl.classList.remove('hidden');
+            } else if (originalPriceEl) {
+                originalPriceEl.classList.add('hidden');
+            }
+        }
+        if (totalEl) totalEl.textContent = formatMoney(applyCouponDiscount(choice.price) * getQuantity());
         if (weightLabelEl) weightLabelEl.textContent = choice.label;
         if (personCapacityEl) {
             const capacity = choice.person_capacity_label?.trim();
@@ -73,6 +110,8 @@ export function initProductVariantPicker(root) {
             url.searchParams.set('product_variant_id', id);
             orderLink.href = url.pathname + url.search;
         }
+
+        document.dispatchEvent(new CustomEvent('variant-price-changed'));
     }
 
     pills.forEach((pill) => {
@@ -86,7 +125,10 @@ export function initProductVariantPicker(root) {
         });
     }
 
-    const initialId = parseInt(root.dataset.initialVariantId || choices.find((c) => c.is_default)?.id || choices[0]?.id, 10);
+    const initialId = parseInt(
+        root.dataset.initialVariantId || orderedChoices[0]?.id || choices.find((c) => c.is_default)?.id || choices[0]?.id,
+        10
+    );
     if (initialId) selectVariant(initialId);
 }
 

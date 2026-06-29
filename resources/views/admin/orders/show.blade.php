@@ -266,6 +266,17 @@
                             </div>
                         </div>
 
+                        @if($order->hasDiscount())
+                            <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-4 text-sm">
+                                <span class="text-gray-500">{{ __('Subtotal') }}</span>
+                                <span class="font-medium text-gray-900">₹ {{ number_format($order->displaySubtotal(), 2) }}</span>
+                            </div>
+                            <div class="mt-2 flex items-center justify-between text-sm text-green-700">
+                                <span>{{ __('Discount') }}@if($order->coupon_label) ({{ $order->coupon_label }})@endif</span>
+                                <span>−₹ {{ number_format((float) $order->discount_amount, 2) }}</span>
+                            </div>
+                        @endif
+
                         <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
                             <span class="font-bold text-gray-900">{{ __('Total') }}</span>
                             <span class="text-xl font-bold text-indigo-600">₹ {{ number_format($order->amount, 2) }}</span>

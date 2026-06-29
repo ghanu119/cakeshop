@@ -72,6 +72,8 @@
             @endif
         </header>
 
+        @include('partials._storefront-promo-banner')
+
         @include('partials._impersonation-banner')
 
         <main class="{{ app(\App\Services\CustomerContext::class)->isImpersonating() ? 'pt-32' : 'pt-20' }} min-h-[calc(100vh-5rem)]">

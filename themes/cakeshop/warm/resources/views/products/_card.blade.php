@@ -42,13 +42,12 @@
         @endif
 
         <div class="mt-auto flex items-center justify-between gap-2 border-t border-stone-100 pt-3">
-            @php
-                $formattedPrice = number_format($product->price, 2);
-                [$wholePrice, $decimalPrice] = explode('.', $formattedPrice);
-            @endphp
-            <p class="text-lg font-extrabold leading-none text-stone-900 sm:text-xl">
-                {{ $symbol }}{{ $wholePrice }}<span class="text-xs font-semibold text-stone-500">.{{ $decimalPrice }}</span>
-            </p>
+            @include('products.partials._price-promo', [
+                'promo' => $product->storefront_promo ?? null,
+                'symbol' => $symbol,
+                'size' => 'card',
+                'originalPrice' => $product->price,
+            ])
             <span class="inline-flex shrink-0 items-center text-xs font-bold text-amber-600 sm:text-sm">
                 {{ __('View') }}
                 <svg class="ml-0.5 h-4 w-4 transition group-hover:translate-x-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7" /></svg>

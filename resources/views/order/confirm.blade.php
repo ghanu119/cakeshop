@@ -27,6 +27,7 @@
         ])
         <p class="mb-2">{{ __('Quantity') }}: {{ $order->quantity }}</p>
         <p class="mb-2">{{ __('Unit price') }}: ₹ {{ number_format($order->displayUnitPrice(), 2) }}</p>
+        @include('order.partials._discount-summary', ['order' => $order])
         <p class="mb-4">{{ __('Amount') }}: ₹ {{ number_format($order->amount, 2) }}</p>
 
         <div class="mb-4 border-t border-stone-200 pt-4">

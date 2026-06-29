@@ -36,7 +36,8 @@ class OrderService
 
     public function __construct(
         private ProductVariantService $productVariantService,
-        private ServiceablePincodeService $pincodeService
+        private ServiceablePincodeService $pincodeService,
+        private CouponService $couponService,
     ) {}
 
     public function listForAdmin(Request $request): LengthAwarePaginator
@@ -276,20 +277,51 @@ class OrderService
 
         $this->applyFlavorSnapshot($order, $product, $data['flavor_id'] ?? null);
 
+        $unitPrice = null;
+        $variant = null;
+
         if ($this->productVariantService->hasVariants($product)) {
             $variant = $this->productVariantService->findVariantForProduct(
                 $product,
                 (int) $data['product_variant_id']
             );
             $order->product_variant_id = $variant->id;
-            $order->unit_price = $variant->price;
-            $order->amount = $variant->price * $order->quantity;
-            $order->save();
-            $this->productVariantService->snapshotOrder($product, $variant, $order);
+            $unitPrice = (float) $variant->price;
         } else {
-            $order->unit_price = $product->price;
-            $order->amount = $product->price * $order->quantity;
-            $order->save();
+            $unitPrice = (float) $product->price;
+        }
+
+        $order->unit_price = $unitPrice;
+        $subtotal = $unitPrice * $order->quantity;
+
+        $couponDeclined = ! empty($data['coupon_declined']);
+
+        if ($couponDeclined) {
+            $couponResult = null;
+        } else {
+            $couponResult = $this->couponService->resolveForOrder(
+                $product,
+                $customer,
+                $subtotal,
+                $data['coupon_code'] ?? null,
+                isset($data['coupon_id']) ? (int) $data['coupon_id'] : null,
+            );
+        }
+
+        $order->subtotal = $subtotal;
+        $order->discount_amount = $couponResult['discount_amount'] ?? 0;
+        $order->amount = max(0, $subtotal - $order->discount_amount);
+
+        if ($couponResult !== null) {
+            $order->coupon_id = $couponResult['coupon']->id;
+            $order->coupon_code = $couponResult['coupon']->code;
+            $order->coupon_label = $couponResult['coupon']->label;
+        }
+
+        $order->save();
+
+        if ($variant !== null) {
+            $this->productVariantService->snapshotOrder($product, $variant, $order);
         }
 
         return $order;

@@ -31,6 +31,8 @@ class OrderFactory extends Factory
             'fulfillment_type' => Order::FULFILLMENT_TAKEAWAY,
             'delivery_address' => null,
             'unit_price' => 500,
+            'subtotal' => 500,
+            'discount_amount' => 0,
             'amount' => 500,
             'payment_status' => 'pending',
             'order_status' => 'pending',

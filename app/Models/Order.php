@@ -72,6 +72,11 @@ class Order extends Model implements HasMedia
         'delivery_pincode',
         'serial_number',
         'amount',
+        'coupon_id',
+        'coupon_code',
+        'coupon_label',
+        'subtotal',
+        'discount_amount',
         'payment_status',
         'payment_method',
         'order_status',
@@ -87,6 +92,8 @@ class Order extends Model implements HasMedia
     {
         return [
             'amount' => 'decimal:2',
+            'subtotal' => 'decimal:2',
+            'discount_amount' => 'decimal:2',
             'unit_price' => 'decimal:2',
             'weight_grams' => 'integer',
             'payment_amount' => 'decimal:2',
@@ -133,6 +140,25 @@ class Order extends Model implements HasMedia
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function coupon()
+    {
+        return $this->belongsTo(Coupon::class);
+    }
+
+    public function hasDiscount(): bool
+    {
+        return (float) ($this->discount_amount ?? 0) > 0;
+    }
+
+    public function displaySubtotal(): float
+    {
+        if ($this->subtotal !== null) {
+            return (float) $this->subtotal;
+        }
+
+        return (float) $this->amount + (float) ($this->discount_amount ?? 0);
     }
 
     public function hasDistinctContactFromAccount(): bool

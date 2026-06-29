@@ -9,13 +9,15 @@ use App\Models\SliderItem;
 use App\Services\VideoEmbedService;
 use App\Models\Product;
 use App\Models\Testimonial;
+use App\Services\CouponService;
 use App\Services\ProductService;
 use Illuminate\View\View;
 
 class HomeController extends Controller
 {
     public function __construct(
-        private ProductService $productService
+        private ProductService $productService,
+        private CouponService $couponService,
     ) {}
 
     public function index(): View
@@ -52,6 +54,12 @@ class HomeController extends Controller
                 ->filter(fn (SliderItem $item) => $item->isImage() || $item->getAttribute('video_embed'))
                 ->values()
             : collect();
+
+        $customer = auth('customer')->user();
+        $this->couponService->attachStorefrontPromoToProducts($highlights, $customer);
+        $this->couponService->attachStorefrontPromoToProducts($trending, $customer);
+        $this->couponService->attachStorefrontPromoToProducts($featured, $customer);
+        $this->couponService->attachStorefrontPromoToProducts($products->getCollection(), $customer);
 
         return view('home', compact('highlights', 'trending', 'featured', 'products', 'categories', 'features', 'testimonials', 'sliderItems'));
     }

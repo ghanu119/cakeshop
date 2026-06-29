@@ -60,7 +60,14 @@
                 @endif
                 <h1 class="heading-display text-3xl sm:text-4xl lg:text-5xl text-stone-900 tracking-tight mb-3">{{ $product->name_en }}</h1>
                 @include('products.partials._product-sku', ['product' => $product])
-                <p class="text-xl text-stone-800 font-medium mb-6">{{ $symbol }}{{ number_format($product->price, 2) }}</p>
+                <div class="mb-6">
+                    @include('products.partials._price-promo', [
+                        'promo' => $storefrontPromo ?? null,
+                        'symbol' => $symbol,
+                        'size' => 'pdp',
+                        'originalPrice' => $product->price,
+                    ])
+                </div>
 
                 @if($product->short_description)
                     <p class="text-stone-600 leading-relaxed mb-6">{{ $product->short_description }}</p>
@@ -113,7 +120,7 @@
                             <svg class="h-5 w-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
-                            <span id="add-to-bag-text">{{ __('Add to Bag') }} – {{ $symbol }}{{ number_format($product->price, 2) }}</span>
+                            <span id="add-to-bag-text">{{ __('Add to Bag') }} – {{ $symbol }}{{ number_format(($storefrontPromo ?? null) ? $storefrontPromo['discounted_price'] : $product->price, 2) }}</span>
                         </a>
                         @include('products.partials._order-delivery-label', [
                             'product' => $product,

@@ -9,6 +9,7 @@ use App\Services\CustomerContext;
 use App\Rules\ServiceablePincode;
 use App\Services\OrderService;
 use App\Services\ProductVariantService;
+use App\Services\CouponService;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Validator;
 
@@ -38,6 +39,9 @@ class PlaceOrderRequest extends FormRequest
             'delivery_at' => ['required', 'date_format:Y-m-d\TH:i'],
             'product_variant_id' => ['nullable', 'integer'],
             'flavor_id' => ['nullable', 'integer'],
+            'coupon_code' => ['nullable', 'string', 'max:50'],
+            'coupon_id' => ['nullable', 'integer', 'exists:coupons,id'],
+            'coupon_declined' => ['nullable', 'boolean'],
         ];
 
         if (uses_better_buns_checkout()) {
@@ -66,7 +70,9 @@ class PlaceOrderRequest extends FormRequest
                 }
             }
 
-            $customer = app(CustomerContext::class)->effectiveCustomer();
+            $customer = app(CustomerContext::class)->customerForCheckout(
+                (string) $this->input('guest_email', '')
+            );
 
             if ($customer === null) {
                 $verifiedEmail = app(CustomerAuthService::class)->verifiedEmail();
@@ -101,6 +107,57 @@ class PlaceOrderRequest extends FormRequest
                     $validator->errors()->add('flavor_id', __('Please select a flavor.'));
                 } elseif (! $product->flavors()->active()->whereKey($flavorId)->exists()) {
                     $validator->errors()->add('flavor_id', __('Invalid flavor selection.'));
+                }
+            }
+
+            $couponCode = trim((string) $this->input('coupon_code', ''));
+            $couponId = $this->input('coupon_id');
+            $couponDeclined = $this->boolean('coupon_declined');
+
+            if ($couponCode !== '' && $couponId) {
+                $validator->errors()->add('coupon_code', __('Please use either a coupon code or select an offer, not both.'));
+            }
+
+            if ($validator->errors()->isNotEmpty()) {
+                return;
+            }
+
+            if ($couponDeclined) {
+                return;
+            }
+
+            if ($couponCode !== '' || $couponId) {
+                $variantService = app(ProductVariantService::class);
+                $quantity = max(1, (int) $this->input('quantity', 1));
+                $unitPrice = (float) $product->price;
+
+                if ($variantService->hasVariants($product) && $this->input('product_variant_id')) {
+                    try {
+                        $variant = $variantService->findVariantForProduct($product, (int) $this->input('product_variant_id'));
+                        $unitPrice = (float) $variant->price;
+                    } catch (\Throwable) {
+                        //
+                    }
+                }
+
+                $subtotal = $unitPrice * $quantity;
+
+                try {
+                    app(CouponService::class)->resolveForOrder(
+                        $product,
+                        app(CustomerContext::class)->customerForCheckout(
+                            (string) $this->input('guest_email', '')
+                        ),
+                        $subtotal,
+                        $couponCode !== '' ? $couponCode : null,
+                        $couponId ? (int) $couponId : null,
+                    );
+                } catch (\Illuminate\Validation\ValidationException $e) {
+                    foreach ($e->errors() as $field => $messages) {
+                        foreach ($messages as $message) {
+                            $validator->errors()->add($field, $message);
+                        }
+                    }
                 }
             }
         });

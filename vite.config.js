@@ -12,6 +12,8 @@ export default defineConfig({
                 'resources/js/admin-product-images.js',
                 'resources/js/admin-home-slider-image.js',
                 'resources/js/admin-slider-item-form.js',
+                'resources/js/admin-coupon-form.js',
+                'resources/js/order-coupon-summary.js',
                 'resources/js/product-gallery.js',
                 'resources/js/order-status-form.js',
                 'resources/js/order-fulfillment-type.js',

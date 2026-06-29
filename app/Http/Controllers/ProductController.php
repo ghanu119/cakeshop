@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ListProductsRequest;
 use App\Models\Category;
 use App\Models\Product;
+use App\Services\CouponService;
 use App\Services\ProductService;
 use App\Services\ProductVariantService;
 use Illuminate\Http\RedirectResponse;
@@ -14,7 +15,8 @@ class ProductController extends Controller
 {
     public function __construct(
         private ProductService $productService,
-        private ProductVariantService $productVariantService
+        private ProductVariantService $productVariantService,
+        private CouponService $couponService,
     ) {}
 
     public function index(ListProductsRequest $request, ?string $slug = null): View|RedirectResponse
@@ -55,6 +57,9 @@ class ProductController extends Controller
         $filterFlavors = $filterOptions['flavors'];
         $filterWeights = $filterOptions['weights'];
 
+        $customer = auth('customer')->user();
+        $this->couponService->attachStorefrontPromoToProducts($products->getCollection(), $customer);
+
         return view('products.index', compact(
             'products',
             'categories',
@@ -79,12 +84,18 @@ class ProductController extends Controller
 
         $related = $this->getRelatedProducts($product, 4);
 
+        $customer = auth('customer')->user();
+        $storefrontPromo = $this->couponService->storefrontPromoForProduct($product, $customer);
+        $product->setAttribute('storefront_promo', $storefrontPromo);
+        $this->couponService->attachStorefrontPromoToProducts($related, $customer);
+
         return view('products.show', compact(
             'product',
             'related',
             'variantChoices',
             'defaultVariant',
-            'hasVariants'
+            'hasVariants',
+            'storefrontPromo',
         ));
     }
 

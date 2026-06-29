@@ -109,15 +109,14 @@
             @endif
         </div>
         <div class="mt-auto flex items-end justify-between border-t border-stone-100 pt-4">
-            @php
-                $formattedPrice = number_format($product->price, 2);
-                [$wholePrice, $decimalPrice] = explode('.', $formattedPrice);
-            @endphp
             <div class="leading-none">
-                @if($hasVariants)<p class="text-[10px] font-bold uppercase text-stone-500 mb-1">{{ __('From') }}</p>@endif
-                <p class="inline-flex items-end whitespace-nowrap text-2xl font-extrabold tracking-tight text-stone-900">
-                    {{ $symbol }}{{ $wholePrice }}<span class="mb-[2px] text-sm font-semibold text-stone-600">.{{ $decimalPrice }}</span>
-                </p>
+                @if($hasVariants && !($product->storefront_promo ?? null))<p class="text-[10px] font-bold uppercase text-stone-500 mb-1">{{ __('From') }}</p>@endif
+                @include('products.partials._price-promo', [
+                    'promo' => $product->storefront_promo ?? null,
+                    'symbol' => $symbol,
+                    'size' => 'card',
+                    'originalPrice' => $product->price,
+                ])
             </div>
             <div class="flex items-center self-end text-amber-600 font-bold transition-colors group-hover:text-amber-700">
                 {{ __('View') }}

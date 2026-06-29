@@ -7,6 +7,7 @@ use App\Http\Controllers\Account\ProfileController as AccountProfileController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\ContactEnquiryController;
 use App\Http\Controllers\Admin\CustomerController;
+use App\Http\Controllers\Admin\CouponController;
 use App\Http\Controllers\Admin\FeatureController;
 use App\Http\Controllers\Admin\FlavorController;
 use App\Http\Controllers\Admin\SliderController;
@@ -88,6 +89,7 @@ Route::prefix('order')->name('order.')->group(function () {
     Route::get('product/{product:slug}', [OrderController::class, 'placeForm'])->name('place');
     Route::post('checkout/send-otp', [OrderController::class, 'sendCheckoutOtp'])->middleware('throttle:60,1')->name('checkout.send-otp');
     Route::post('checkout/verify-otp', [OrderController::class, 'verifyCheckoutOtp'])->middleware('throttle:10,15')->name('checkout.verify-otp');
+    Route::post('product/{product:slug}/validate-coupon', [OrderController::class, 'validateCoupon'])->middleware('throttle:60,1')->name('product.validate-coupon');
     Route::post('product/{product:slug}', [OrderController::class, 'place'])->name('store');
     Route::middleware(['throttle:30,1'])->post('check-pincode', [PincodeCheckController::class, 'check'])->name('pincode.check');
     Route::get('confirm/{order}', [OrderController::class, 'confirm'])->name('confirm');
@@ -148,6 +150,7 @@ Route::middleware(['ensure.admin.https', 'auth:web', 'verified', 'role:Admin|Kit
             Route::get('variant-option-types/{variant_option_type}/values', fn () => redirect()->route('admin.cake-weights.index'));
         });
         Route::resource('features', FeatureController::class)->except(['show']);
+        Route::resource('coupons', CouponController::class)->except(['show']);
         Route::get('sliders', [SliderController::class, 'index'])->name('sliders.index');
         Route::patch('sliders/{slider}', [SliderController::class, 'update'])->name('sliders.update');
         Route::post('sliders/items/images/temp', [SliderItemImageTempController::class, 'store'])
