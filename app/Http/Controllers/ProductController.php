@@ -8,6 +8,7 @@ use App\Models\Product;
 use App\Services\CouponService;
 use App\Services\ProductService;
 use App\Services\ProductVariantService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -19,7 +20,7 @@ class ProductController extends Controller
         private CouponService $couponService,
     ) {}
 
-    public function index(ListProductsRequest $request, ?string $slug = null): View|RedirectResponse
+    public function index(ListProductsRequest $request, ?string $slug = null): View|RedirectResponse|JsonResponse
     {
         $category = null;
 
@@ -59,6 +60,14 @@ class ProductController extends Controller
 
         $customer = auth('customer')->user();
         $this->couponService->attachStorefrontPromoToProducts($products->getCollection(), $customer);
+
+        if ($request->ajax() && $request->boolean('autoload')) {
+            return response()->json([
+                'html' => view('products.partials._autoload-items', compact('products'))->render(),
+                'next_page_url' => $products->nextPageUrl(),
+                'has_more_pages' => $products->hasMorePages(),
+            ]);
+        }
 
         return view('products.index', compact(
             'products',

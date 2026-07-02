@@ -14,6 +14,7 @@ import 'slick-carousel/slick/slick-theme.css';
 
 import './product-gallery';
 import './order-confirm';
+import './product-list-autoload';
 
 document.addEventListener('DOMContentLoaded', function () {
     AOS.init({

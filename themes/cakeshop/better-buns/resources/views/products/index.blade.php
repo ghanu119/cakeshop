@@ -78,7 +78,6 @@
         </header>
 
         <div class="catalog-layout">
-            {{-- Filters: collapsible bar at top, hidden by default --}}
             <details @if($hasActiveFilters) open @endif class="hidden catalog-filters-panel group rounded-2xl border border-amber-100/90 bg-white shadow-sm">
                 <summary class="catalog-filters-summary flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3.5 text-sm font-semibold text-stone-900 sm:px-5 sm:py-4 [&::-webkit-details-marker]:hidden">
                     <span class="inline-flex items-center gap-2">
@@ -118,7 +117,6 @@
                 </div>
             </details>
 
-            {{-- Product results --}}
             <div class="catalog-results min-w-0">
                 <div class="catalog-results-toolbar mb-4 flex flex-col gap-3 rounded-xl border border-stone-200/80 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-5">
                     <p class="text-sm text-stone-600">
@@ -224,7 +222,6 @@
         border-bottom: 1px solid rgb(245 245 244);
     }
 
-    /* Product grid: 1 → 2 → 3 → 4 columns */
     .catalog-product-grid {
         display: grid;
         grid-template-columns: 1fr;

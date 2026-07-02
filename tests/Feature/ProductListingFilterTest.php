@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Category;
 use App\Models\Flavor;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\VariantOptionValue;
 use App\Services\ProductService;
 use App\Services\ProductVariantService;
@@ -246,5 +247,36 @@ class ProductListingFilterTest extends TestCase
         $categoryPage->assertOk();
         $categoryPage->assertSee('Chocolate Layer Cake', false);
         $categoryPage->assertDontSee('Butter Croissant', false);
+    }
+
+    public function test_product_index_supports_autoloading_pagination_response(): void
+    {
+        Setting::set('theme', 'better-buns');
+        Setting::flushCache();
+
+        $category = Category::factory()->create();
+
+        Product::factory()->count(13)->sequence(
+            fn ($sequence) => [
+                'category_id' => $category->id,
+                'name_en' => 'Autoload Product '.str_pad((string) ($sequence->index + 1), 2, '0', STR_PAD_LEFT),
+                'status' => 'active',
+            ]
+        )->create();
+
+        $response = $this->get(route('products.index', [
+            'page' => 2,
+            'autoload' => 1,
+        ]), [
+            'X-Requested-With' => 'XMLHttpRequest',
+            'Accept' => 'application/json',
+        ]);
+
+        $response->assertOk();
+        $response->assertJson([
+            'has_more_pages' => false,
+            'next_page_url' => null,
+        ]);
+        $response->assertJsonPath('html', fn (string $html) => str_contains($html, 'Autoload Product 13'));
     }
 }

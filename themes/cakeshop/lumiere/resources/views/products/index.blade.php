@@ -47,7 +47,8 @@
         @endif
 
         {{-- Product grid --}}
-        <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+        <div data-product-autoload data-next-page-url="{{ $products->nextPageUrl() ?? '' }}">
+        <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3" data-product-grid>
             @forelse($products as $product)
                 @include('products._card', ['product' => $product])
             @empty
@@ -76,8 +77,20 @@
         </div>
 
         @if($products->hasPages())
-        <div class="mt-12">{{ $products->links('pagination.tailwind') }}</div>
+        <div class="mt-8 hidden" data-product-autoload-status aria-live="polite">
+            <div class="mx-auto flex max-w-xs items-center justify-center gap-3 rounded-full border border-stone-200 bg-[#f7f3ec] px-5 py-3 text-sm font-semibold text-stone-700 shadow-[0_4px_20px_rgba(90,90,64,0.08)]">
+                <div class="flex items-center gap-1.5" data-product-autoload-loader>
+                    <span class="h-2.5 w-2.5 animate-bounce rounded-full bg-[#c6a27b] [animation-delay:-0.3s]"></span>
+                    <span class="h-2.5 w-2.5 animate-bounce rounded-full bg-[#b8956e] [animation-delay:-0.15s]"></span>
+                    <span class="h-2.5 w-2.5 animate-bounce rounded-full bg-[#8e7a5b]"></span>
+                </div>
+                <span data-product-autoload-message>{{ __('Baking more cakes...') }}</span>
+            </div>
+        </div>
+        <div class="mt-6 h-1 w-full" data-product-autoload-sentinel aria-hidden="true"></div>
+        <div class="mt-12" data-product-pagination>{{ $products->links('pagination.tailwind') }}</div>
         @endif
+        </div>
     </div>
 </section>
 @endsection

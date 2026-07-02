@@ -52,16 +52,12 @@
 {{-- Top Feature Products Section --}}
 <section class="py-20 lg:py-28 bg-stone-50">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-6 mb-12" data-aos="fade-up">
-            <div class="text-center sm:text-left">
+        <div class="mb-12 text-center sm:text-left" data-aos="fade-up">
+            <div>
                 <span class="inline-block py-1 px-3 rounded-full bg-amber-100 text-amber-700 text-sm font-semibold tracking-wide mb-4">{{ __('Top Feature Products') }}</span>
                 <h2 class="font-display text-4xl sm:text-5xl font-bold text-stone-900 mb-2">{{ __('Most Popular Cakes') }}</h2>
                 <p class="text-xl text-stone-500 font-light">{{ __('Discover our most beloved cake creations') }}</p>
             </div>
-            <a href="{{ route('products.index') }}" class="inline-flex items-center justify-center px-6 py-3 bg-white border border-stone-200 text-stone-700 font-semibold rounded-full hover:border-amber-500 hover:text-amber-600 shadow-sm hover:shadow transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 shrink-0">
-                {{ __('View All') }}
-                <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
-            </a>
         </div>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -84,6 +80,15 @@
                 </div>
             @endforelse
         </div>
+
+        @if($highlights->isNotEmpty())
+            <div class="mt-10 text-center" data-aos="fade-up">
+                <a href="{{ route('products.index') }}" class="inline-flex items-center justify-center px-6 py-3 bg-white border border-stone-200 text-stone-700 font-semibold rounded-full hover:border-amber-500 hover:text-amber-600 shadow-sm hover:shadow transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 shrink-0">
+                    {{ __('View All') }}
+                    <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                </a>
+            </div>
+        @endif
     </div>
 </section>
 
