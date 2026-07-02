@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\User\RegisteredVia;
 use App\Models\User\UserGender;
+use App\Services\StaffPushSubscriptionService;
 use App\Support\AuthGuards;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +13,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Minishlink\WebPush\ContentEncoding;
 use NotificationChannels\WebPush\HasPushSubscriptions;
+use NotificationChannels\WebPush\PushSubscription;
 use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
@@ -138,6 +141,21 @@ class User extends Authenticatable
     public function isStaff(): bool
     {
         return $this->hasAnyRole(['Admin', 'Kitchen'], AuthGuards::STAFF);
+    }
+
+    public function updatePushSubscription(
+        string $endpoint,
+        ?string $key = null,
+        ?string $token = null,
+        ContentEncoding|string|null $contentEncoding = null
+    ): PushSubscription {
+        return app(StaffPushSubscriptionService::class)->upsertForUser(
+            $this,
+            $endpoint,
+            $key,
+            $token,
+            $contentEncoding
+        );
     }
 
     public function hasEmail(): bool

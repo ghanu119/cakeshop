@@ -24,6 +24,7 @@ const PUSH_BANNER_DISMISS_KEY = 'staff_push_banner_dismissed';
 const PUSH_SETUP_TOAST_SHOWN_KEY = 'staff_push_setup_toast_shown';
 const SESSION_TOASTED_IDS_KEY = 'staff_notification_toasted_ids';
 const SESSION_TOASTED_IDS_LIMIT = 200;
+let pushSubscribeInFlight = null;
 
 function isAdminHttp() {
     return location.protocol === 'http:' && /\.(test|localhost)$/i.test(location.hostname);
@@ -745,6 +746,18 @@ async function markAllRead() {
 }
 
 async function subscribePushAlerts({ prompt = false } = {}) {
+    if (pushSubscribeInFlight) {
+        return pushSubscribeInFlight;
+    }
+
+    pushSubscribeInFlight = subscribePushAlertsInternal({ prompt }).finally(() => {
+        pushSubscribeInFlight = null;
+    });
+
+    return pushSubscribeInFlight;
+}
+
+async function subscribePushAlertsInternal({ prompt = false } = {}) {
     if (!canUseBrowserAlerts()) {
         if (prompt) {
             showAdminToast('Switching to HTTPS — browser alerts do not work on http://.', {

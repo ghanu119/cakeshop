@@ -94,6 +94,53 @@ class StaffPushSecurityTest extends TestCase
         ]);
     }
 
+    public function test_store_push_subscription_is_idempotent(): void
+    {
+        $admin = User::factory()->create(['email_verified_at' => now()]);
+        $admin->assignRole('Admin');
+        $payload = $this->validSubscription();
+
+        $this->actingAs($admin)
+            ->postJson(route('admin.push-subscriptions.store'), $payload)
+            ->assertOk()
+            ->assertJson(['success' => true]);
+
+        $this->actingAs($admin)
+            ->postJson(route('admin.push-subscriptions.store'), $payload)
+            ->assertOk()
+            ->assertJson(['success' => true]);
+
+        $this->assertSame(1, PushSubscription::query()->where('endpoint', $payload['endpoint'])->count());
+    }
+
+    public function test_store_push_subscription_reassigns_endpoint_to_current_user(): void
+    {
+        $adminA = User::factory()->create(['email_verified_at' => now()]);
+        $adminA->assignRole('Admin');
+        $adminB = User::factory()->create(['email_verified_at' => now()]);
+        $adminB->assignRole('Admin');
+        $payload = $this->validSubscription();
+
+        $this->actingAs($adminA)
+            ->postJson(route('admin.push-subscriptions.store'), $payload)
+            ->assertOk();
+
+        $this->actingAs($adminB)
+            ->postJson(route('admin.push-subscriptions.store'), $payload)
+            ->assertOk();
+
+        $this->assertSame(1, PushSubscription::query()->where('endpoint', $payload['endpoint'])->count());
+        $this->assertDatabaseHas('push_subscriptions', [
+            'endpoint' => $payload['endpoint'],
+            'subscribable_id' => $adminB->id,
+            'subscribable_type' => User::class,
+        ]);
+        $this->assertDatabaseMissing('push_subscriptions', [
+            'endpoint' => $payload['endpoint'],
+            'subscribable_id' => $adminA->id,
+        ]);
+    }
+
     public function test_logout_removes_push_subscriptions(): void
     {
         $admin = User::factory()->create(['email_verified_at' => now()]);

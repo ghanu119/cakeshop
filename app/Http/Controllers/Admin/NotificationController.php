@@ -144,8 +144,10 @@ class NotificationController extends Controller
 
             return ApiResponse::success(null, __('Test sent. A Windows popup should appear now — look at the bottom-right corner of your screen, not only the green toast in the page.'));
         } catch (AuthorizationException $e) {
+            info("Here 147");
             return ApiResponse::error($e->getMessage(), 403);
         } catch (Throwable $e) {
+            info("Here 150");
             report($e);
 
             return ApiResponse::error(__('Could not send test notification. Please try again.'), 500);
@@ -160,7 +162,8 @@ class NotificationController extends Controller
 
             $validated = $request->validated();
 
-            $user->updatePushSubscription(
+            $this->staffPushSubscriptionService->upsertForUser(
+                $user,
                 $validated['endpoint'],
                 $validated['keys']['p256dh'],
                 $validated['keys']['auth']
