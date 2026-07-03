@@ -65,7 +65,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BU8ei2xy.css",
+    "file": "assets/app-CXfGDTDP.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -216,7 +216,7 @@
     "isEntry": true
   },
   "resources/js/order-place-confirm.js": {
-    "file": "assets/order-place-confirm-Cv2Ugq4D.js",
+    "file": "assets/order-place-confirm-B2AEGduE.js",
     "name": "order-place-confirm",
     "src": "resources/js/order-place-confirm.js",
     "isEntry": true,

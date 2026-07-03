@@ -69,6 +69,10 @@
             user-select: none;
         }
 
+        #order-place-confirm-modal.is-processing #order-confirm-review-step {
+            visibility: hidden;
+        }
+
         #order-confirm-processing {
             position: absolute;
             inset: 0;
@@ -78,8 +82,9 @@
             align-items: center;
             justify-content: center;
             gap: 1rem;
+            min-height: 100%;
             border-radius: 1rem;
-            background-color: rgba(255, 255, 255, 0.97);
+            background-color: #fff;
             padding: 2rem 1.5rem;
             text-align: center;
         }
@@ -209,11 +214,11 @@
                 </p>
             @endif
 
-            <div class="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
+            <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-end sm:gap-4">
                 <button
                     type="button"
                     data-order-confirm-submit
-                    class="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 text-sm font-bold text-white transition hover:from-amber-600 hover:to-orange-600 disabled:cursor-not-allowed disabled:opacity-70 sm:order-2 sm:w-auto sm:min-w-[12rem]"
+                    class="inline-flex min-h-[3rem] w-full shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3 text-sm font-bold text-white transition hover:from-amber-600 hover:to-orange-600 disabled:cursor-not-allowed disabled:opacity-70 sm:order-2 sm:w-auto sm:min-w-[14rem]"
                 >
                     @if($payBeforeOrder)
                         <svg class="h-4 w-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -225,7 +230,7 @@
                 <button
                     type="button"
                     data-order-confirm-cancel
-                    class="inline-flex min-h-[3rem] w-full items-center justify-center rounded-xl border border-stone-200 bg-white px-6 py-3 text-sm font-bold text-stone-700 transition hover:border-stone-300 hover:bg-stone-50 sm:order-1 sm:w-auto sm:min-w-[10rem]"
+                    class="inline-flex min-h-[3rem] w-full shrink-0 items-center justify-center whitespace-nowrap rounded-xl border border-stone-200 bg-white px-6 py-3 text-sm font-bold text-stone-700 transition hover:border-stone-300 hover:bg-stone-50 sm:order-1 sm:w-auto sm:min-w-[10rem]"
                 >
                     {{ __('Go back and edit') }}
                 </button>

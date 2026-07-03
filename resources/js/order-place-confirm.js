@@ -301,6 +301,11 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        if (modalLocked || modal.classList.contains('is-processing')) {
+            submitBtn.disabled = loading;
+            return;
+        }
+
         submitBtn.disabled = loading;
 
         if (!submitBtn.dataset.originalLabel) {
