@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\SecretMask;
 use Illuminate\Contracts\Encryption\DecryptException;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
@@ -164,6 +165,15 @@ class Setting extends Model
         return $raw !== null && $raw !== '';
     }
 
+    public static function maskedEncryptedValue(string $key, int $visibleSuffix = 4): ?string
+    {
+        if (! self::hasEncryptedValue($key)) {
+            return null;
+        }
+
+        return SecretMask::mask(self::getEncrypted($key), $visibleSuffix);
+    }
+
     public static function getPusherKey(): ?string
     {
         return self::getEncrypted('pusher_app_key') ?: env('PUSHER_APP_KEY');
@@ -228,9 +238,25 @@ class Setting extends Model
         return filled(self::getRazorpayKeyId()) && filled(self::getRazorpayKeySecret());
     }
 
-    public static function getPaymentGateway(): string
+    public static function getPaymentGateway(): ?string
     {
-        return (string) (self::get('payment_gateway') ?: self::PAYMENT_DEFAULTS['payment_gateway']);
+        if (! static::tableExists()) {
+            return self::PAYMENT_DEFAULTS['payment_gateway'];
+        }
+
+        $hasRow = static::query()->where('key', 'payment_gateway')->exists();
+
+        if ($hasRow) {
+            $value = static::query()->where('key', 'payment_gateway')->value('value');
+
+            if ($value === null || $value === '') {
+                return null;
+            }
+
+            return (string) $value;
+        }
+
+        return self::PAYMENT_DEFAULTS['payment_gateway'];
     }
 
     /**

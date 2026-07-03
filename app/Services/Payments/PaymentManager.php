@@ -13,7 +13,7 @@ class PaymentManager
         private PaymentSettingsResolver $settingsResolver,
     ) {}
 
-    public function defaultDriver(): string
+    public function defaultDriver(): ?string
     {
         return $this->settingsResolver->activeGatewaySlug();
     }

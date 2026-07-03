@@ -104,16 +104,18 @@
                             <h3 class="text-base font-semibold text-gray-900">{{ __('Online payment gateway') }}</h3>
                             <p class="mt-1 text-sm text-gray-500">{{ __('Razorpay credentials are encrypted in the database. Used for Better Buns checkout.') }}</p>
                         </div>
-                        <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $razorpayConfigured ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
-                            {{ $razorpayConfigured ? __('Ready') : __('Setup needed') }}
+                        <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $onlinePaymentReady ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                            {{ $onlinePaymentReady ? __('Ready') : __('Setup needed') }}
                         </span>
                     </div>
                     <div class="space-y-4">
                         <div>
                             <label for="payment_gateway" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Payment gateway') }}</label>
                             <select name="payment_gateway" id="payment_gateway" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
-                                <option value="razorpay" {{ old('payment_gateway', $settings['payment_gateway'] ?? 'razorpay') === 'razorpay' ? 'selected' : '' }}>Razorpay</option>
+                                <option value="" {{ old('payment_gateway', $paymentGateway ?? '') === '' || $paymentGateway === null ? 'selected' : '' }}>{{ __('None (disabled)') }}</option>
+                                <option value="razorpay" {{ old('payment_gateway', $paymentGateway ?? 'razorpay') === 'razorpay' ? 'selected' : '' }}>Razorpay</option>
                             </select>
+                            <p class="mt-1 text-sm text-gray-500">{{ __('Choose None to turn off online checkout. Saved credentials are kept until you clear them.') }}</p>
                         </div>
                         <div class="grid gap-4 sm:grid-cols-2">
                             <div>
@@ -121,16 +123,33 @@
                                     <label for="razorpay_key_id" class="text-sm font-medium text-gray-700">{{ __('Razorpay Key ID') }}</label>
                                     <span class="text-xs font-medium {{ $razorpayKeyIdSaved ? 'text-emerald-600' : 'text-amber-600' }}">{{ $razorpayKeyIdSaved ? __('Saved') : __('Required') }}</span>
                                 </div>
-                                <x-input type="password" name="razorpay_key_id" id="razorpay_key_id" placeholder="{{ $razorpayKeyIdSaved ? __('Leave blank to keep saved value') : __('Paste Key ID from dashboard.razorpay.com') }}" class="block w-full font-mono" autocomplete="new-password" />
+                                @if ($razorpayKeyIdMasked)
+                                    <p class="mb-1 font-mono text-xs text-gray-500">{{ __('Currently saved: :value', ['value' => $razorpayKeyIdMasked]) }}</p>
+                                @endif
+                                <x-input type="password" name="razorpay_key_id" id="razorpay_key_id" placeholder="{{ $razorpayKeyIdSaved ? __('Enter new value to replace saved key') : __('Paste Key ID from dashboard.razorpay.com') }}" class="block w-full font-mono" autocomplete="new-password" />
                             </div>
                             <div>
                                 <div class="mb-1 flex items-center justify-between gap-2">
                                     <label for="razorpay_key_secret" class="text-sm font-medium text-gray-700">{{ __('Razorpay Key Secret') }}</label>
                                     <span class="text-xs font-medium {{ $razorpayKeySecretSaved ? 'text-emerald-600' : 'text-amber-600' }}">{{ $razorpayKeySecretSaved ? __('Saved') : __('Required') }}</span>
                                 </div>
-                                <x-input type="password" name="razorpay_key_secret" id="razorpay_key_secret" placeholder="{{ $razorpayKeySecretSaved ? __('Leave blank to keep saved value') : __('Paste Key Secret from dashboard.razorpay.com') }}" class="block w-full font-mono" autocomplete="new-password" />
+                                @if ($razorpayKeySecretMasked)
+                                    <p class="mb-1 font-mono text-xs text-gray-500">{{ __('Currently saved: :value', ['value' => $razorpayKeySecretMasked]) }}</p>
+                                @endif
+                                <x-input type="password" name="razorpay_key_secret" id="razorpay_key_secret" placeholder="{{ $razorpayKeySecretSaved ? __('Enter new value to replace saved key') : __('Paste Key Secret from dashboard.razorpay.com') }}" class="block w-full font-mono" autocomplete="new-password" />
                             </div>
                         </div>
+                        @if ($razorpayKeyIdSaved || $razorpayKeySecretSaved)
+                            <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                                <label class="flex items-start gap-2">
+                                    <input type="checkbox" name="clear_razorpay_credentials" value="1" class="mt-0.5 rounded border-gray-300 text-gray-900 focus:ring-gray-500" {{ old('clear_razorpay_credentials') ? 'checked' : '' }} />
+                                    <span>
+                                        <span class="text-sm font-medium text-gray-900">{{ __('Clear all saved Razorpay credentials') }}</span>
+                                        <span class="mt-0.5 block text-xs text-gray-600">{{ __('Takes effect when you save settings. You will need to re-enter both keys to enable online payments again.') }}</span>
+                                    </span>
+                                </label>
+                            </div>
+                        @endif
                         <div>
                             <button
                                 type="button"

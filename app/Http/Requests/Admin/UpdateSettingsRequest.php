@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Order;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateSettingsRequest extends FormRequest
 {
@@ -27,9 +28,10 @@ class UpdateSettingsRequest extends FormRequest
             'payment_instructions' => ['nullable', 'string'],
             'payment_upi_id' => ['nullable', 'string', 'max:255'],
             'payment_submit_instructions' => ['nullable', 'string'],
-            'payment_gateway' => ['nullable', 'string', 'in:razorpay'],
+            'payment_gateway' => ['nullable', 'string', Rule::in(['razorpay', ''])],
             'razorpay_key_id' => ['nullable', 'string', 'max:255'],
             'razorpay_key_secret' => ['nullable', 'string', 'max:255'],
+            'clear_razorpay_credentials' => ['nullable', 'boolean'],
             'currency' => ['nullable', 'string', 'max:10'],
             'timezone' => ['nullable', 'string', 'max:50'],
             'kitchen_lead_hours' => ['nullable', 'integer', 'min:0'],

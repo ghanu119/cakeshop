@@ -7,15 +7,15 @@ use Throwable;
 
 class PaymentSettingsResolver
 {
-    public function activeGatewaySlug(): string
+    public function activeGatewaySlug(): ?string
     {
         $slug = Setting::getPaymentGateway();
 
-        if (array_key_exists($slug, config('payment.gateways', []))) {
-            return $slug;
+        if ($slug === null || ! array_key_exists($slug, config('payment.gateways', []))) {
+            return null;
         }
 
-        return (string) config('payment.default', 'razorpay');
+        return $slug;
     }
 
     public function isRazorpayConfigured(): bool
@@ -43,7 +43,7 @@ class PaymentSettingsResolver
     }
 
     /**
-     * @return array{enabled: bool, gateway: string, key_id: ?string}
+     * @return array{enabled: bool, gateway: ?string, key_id: ?string}
      */
     public function frontendConfig(): array
     {

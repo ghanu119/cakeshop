@@ -38,11 +38,22 @@ class SettingsService
                 continue;
             }
 
+            if ($key === 'payment_gateway') {
+                Setting::set($key, filled($value) ? $value : null);
+
+                continue;
+            }
+
             if ($value === '' || $value === null) {
                 $value = array_key_exists($key, Setting::DEFAULTS) ? Setting::DEFAULTS[$key] : null;
             }
 
             Setting::set($key, $value);
+        }
+
+        if ($request->boolean('clear_razorpay_credentials')) {
+            Setting::setEncrypted('razorpay_key_id', null);
+            Setting::setEncrypted('razorpay_key_secret', null);
         }
 
         foreach (Setting::ENCRYPTED_KEYS as $key) {

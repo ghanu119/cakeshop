@@ -32,6 +32,10 @@ class SettingsController extends Controller
         $razorpayKeyIdSaved = Setting::hasEncryptedValue('razorpay_key_id');
         $razorpayKeySecretSaved = Setting::hasEncryptedValue('razorpay_key_secret');
         $razorpayConfigured = Setting::isRazorpayConfigured();
+        $paymentGateway = Setting::getPaymentGateway();
+        $razorpayKeyIdMasked = Setting::maskedEncryptedValue('razorpay_key_id', 5);
+        $razorpayKeySecretMasked = Setting::maskedEncryptedValue('razorpay_key_secret', 4);
+        $onlinePaymentReady = $paymentGateway === 'razorpay' && $razorpayConfigured;
 
         return view('admin.settings.index', compact(
             'settings',
@@ -39,6 +43,10 @@ class SettingsController extends Controller
             'razorpayKeyIdSaved',
             'razorpayKeySecretSaved',
             'razorpayConfigured',
+            'paymentGateway',
+            'razorpayKeyIdMasked',
+            'razorpayKeySecretMasked',
+            'onlinePaymentReady',
         ));
     }
 
