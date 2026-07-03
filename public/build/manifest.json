@@ -25,8 +25,8 @@
       "__commonjsHelpers-CqkleIqs.js"
     ]
   },
-  "_order-razorpay-core-CWZuRZ0B.js": {
-    "file": "assets/order-razorpay-core-CWZuRZ0B.js",
+  "_order-razorpay-core-ByVC20oG.js": {
+    "file": "assets/order-razorpay-core-ByVC20oG.js",
     "name": "order-razorpay-core"
   },
   "_select2-Cw2tYcCP.css": {
@@ -65,7 +65,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CXfGDTDP.css",
+    "file": "assets/app-BcD6hpT9.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -216,21 +216,21 @@
     "isEntry": true
   },
   "resources/js/order-place-confirm.js": {
-    "file": "assets/order-place-confirm-B2AEGduE.js",
+    "file": "assets/order-place-confirm-D-wdOwgi.js",
     "name": "order-place-confirm",
     "src": "resources/js/order-place-confirm.js",
     "isEntry": true,
     "imports": [
-      "_order-razorpay-core-CWZuRZ0B.js"
+      "_order-razorpay-core-ByVC20oG.js"
     ]
   },
   "resources/js/order-razorpay-checkout.js": {
-    "file": "assets/order-razorpay-checkout-DCJ6MWy5.js",
+    "file": "assets/order-razorpay-checkout-D-7Gq5Tf.js",
     "name": "order-razorpay-checkout",
     "src": "resources/js/order-razorpay-checkout.js",
     "isEntry": true,
     "imports": [
-      "_order-razorpay-core-CWZuRZ0B.js"
+      "_order-razorpay-core-ByVC20oG.js"
     ]
   },
   "resources/js/order-status-form.js": {

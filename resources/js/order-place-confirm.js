@@ -2,7 +2,7 @@ import {
     extractApiValidationError,
     validateCouponsForCheckout,
 } from './order-checkout-validate';
-import { getCsrfToken, refreshCsrfToken } from './csrf-token';
+import { getCsrfToken, refreshCsrfToken, applyCsrfToken } from './csrf-token';
 import {
     escapeHtml,
     messageFor,
@@ -246,8 +246,43 @@ document.addEventListener('DOMContentLoaded', function () {
         return form.hasAttribute('data-guest-checkout');
     }
 
+    function getGuestContact(form) {
+        const formData = new FormData(form);
+
+        const readField = (name) => {
+            const fromForm = formData.get(name);
+            if (typeof fromForm === 'string' && fromForm.trim() !== '') {
+                return fromForm.trim();
+            }
+
+            return form.querySelector(`[name="${name}"]`)?.value?.trim()
+                ?? form.querySelector(`#${name}`)?.value?.trim()
+                ?? '';
+        };
+
+        return {
+            guest_name: readField('guest_name'),
+            guest_email: readField('guest_email'),
+            guest_phone: readField('guest_phone'),
+        };
+    }
+
     function getGuestEmail(form) {
-        return form.querySelector('#guest_email')?.value?.trim() ?? '';
+        return getGuestContact(form).guest_email;
+    }
+
+    function markCheckoutAuthenticated(form) {
+        form.removeAttribute('data-guest-checkout');
+
+        if (otpSection) {
+            otpSection.classList.add('hidden');
+        }
+
+        clearOtpError();
+
+        if (otpInput) {
+            otpInput.value = '';
+        }
     }
 
     function clearOtpError() {
@@ -347,8 +382,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
-            const message = data.message
-                || (data.errors ? Object.values(data.errors).flat()[0] : null)
+            const nestedErrors = data.data?.errors ?? data.errors;
+            const message = (nestedErrors ? Object.values(nestedErrors).flat()[0] : null)
+                || data.message
                 || 'Request failed';
             throw new Error(message);
         }
@@ -363,8 +399,27 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    async function verifyCheckoutOtp(email, code) {
-        await postJsonLocal(verifyOtpUrl, { email, code });
+    async function verifyCheckoutOtp(email, code, form) {
+        const contact = getGuestContact(form);
+
+        if (! contact.guest_name || ! contact.guest_phone) {
+            throw new Error(messageFor(messages, 'contact_required', 'Please fill in your name and phone before verifying.'));
+        }
+
+        const data = await postJsonLocal(verifyOtpUrl, {
+            email,
+            code,
+            guest_name: contact.guest_name,
+            guest_phone: contact.guest_phone,
+        });
+
+        if (data.csrf_token) {
+            applyCsrfToken(data.csrf_token);
+        } else {
+            refreshCsrfToken();
+        }
+
+        return data;
     }
 
     let activeForm = null;
@@ -421,6 +476,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function prepareCheckout(form) {
         const formData = new FormData(form);
+        formData.set('_token', getCsrfToken());
         const { response, payload } = await postForm(prepareUrl, formData, getCsrfToken());
 
         if (!response.ok || !payload.success) {
@@ -681,7 +737,8 @@ document.addEventListener('DOMContentLoaded', function () {
             setSubmitLoading(true);
 
             try {
-                await verifyCheckoutOtp(email, code);
+                await verifyCheckoutOtp(email, code, activeForm);
+                markCheckoutAuthenticated(activeForm);
             } catch (error) {
                 setSubmitLoading(false);
                 updateSubmitPayLabel(activeForm);

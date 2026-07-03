@@ -12,10 +12,8 @@ function readCsrfFromCookie() {
     }
 }
 
-export function refreshCsrfToken() {
-    const token = readCsrfFromCookie();
-
-    if (!token) {
+export function applyCsrfToken(token) {
+    if (! token) {
         return null;
     }
 
@@ -25,7 +23,21 @@ export function refreshCsrfToken() {
         meta.setAttribute('content', token);
     }
 
+    document.querySelectorAll('input[name="_token"]').forEach((input) => {
+        input.value = token;
+    });
+
     return token;
+}
+
+export function refreshCsrfToken() {
+    const token = readCsrfFromCookie();
+
+    if (! token) {
+        return null;
+    }
+
+    return applyCsrfToken(token);
 }
 
 export function getCsrfToken() {

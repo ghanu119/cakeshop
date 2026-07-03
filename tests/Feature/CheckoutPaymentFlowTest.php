@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Models\User;
+use App\Support\AuthGuards;
 use App\Services\CustomerAuthService;
 use App\Services\OrderService;
 use App\Services\Payments\Gateways\RazorpayGateway;
@@ -74,6 +75,31 @@ class CheckoutPaymentFlowTest extends TestCase
             'delivery_at' => $this->validDeliveryAt(),
             'fulfillment_type' => Order::FULFILLMENT_TAKEAWAY,
         ], $overrides);
+    }
+
+    private function captureOtpForEmail(string $email): string
+    {
+        Mail::fake();
+        app(CustomerAuthService::class)->sendOtp($email);
+
+        $code = null;
+        Mail::assertSent(CustomerLoginOtp::class, function (CustomerLoginOtp $mail) use (&$code) {
+            $code = $mail->code;
+
+            return true;
+        });
+
+        return (string) $code;
+    }
+
+    private function verifyCheckoutOtpViaEndpoint(string $email, string $code, array $overrides = []): \Illuminate\Testing\TestResponse
+    {
+        return $this->postJson(route('order.checkout.verify-otp'), array_merge([
+            'email' => $email,
+            'code' => $code,
+            'guest_name' => 'Pay First Buyer',
+            'guest_phone' => '9876543210',
+        ], $overrides));
     }
 
     public function test_prepare_finalize_creates_verified_order(): void
@@ -225,5 +251,59 @@ class CheckoutPaymentFlowTest extends TestCase
         );
 
         $prepareAfterOtp->assertOk()->assertJsonPath('success', true);
+    }
+
+    public function test_checkout_verify_otp_authenticates_guest(): void
+    {
+        $email = 'payfirst@example.com';
+        $code = $this->captureOtpForEmail($email);
+
+        $response = $this->verifyCheckoutOtpViaEndpoint($email, $code);
+
+        $response->assertOk()
+            ->assertJsonPath('verified', true)
+            ->assertJsonPath('authenticated', true)
+            ->assertJsonStructure(['csrf_token']);
+
+        $this->assertAuthenticated(AuthGuards::CUSTOMER);
+        $this->assertNull(session(CustomerAuthService::SESSION_VERIFIED_EMAIL));
+        $this->assertNotNull(User::where('email', $email)->first());
+    }
+
+    public function test_authenticated_guest_can_prepare_without_reverifying_otp(): void
+    {
+        $product = $this->createProduct();
+        $email = 'payfirst@example.com';
+        $code = $this->captureOtpForEmail($email);
+
+        $this->verifyCheckoutOtpViaEndpoint($email, $code)->assertOk();
+
+        $firstPrepare = $this->postJson(
+            route('order.checkout.prepare', $product),
+            $this->orderPayload()
+        );
+        $firstPrepare->assertOk()->assertJsonPath('success', true);
+
+        $secondPrepare = $this->postJson(
+            route('order.checkout.prepare', $product),
+            $this->orderPayload()
+        );
+        $secondPrepare->assertOk()->assertJsonPath('success', true);
+    }
+
+    public function test_consumed_otp_not_required_after_login(): void
+    {
+        $product = $this->createProduct();
+        $email = 'payfirst@example.com';
+        $code = $this->captureOtpForEmail($email);
+
+        $this->verifyCheckoutOtpViaEndpoint($email, $code)->assertOk();
+
+        $this->verifyCheckoutOtpViaEndpoint($email, $code)->assertForbidden();
+
+        $this->postJson(
+            route('order.checkout.prepare', $product),
+            $this->orderPayload()
+        )->assertOk()->assertJsonPath('success', true);
     }
 }

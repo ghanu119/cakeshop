@@ -105,6 +105,45 @@ class AccountCheckoutTest extends TestCase
         $this->assertSame($email, $order->guest_email);
     }
 
+    public function test_checkout_verify_otp_then_legacy_store_creates_order(): void
+    {
+        $product = Product::factory()->create(['status' => 'active', 'price' => 500]);
+        $email = 'checkout@example.com';
+
+        Mail::fake();
+        app(CustomerAuthService::class)->sendOtp($email);
+
+        $code = null;
+        Mail::assertSent(CustomerLoginOtp::class, function (CustomerLoginOtp $mail) use (&$code) {
+            $code = $mail->code;
+
+            return true;
+        });
+
+        $this->postJson(route('order.checkout.verify-otp'), [
+            'email' => $email,
+            'code' => $code,
+            'guest_name' => 'Buyer',
+            'guest_phone' => '9876501234',
+        ])
+            ->assertOk()
+            ->assertJsonPath('authenticated', true);
+
+        $this->post(route('order.store', $product), $this->orderPayload([
+            'guest_email' => $email,
+        ]))->assertRedirect();
+
+        $this->assertAuthenticated(AuthGuards::CUSTOMER);
+
+        $customer = User::where('email', $email)->first();
+        $this->assertNotNull($customer);
+
+        $order = Order::latest('id')->first();
+        $this->assertSame($customer->id, $order->user_id);
+        $this->assertSame('Buyer', $order->guest_name);
+        $this->assertSame($email, $order->guest_email);
+    }
+
     public function test_logged_in_customer_can_access_order_form(): void
     {
         $customer = User::factory()->customer()->create();

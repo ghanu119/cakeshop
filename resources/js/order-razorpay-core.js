@@ -40,7 +40,13 @@ async function postRequest(url, init, csrfToken, retryOnCsrf = true) {
     });
 
     if (response.status === 419 && retryOnCsrf && refreshCsrfToken()) {
-        return postRequest(url, init, getCsrfToken(), false);
+        const freshToken = getCsrfToken();
+
+        if (init.body instanceof FormData && freshToken) {
+            init.body.set('_token', freshToken);
+        }
+
+        return postRequest(url, init, freshToken, false);
     }
 
     let payload = {};

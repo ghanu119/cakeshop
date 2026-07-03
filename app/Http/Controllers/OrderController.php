@@ -152,12 +152,19 @@ class OrderController extends Controller
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255'],
             'code' => ['required', 'string', 'size:6'],
+            'guest_name' => ['required', 'string', 'max:255'],
+            'guest_phone' => ['required', 'string', 'max:50'],
         ]);
 
         $email = strtolower(trim($validated['email']));
 
         try {
             $this->customerAuthService->verifyOtp($email, $validated['code']);
+            $this->customerAuthService->authenticateCustomerForVerifiedEmail(
+                $email,
+                $validated['guest_phone'],
+                $validated['guest_name'],
+            );
         } catch (ValidationException $exception) {
             return response()->json([
                 'message' => collect($exception->errors())->flatten()->first()
@@ -165,7 +172,11 @@ class OrderController extends Controller
             ], 422);
         }
 
-        return response()->json(['verified' => true]);
+        return response()->json([
+            'verified' => true,
+            'authenticated' => true,
+            'csrf_token' => csrf_token(),
+        ]);
     }
 
     public function validateCoupon(Request $request, Product $product): JsonResponse
