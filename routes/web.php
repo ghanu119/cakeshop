@@ -90,7 +90,7 @@ Route::prefix('account')->name('account.')->middleware(['account.guest'])->group
 Route::prefix('order')->name('order.')->group(function () {
     Route::get('product/{product:slug}', [OrderController::class, 'placeForm'])->name('place');
     Route::post('checkout/send-otp', [OrderController::class, 'sendCheckoutOtp'])->middleware('throttle:60,1')->name('checkout.send-otp');
-    Route::post('checkout/verify-otp', [OrderController::class, 'verifyCheckoutOtp'])->middleware('throttle:10,15')->name('checkout.verify-otp');
+    Route::post('checkout/verify-otp', [OrderController::class, 'verifyCheckoutOtp'])->middleware('throttle:10,1')->name('checkout.verify-otp');
     Route::post('product/{product:slug}/validate-coupon', [OrderController::class, 'validateCoupon'])->middleware('throttle:60,1')->name('product.validate-coupon');
     Route::post('product/{product:slug}/checkout/prepare', [CheckoutPaymentController::class, 'prepare'])->middleware('throttle:10,1')->name('checkout.prepare');
     Route::post('checkout/finalize', [CheckoutPaymentController::class, 'finalize'])->middleware('throttle:10,1')->name('checkout.finalize');
