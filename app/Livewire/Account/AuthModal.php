@@ -165,15 +165,41 @@ class AuthModal extends Component
     {
         $intended = session()->pull('url.intended');
 
-        $this->dispatch('close-modal', 'customer-auth-modal');
+        $this->redirect($intended ?? $this->resolvePostLoginUrl(), navigate: false);
+    }
 
-        if ($intended) {
-            $this->redirect($intended, navigate: false);
+    private function resolvePostLoginUrl(): string
+    {
+        $referer = request()->headers->get('referer');
 
-            return;
+        if ($referer !== null && ! str_contains($referer, '/livewire/')) {
+            return $this->stripAuthQueryParam($referer);
         }
 
-        $this->js('window.location.reload()');
+        return route('home');
+    }
+
+    private function stripAuthQueryParam(string $url): string
+    {
+        $parts = parse_url($url);
+
+        if (! isset($parts['query'])) {
+            return $url;
+        }
+
+        parse_str($parts['query'], $query);
+        unset($query['auth']);
+
+        $base = ($parts['scheme'] ?? 'https').'://'
+            .($parts['host'] ?? '')
+            .(isset($parts['port']) ? ':'.$parts['port'] : '')
+            .($parts['path'] ?? '');
+
+        if ($query === []) {
+            return $base;
+        }
+
+        return $base.'?'.http_build_query($query);
     }
 
     private function resetForm(): void

@@ -75,7 +75,8 @@ class CustomerAuthTest extends TestCase
         Livewire::test(AuthModal::class)
             ->set('email', $customer->email)
             ->set('code', $code)
-            ->call('verifyOtp');
+            ->call('verifyOtp')
+            ->assertRedirect(route('home'));
 
         $this->assertAuthenticatedAs($customer, AuthGuards::CUSTOMER);
     }
@@ -156,5 +157,24 @@ class CustomerAuthTest extends TestCase
             ->assertSet('step', 'email')
             ->assertSet('email', '')
             ->assertSet('code', '');
+    }
+
+    public function test_finish_auth_redirects_to_referer_without_auth_query(): void
+    {
+        Mail::fake();
+
+        $customer = User::factory()->customer()->create([
+            'email' => 'referer@example.com',
+            'phone' => '9000000001',
+        ]);
+
+        $code = $this->sendAndCaptureOtp($customer->email);
+
+        Livewire::withHeaders(['Referer' => route('home').'?auth=1'])
+            ->test(AuthModal::class)
+            ->set('email', $customer->email)
+            ->set('code', $code)
+            ->call('verifyOtp')
+            ->assertRedirect(route('home'));
     }
 }
