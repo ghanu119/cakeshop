@@ -145,4 +145,16 @@ class CustomerAuthTest extends TestCase
             ->call('sendOtp')
             ->assertHasErrors('email');
     }
+
+    public function test_auth_modal_resets_when_closed(): void
+    {
+        Livewire::test(AuthModal::class)
+            ->set('email', 'user@example.com')
+            ->set('step', 'otp')
+            ->set('code', '123456')
+            ->dispatch('close-modal', 'customer-auth-modal')
+            ->assertSet('step', 'email')
+            ->assertSet('email', '')
+            ->assertSet('code', '');
+    }
 }

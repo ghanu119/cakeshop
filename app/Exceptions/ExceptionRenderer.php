@@ -45,6 +45,10 @@ class ExceptionRenderer
 
     protected function wantsJsonResponse(Request $request): bool
     {
+        if ($request->hasHeader('X-Livewire') || $request->is('livewire/*')) {
+            return true;
+        }
+
         if ($request->expectsJson() || $request->ajax()) {
             return true;
         }
@@ -180,7 +184,7 @@ class ExceptionRenderer
                 ? route('admin.login')
                 : route('login');
 
-            return redirect()->guest($loginRoute)->withErrors(['_form' => $message]);
+            return $this->redirectGuestWithError($request, $loginRoute, $message);
         }
 
         if ($status === 403 && $this->isFormSubmission($request)) {
@@ -225,9 +229,23 @@ class ExceptionRenderer
             $target = $this->defaultFormUrl($request);
         }
 
-        return redirect()->to($target)
-            ->withInput($request->except('_token', 'password', 'password_confirmation', 'current_password'))
-            ->withErrors(['_form' => $message]);
+        $response = new RedirectResponse($target);
+        $response->setSession($request->session());
+        $response->withInput($request->except('_token', 'password', 'password_confirmation', 'current_password'));
+        $response->withErrors(['_form' => $message]);
+
+        return $response;
+    }
+
+    protected function redirectGuestWithError(Request $request, string $loginRoute, string $message): RedirectResponse
+    {
+        $request->session()->put('url.intended', $request->fullUrl());
+
+        $response = new RedirectResponse($loginRoute);
+        $response->setSession($request->session());
+        $response->withErrors(['_form' => $message]);
+
+        return $response;
     }
 
     protected function guessFormUrlFromRequest(Request $request): ?string

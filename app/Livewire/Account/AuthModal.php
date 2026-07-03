@@ -151,7 +151,14 @@ class AuthModal extends Component
     public function close(): void
     {
         $this->dispatch('close-modal', 'customer-auth-modal');
-        $this->resetForm();
+    }
+
+    #[On('close-modal')]
+    public function onModalClosed(string $name): void
+    {
+        if ($name === 'customer-auth-modal') {
+            $this->resetForm();
+        }
     }
 
     private function finishAuth(): void
@@ -159,7 +166,6 @@ class AuthModal extends Component
         $intended = session()->pull('url.intended');
 
         $this->dispatch('close-modal', 'customer-auth-modal');
-        $this->resetForm();
 
         if ($intended) {
             $this->redirect($intended, navigate: false);

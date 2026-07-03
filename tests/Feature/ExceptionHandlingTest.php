@@ -77,12 +77,35 @@ class ExceptionHandlingTest extends TestCase
             'password' => 'secret',
         ]);
         $request->headers->set('referer', route('admin.login'));
+        $this->startSession();
+        $request->setLaravelSession($this->app['session.store']);
 
         $response = $renderer->render(new TokenMismatchException('CSRF token mismatch.'), $request);
 
         $this->assertNotNull($response);
         $this->assertTrue($response->isRedirect());
         $this->assertStringContainsString('/admin/login', $response->headers->get('Location'));
+        $this->assertSame('admin@example.com', session('_old_input.email'));
+    }
+
+    public function test_csrf_on_livewire_request_returns_json_not_redirect(): void
+    {
+        Config::set('app.debug', false);
+
+        $renderer = app(ExceptionRenderer::class);
+        $request = Request::create('/livewire/update', 'POST');
+        $request->headers->set('X-Livewire', 'true');
+
+        $response = $renderer->render(new TokenMismatchException('CSRF token mismatch.'), $request);
+
+        $this->assertNotNull($response);
+        $this->assertSame(419, $response->getStatusCode());
+        $this->assertFalse($response->isRedirect());
+
+        $payload = json_decode($response->getContent(), true);
+        $this->assertFalse($payload['success']);
+        $this->assertSame(__('errors.csrf_expired'), $payload['message']);
+        $this->assertSame('csrf_expired', $payload['code']);
     }
 
     public function test_unauthenticated_admin_json_returns_friendly_message(): void
