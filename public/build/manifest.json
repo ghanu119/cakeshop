@@ -25,6 +25,10 @@
       "__commonjsHelpers-CqkleIqs.js"
     ]
   },
+  "_order-razorpay-core-CWZuRZ0B.js": {
+    "file": "assets/order-razorpay-core-CWZuRZ0B.js",
+    "name": "order-razorpay-core"
+  },
   "_select2-Cw2tYcCP.css": {
     "file": "assets/select2-Cw2tYcCP.css",
     "src": "_select2-Cw2tYcCP.css"
@@ -61,7 +65,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-B6Mg35Z9.css",
+    "file": "assets/app-BU8ei2xy.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -146,7 +150,7 @@
     "isEntry": true
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-CvCBPcaI.js",
+    "file": "assets/admin-Dr1ArEJq.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true,
@@ -188,7 +192,7 @@
     "isEntry": true
   },
   "resources/js/order-coupon-summary.js": {
-    "file": "assets/order-coupon-summary-5cwQglOz.js",
+    "file": "assets/order-coupon-summary-DxYzZq5P.js",
     "name": "order-coupon-summary",
     "src": "resources/js/order-coupon-summary.js",
     "isEntry": true
@@ -212,10 +216,22 @@
     "isEntry": true
   },
   "resources/js/order-place-confirm.js": {
-    "file": "assets/order-place-confirm-Dxx6Erbp.js",
+    "file": "assets/order-place-confirm-Cv2Ugq4D.js",
     "name": "order-place-confirm",
     "src": "resources/js/order-place-confirm.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_order-razorpay-core-CWZuRZ0B.js"
+    ]
+  },
+  "resources/js/order-razorpay-checkout.js": {
+    "file": "assets/order-razorpay-checkout-DCJ6MWy5.js",
+    "name": "order-razorpay-checkout",
+    "src": "resources/js/order-razorpay-checkout.js",
+    "isEntry": true,
+    "imports": [
+      "_order-razorpay-core-CWZuRZ0B.js"
+    ]
   },
   "resources/js/order-status-form.js": {
     "file": "assets/order-status-form-CA551Lby.js",

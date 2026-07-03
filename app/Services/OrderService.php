@@ -4,6 +4,10 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
+use App\Services\Payments\DTOs\VerifyPaymentResult;
+use App\Services\Payments\PaymentOrchestrator;
+use App\Services\Payments\PaymentService;
 use Carbon\Carbon;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
@@ -38,6 +42,7 @@ class OrderService
         private ProductVariantService $productVariantService,
         private ServiceablePincodeService $pincodeService,
         private CouponService $couponService,
+        private PaymentOrchestrator $paymentOrchestrator,
     ) {}
 
     public function listForAdmin(Request $request): LengthAwarePaginator
@@ -228,11 +233,128 @@ class OrderService
         ];
     }
 
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array{amount: float, subtotal: float, discount_amount: float, currency: string}
+     */
+    public function quoteOrder(Product $product, array $data, ?User $customer = null): array
+    {
+        $pricing = $this->resolveOrderPricing($product, $data, $customer);
+
+        return [
+            'amount' => $pricing['amount'],
+            'subtotal' => $pricing['subtotal'],
+            'discount_amount' => $pricing['discount_amount'],
+            'currency' => (string) (settings('currency') ?: config('payment.currency', 'INR')),
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
     public function createOrder(Product $product, array $data): Order
     {
-        $customerContext = app(CustomerContext::class);
-        $customer = $customerContext->effectiveCustomer();
+        $customer = app(CustomerContext::class)->effectiveCustomer();
+        $pricing = $this->resolveOrderPricing($product, $data, $customer);
 
+        $order = $this->buildOrderFromPricing($product, $data, $customer, $pricing);
+        $this->paymentOrchestrator->initializeOrderPayment($order);
+        $order->save();
+
+        if ($pricing['variant'] !== null) {
+            $this->productVariantService->snapshotOrder($product, $pricing['variant'], $order);
+        }
+
+        return $order;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     */
+    public function createOrderWithVerifiedPayment(Product $product, array $data, VerifyPaymentResult $paymentResult): Order
+    {
+        $customer = app(CustomerContext::class)->effectiveCustomer();
+        $pricing = $this->resolveOrderPricing($product, $data, $customer);
+
+        $order = $this->buildOrderFromPricing($product, $data, $customer, $pricing);
+        $order->payment_method = Order::PAYMENT_METHOD_RAZORPAY;
+        $order->payment_status = 'verified';
+        $order->save();
+
+        if ($pricing['variant'] !== null) {
+            $this->productVariantService->snapshotOrder($product, $pricing['variant'], $order);
+        }
+
+        app(PaymentService::class)->createPaidPayment($order, $paymentResult);
+
+        return $order;
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array{
+     *     amount: float,
+     *     subtotal: float,
+     *     discount_amount: float,
+     *     unit_price: float,
+     *     variant: \App\Models\ProductVariant|null,
+     *     coupon_result: array{coupon: \App\Models\Coupon, discount_amount: float, label: string}|null
+     * }
+     */
+    private function resolveOrderPricing(Product $product, array $data, ?User $customer): array
+    {
+        $quantity = (int) ($data['quantity'] ?? 1);
+        $variant = null;
+        $unitPrice = (float) $product->price;
+
+        if ($this->productVariantService->hasVariants($product)) {
+            $variant = $this->productVariantService->findVariantForProduct(
+                $product,
+                (int) $data['product_variant_id']
+            );
+            $unitPrice = (float) $variant->price;
+        }
+
+        $subtotal = $unitPrice * $quantity;
+        $couponDeclined = ! empty($data['coupon_declined']);
+
+        if ($couponDeclined) {
+            $couponResult = null;
+        } else {
+            $couponResult = $this->couponService->resolveForOrder(
+                $product,
+                $customer,
+                $subtotal,
+                $data['coupon_code'] ?? null,
+                isset($data['coupon_id']) ? (int) $data['coupon_id'] : null,
+            );
+        }
+
+        $discountAmount = $couponResult['discount_amount'] ?? 0;
+
+        return [
+            'amount' => max(0, $subtotal - $discountAmount),
+            'subtotal' => $subtotal,
+            'discount_amount' => $discountAmount,
+            'unit_price' => $unitPrice,
+            'variant' => $variant,
+            'coupon_result' => $couponResult,
+        ];
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @param  array{
+     *     amount: float,
+     *     subtotal: float,
+     *     discount_amount: float,
+     *     unit_price: float,
+     *     variant: \App\Models\ProductVariant|null,
+     *     coupon_result: array{coupon: \App\Models\Coupon, discount_amount: float, label: string}|null
+     * }  $pricing
+     */
+    private function buildOrderFromPricing(Product $product, array $data, ?User $customer, array $pricing): Order
+    {
         $order = new Order;
         $order->user_id = $customer?->id;
         $order->guest_name = $data['guest_name'] ?? '';
@@ -249,15 +371,7 @@ class OrderService
             ? ($data['delivery_address'] ?? null)
             : null;
         $order->delivery_pincode = $this->resolveDeliveryPincode($order->fulfillment_type, $data['delivery_pincode'] ?? null);
-        $order->payment_status = 'pending';
         $order->order_status = 'pending';
-        $order->payment_method = Order::PAYMENT_METHOD_UPI;
-
-        if ($customerContext->isImpersonating()) {
-            $order->payment_method = Order::PAYMENT_METHOD_CASH_ON_STORE;
-            $order->payment_status = 'verified';
-            $order->placed_by_user_id = $customerContext->impersonator()?->id;
-        }
 
         $tz = settings('timezone') ?? 'Asia/Kolkata';
         $order->delivery_at = Carbon::parse($data['delivery_at'], $tz)->utc();
@@ -265,51 +379,20 @@ class OrderService
 
         $this->applyFlavorSnapshot($order, $product, $data['flavor_id'] ?? null);
 
-        $unitPrice = null;
-        $variant = null;
-
-        if ($this->productVariantService->hasVariants($product)) {
-            $variant = $this->productVariantService->findVariantForProduct(
-                $product,
-                (int) $data['product_variant_id']
-            );
-            $order->product_variant_id = $variant->id;
-            $unitPrice = (float) $variant->price;
-        } else {
-            $unitPrice = (float) $product->price;
+        if ($pricing['variant'] !== null) {
+            $order->product_variant_id = $pricing['variant']->id;
         }
 
-        $order->unit_price = $unitPrice;
-        $subtotal = $unitPrice * $order->quantity;
+        $order->unit_price = $pricing['unit_price'];
+        $order->subtotal = $pricing['subtotal'];
+        $order->discount_amount = $pricing['discount_amount'];
+        $order->amount = $pricing['amount'];
 
-        $couponDeclined = ! empty($data['coupon_declined']);
-
-        if ($couponDeclined) {
-            $couponResult = null;
-        } else {
-            $couponResult = $this->couponService->resolveForOrder(
-                $product,
-                $customer,
-                $subtotal,
-                $data['coupon_code'] ?? null,
-                isset($data['coupon_id']) ? (int) $data['coupon_id'] : null,
-            );
-        }
-
-        $order->subtotal = $subtotal;
-        $order->discount_amount = $couponResult['discount_amount'] ?? 0;
-        $order->amount = max(0, $subtotal - $order->discount_amount);
-
+        $couponResult = $pricing['coupon_result'];
         if ($couponResult !== null) {
             $order->coupon_id = $couponResult['coupon']->id;
             $order->coupon_code = $couponResult['coupon']->code;
             $order->coupon_label = $couponResult['coupon']->label;
-        }
-
-        $order->save();
-
-        if ($variant !== null) {
-            $this->productVariantService->snapshotOrder($product, $variant, $order);
         }
 
         return $order;

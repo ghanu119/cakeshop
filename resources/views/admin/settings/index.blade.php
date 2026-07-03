@@ -97,7 +97,55 @@
 
         <x-card>
             <h2 class="mb-4 text-xl font-semibold text-gray-900">{{ __('Payment & orders') }}</h2>
-            <div class="space-y-4">
+            <div class="space-y-6">
+                <div class="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                            <h3 class="text-base font-semibold text-gray-900">{{ __('Online payment gateway') }}</h3>
+                            <p class="mt-1 text-sm text-gray-500">{{ __('Razorpay credentials are encrypted in the database. Used for Better Buns checkout.') }}</p>
+                        </div>
+                        <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $razorpayConfigured ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                            {{ $razorpayConfigured ? __('Ready') : __('Setup needed') }}
+                        </span>
+                    </div>
+                    <div class="space-y-4">
+                        <div>
+                            <label for="payment_gateway" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Payment gateway') }}</label>
+                            <select name="payment_gateway" id="payment_gateway" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                                <option value="razorpay" {{ old('payment_gateway', $settings['payment_gateway'] ?? 'razorpay') === 'razorpay' ? 'selected' : '' }}>Razorpay</option>
+                            </select>
+                        </div>
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            <div>
+                                <div class="mb-1 flex items-center justify-between gap-2">
+                                    <label for="razorpay_key_id" class="text-sm font-medium text-gray-700">{{ __('Razorpay Key ID') }}</label>
+                                    <span class="text-xs font-medium {{ $razorpayKeyIdSaved ? 'text-emerald-600' : 'text-amber-600' }}">{{ $razorpayKeyIdSaved ? __('Saved') : __('Required') }}</span>
+                                </div>
+                                <x-input type="password" name="razorpay_key_id" id="razorpay_key_id" placeholder="{{ $razorpayKeyIdSaved ? __('Leave blank to keep saved value') : __('Paste Key ID from dashboard.razorpay.com') }}" class="block w-full font-mono" autocomplete="new-password" />
+                            </div>
+                            <div>
+                                <div class="mb-1 flex items-center justify-between gap-2">
+                                    <label for="razorpay_key_secret" class="text-sm font-medium text-gray-700">{{ __('Razorpay Key Secret') }}</label>
+                                    <span class="text-xs font-medium {{ $razorpayKeySecretSaved ? 'text-emerald-600' : 'text-amber-600' }}">{{ $razorpayKeySecretSaved ? __('Saved') : __('Required') }}</span>
+                                </div>
+                                <x-input type="password" name="razorpay_key_secret" id="razorpay_key_secret" placeholder="{{ $razorpayKeySecretSaved ? __('Leave blank to keep saved value') : __('Paste Key Secret from dashboard.razorpay.com') }}" class="block w-full font-mono" autocomplete="new-password" />
+                            </div>
+                        </div>
+                        <div>
+                            <button
+                                type="button"
+                                class="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50"
+                                data-test-razorpay
+                                data-test-razorpay-url="{{ route('admin.settings.test-razorpay') }}"
+                            >
+                                {{ __('Test Razorpay connection') }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t border-gray-200 pt-6">
+                    <h3 class="mb-3 text-base font-semibold text-gray-900">{{ __('Legacy manual UPI (other themes)') }}</h3>
                 <div>
                     <label for="payment_qr" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Payment QR code image') }}</label>
                     <input type="file" name="payment_qr" id="payment_qr" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-lg file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:text-gray-700 file:hover:bg-gray-200" />
@@ -125,6 +173,7 @@
                 <div>
                     <label for="currency" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Currency') }}</label>
                     <x-input type="text" name="currency" id="currency" value="{{ old('currency', $settings['currency'] ?? 'INR') }}" class="block w-full" />
+                </div>
                 </div>
             </div>
         </x-card>

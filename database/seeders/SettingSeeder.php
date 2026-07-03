@@ -31,6 +31,7 @@ class SettingSeeder extends Seeder
             'checkout_delivery_notice' => 'We deliver only within Rajkot. Enter your pincode to check availability.',
             'checkout_takeaway_notice' => 'Pickup is only available at our store:',
             'checkout_takeaway_address' => 'B/H Asopalav Triangle Opp Matuki Restaurant Punit Nagar 80 Ft road Rajkot, Gujarat, Rajkot, Gujarat 360004',
+            'payment_gateway' => 'razorpay',
             'notifications_enabled' => '1',
             'notifications_web_push_enabled' => '0',
         ];

@@ -27,7 +27,7 @@ class OrderController extends Controller
         $customer = $request->user();
         abort_unless($order->user_id === $customer->id, 404);
 
-        $order->load(['product' => fn ($q) => $q->withTrashed(), 'product.media', 'media']);
+        $order->load(['product' => fn ($q) => $q->withTrashed(), 'product.media', 'media', 'payments']);
 
         return view('account.orders.show', compact('customer', 'order'));
     }

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\Payments\Enums\PaymentStatus;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -23,6 +24,8 @@ class Order extends Model implements HasMedia
     public const PAYMENT_METHOD_UPI = 'upi';
 
     public const PAYMENT_METHOD_CASH_ON_STORE = 'cash_on_store';
+
+    public const PAYMENT_METHOD_RAZORPAY = 'razorpay';
 
     /** Default max inscription length when no site or product override is set. */
     public const MESSAGE_ON_CAKE_MAX_LENGTH = 50;
@@ -191,6 +194,65 @@ class Order extends Model implements HasMedia
         return $this->belongsTo(User::class, 'placed_by_user_id');
     }
 
+    public function payments()
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function paidPayment(): ?Payment
+    {
+        if ($this->relationLoaded('payments')) {
+            return $this->payments
+                ->filter(fn (Payment $payment) => $payment->status === PaymentStatus::Paid)
+                ->sortByDesc(fn (Payment $payment) => $payment->paid_at ?? $payment->created_at)
+                ->first();
+        }
+
+        return $this->payments()->paid()->latest('paid_at')->first();
+    }
+
+    public function displayPaymentReference(): ?string
+    {
+        if (filled($this->payment_reference)) {
+            return (string) $this->payment_reference;
+        }
+
+        return $this->paidPayment()?->gateway_payment_id;
+    }
+
+    public function displayPaymentAmount(): ?float
+    {
+        if ($this->payment_amount !== null) {
+            return (float) $this->payment_amount;
+        }
+
+        $payment = $this->paidPayment();
+
+        return $payment !== null ? (float) $payment->amount : null;
+    }
+
+    public function displayPaymentMadeAt(): ?Carbon
+    {
+        if ($this->payment_made_at !== null) {
+            return $this->payment_made_at;
+        }
+
+        return $this->paidPayment()?->paid_at;
+    }
+
+    public function hasDisplayablePaymentDetails(): bool
+    {
+        return $this->displayPaymentReference() !== null
+            || $this->displayPaymentAmount() !== null
+            || $this->displayPaymentMadeAt() !== null
+            || $this->hasMedia('payment_proof');
+    }
+
+    public function isRazorpayPayment(): bool
+    {
+        return $this->payment_method === self::PAYMENT_METHOD_RAZORPAY;
+    }
+
     public function isCashOnStore(): bool
     {
         return $this->payment_method === self::PAYMENT_METHOD_CASH_ON_STORE;
@@ -205,6 +267,7 @@ class Order extends Model implements HasMedia
     {
         return match ($this->payment_method) {
             self::PAYMENT_METHOD_CASH_ON_STORE => __('Cash on store'),
+            self::PAYMENT_METHOD_RAZORPAY => __('Razorpay'),
             self::PAYMENT_METHOD_UPI => __('UPI'),
             default => __('UPI'),
         };

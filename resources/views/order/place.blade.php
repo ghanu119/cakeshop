@@ -92,7 +92,10 @@
                 @error('instructions')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
             @include('order.partials._coupon-picker', compact('product', 'universalCoupons', 'autoApplyPreview', 'defaultCouponId', 'defaultCouponCode', 'customer'))
-            <x-button type="submit" variant="primary" data-submitting-text="{{ __('Processing...') }}">{{ __('Place order') }}</x-button>
+            <div data-order-place-actions class="space-y-3">
+                @include('order.partials._place-order-error')
+                <x-button type="submit" variant="primary" data-submitting-text="{{ __('Processing...') }}">{{ __('Place order') }}</x-button>
+            </div>
         </form>
     </x-card>
 

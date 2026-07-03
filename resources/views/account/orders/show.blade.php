@@ -84,7 +84,10 @@
                 </div>
             </div>
 
-            @include('order.partials._order-confirm-payment', ['order' => $order])
+            @include('order.partials._order-confirm-payment', [
+                'order' => $order,
+                'symbol' => $symbol,
+            ])
         </div>
 
         @include('order.partials._order-footer-nav', ['wrapperClass' => 'mt-8'])

@@ -13,6 +13,8 @@ use App\Services\CustomerAuthService;
 use App\Services\CustomerContext;
 use App\Services\OrderNotificationService;
 use App\Services\OrderService;
+use App\Services\Payments\CheckoutPaymentService;
+use App\Services\Payments\PaymentSettingsResolver;
 use App\Services\ProductVariantService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -30,6 +32,8 @@ class OrderController extends Controller
         private CustomerContext $customerContext,
         private CustomerAuthService $customerAuthService,
         private CouponService $couponService,
+        private PaymentSettingsResolver $paymentSettingsResolver,
+        private CheckoutPaymentService $checkoutPaymentService,
     ) {}
 
     public function placeForm(Product $product): View
@@ -85,6 +89,15 @@ class OrderController extends Controller
             : null;
         $defaultCouponCode = $defaultCoupon['code'] ?? null;
 
+        $paymentCheckoutConfig = $this->paymentSettingsResolver->frontendConfig();
+        $checkoutPaymentConfig = [
+            'pay_before_order' => $this->checkoutPaymentService->shouldUsePayBeforeOrder(),
+            'prepare_url' => route('order.checkout.prepare', $product),
+            'finalize_url' => route('order.checkout.finalize'),
+            'enabled' => (bool) ($paymentCheckoutConfig['enabled'] ?? false),
+            'key_id' => $paymentCheckoutConfig['key_id'] ?? null,
+        ];
+
         return view('order.place', compact(
             'product',
             'customer',
@@ -100,6 +113,7 @@ class OrderController extends Controller
             'autoApplyPreview',
             'defaultCouponId',
             'defaultCouponCode',
+            'checkoutPaymentConfig',
         ));
     }
 
@@ -246,6 +260,12 @@ class OrderController extends Controller
             abort(404);
         }
 
+        if ($this->checkoutPaymentService->shouldUsePayBeforeOrder()) {
+            return back()->withErrors([
+                'checkout' => __('Please complete payment on the checkout page to place your order.'),
+            ])->withInput();
+        }
+
         $validated = $request->validated();
         $customer = $this->customerContext->effectiveCustomer();
 
@@ -302,9 +322,13 @@ class OrderController extends Controller
 
     public function confirm(Order $order): View|RedirectResponse
     {
-        $order->load(['product' => fn ($q) => $q->withTrashed(), 'product.media', 'media']);
+        $order->load(['product' => fn ($q) => $q->withTrashed(), 'product.media', 'media', 'payments']);
 
-        return view('order.confirm', compact('order'));
+        $paymentCheckoutConfig = active_theme() === 'better-buns'
+            ? $this->paymentSettingsResolver->frontendConfig()
+            : ['enabled' => false, 'gateway' => null, 'key_id' => null];
+
+        return view('order.confirm', compact('order', 'paymentCheckoutConfig'));
     }
 
     public function downloadPaymentQr(): BinaryFileResponse

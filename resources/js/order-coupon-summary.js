@@ -458,6 +458,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const onOrderCompositionChanged = () => {
         setCouponDeclined(false);
+        document.dispatchEvent(new CustomEvent('order-coupon:composition-changed'));
 
         if (codeApplied) {
             scheduleRefresh({ fromCodeApply: true });
@@ -491,6 +492,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     initMaxDiscountPopovers();
     updateClearVisibility();
+
+    document.addEventListener('order-coupon:invalidate', (event) => {
+        const message = event.detail?.message;
+
+        if (!message) {
+            return;
+        }
+
+        setAppliedState(false);
+        showCodeFeedback(message, 'error');
+        codeInput?.focus();
+    });
 
     const initialCode = codeInput?.value?.trim() || '';
     if (initialCode && !isCouponDeclined()) {

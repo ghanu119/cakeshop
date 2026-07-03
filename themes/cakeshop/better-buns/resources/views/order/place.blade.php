@@ -208,8 +208,9 @@
                         @include('order.partials._coupon-picker', compact('product', 'universalCoupons', 'autoApplyPreview', 'defaultCouponId', 'defaultCouponCode', 'customer'))
 
                         {{-- Action Buttons --}}
-                        <div class="flex flex-col gap-4">
-                            <button type="submit" class="w-full px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-lg shadow-[0_8px_20px_rgb(217,119,6,0.25)] hover:shadow-[0_12px_25px_rgb(217,119,6,0.35)] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                        <div class="flex flex-col gap-4" data-order-place-actions>
+                            @include('order.partials._place-order-error')
+                            <button type="submit" data-submitting-text="{{ __('Checking order…') }}" class="w-full px-8 py-4 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-lg shadow-[0_8px_20px_rgb(217,119,6,0.25)] hover:shadow-[0_12px_25px_rgb(217,119,6,0.35)] hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:cursor-not-allowed disabled:opacity-70">
                                 {{ __('Place Order') }}
                                 <svg class="w-5 h-5 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                             </button>
@@ -222,7 +223,7 @@
             </div>
         </form>
 
-        @include('order.partials._place-order-confirm-modal')
+        @include('order.partials._place-order-confirm-modal', ['checkoutPaymentConfig' => $checkoutPaymentConfig ?? null])
     </div>
 </div>
 @endsection

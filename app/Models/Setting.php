@@ -21,6 +21,14 @@ class Setting extends Model
         'pusher_app_cluster',
         'webpush_public_key',
         'webpush_private_key',
+        'razorpay_key_id',
+        'razorpay_key_secret',
+    ];
+
+    public const PAYMENT_DEFAULTS = [
+        'payment_gateway' => 'razorpay',
+        'razorpay_key_id' => null,
+        'razorpay_key_secret' => null,
     ];
 
     public const NOTIFICATION_DEFAULTS = [
@@ -60,6 +68,7 @@ class Setting extends Model
         'checkout_takeaway_notice' => 'Pickup is only available at our store:',
         'checkout_takeaway_address' => null,
         ...self::NOTIFICATION_DEFAULTS,
+        ...self::PAYMENT_DEFAULTS,
     ];
 
     public static function tableExists(): bool
@@ -202,6 +211,41 @@ class Setting extends Model
         return filled(self::getPusherKey())
             && filled(self::getPusherSecret())
             && filled(self::getPusherAppId());
+    }
+
+    public static function getRazorpayKeyId(): ?string
+    {
+        return self::getEncrypted('razorpay_key_id') ?: env('RAZORPAY_KEY_ID');
+    }
+
+    public static function getRazorpayKeySecret(): ?string
+    {
+        return self::getEncrypted('razorpay_key_secret') ?: env('RAZORPAY_KEY_SECRET');
+    }
+
+    public static function isRazorpayConfigured(): bool
+    {
+        return filled(self::getRazorpayKeyId()) && filled(self::getRazorpayKeySecret());
+    }
+
+    public static function getPaymentGateway(): string
+    {
+        return (string) (self::get('payment_gateway') ?: self::PAYMENT_DEFAULTS['payment_gateway']);
+    }
+
+    /**
+     * @return array{key_id: string, key_secret: string}|null
+     */
+    public static function razorpayConfig(): ?array
+    {
+        if (! self::isRazorpayConfigured()) {
+            return null;
+        }
+
+        return [
+            'key_id' => self::getRazorpayKeyId(),
+            'key_secret' => self::getRazorpayKeySecret(),
+        ];
     }
 
     /**

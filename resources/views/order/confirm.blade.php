@@ -2,7 +2,10 @@
 
 @section('content')
 @if(active_theme() === 'better-buns')
-    @include('order.partials._order-confirm-better-buns', ['order' => $order])
+    @include('order.partials._order-confirm-better-buns', [
+        'order' => $order,
+        'paymentCheckoutConfig' => $paymentCheckoutConfig ?? ['enabled' => false, 'gateway' => null, 'key_id' => null],
+    ])
 @else
 <div class="mx-auto max-w-3xl px-4 py-8 sm:px-6 lg:px-8">
     <h1 class="mb-6 text-3xl font-bold tracking-tight text-gray-900">{{ __('Order confirmed') }}</h1>

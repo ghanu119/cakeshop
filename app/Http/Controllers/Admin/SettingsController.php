@@ -4,9 +4,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\UpdateSettingsRequest;
+use App\Http\Responses\ApiResponse;
 use App\Models\Setting;
 use App\Models\SiteSetting;
-use App\Http\Responses\ApiResponse;
+use App\Services\Payments\PaymentSettingsResolver;
 use App\Services\PusherSettingsResolver;
 use App\Services\SettingsService;
 use Illuminate\Http\JsonResponse;
@@ -18,7 +19,8 @@ class SettingsController extends Controller
 {
     public function __construct(
         private SettingsService $settingsService,
-        private PusherSettingsResolver $pusherSettingsResolver
+        private PusherSettingsResolver $pusherSettingsResolver,
+        private PaymentSettingsResolver $paymentSettingsResolver,
     ) {}
 
     public function index(): View
@@ -27,7 +29,17 @@ class SettingsController extends Controller
         $settings = Setting::allCached();
         $siteSetting = SiteSetting::firstOrCreate([]);
 
-        return view('admin.settings.index', compact('settings', 'siteSetting'));
+        $razorpayKeyIdSaved = Setting::hasEncryptedValue('razorpay_key_id');
+        $razorpayKeySecretSaved = Setting::hasEncryptedValue('razorpay_key_secret');
+        $razorpayConfigured = Setting::isRazorpayConfigured();
+
+        return view('admin.settings.index', compact(
+            'settings',
+            'siteSetting',
+            'razorpayKeyIdSaved',
+            'razorpayKeySecretSaved',
+            'razorpayConfigured',
+        ));
     }
 
     public function update(UpdateSettingsRequest $request): RedirectResponse
@@ -62,6 +74,26 @@ class SettingsController extends Controller
 
             return ApiResponse::error(
                 __('Could not connect to Pusher. Please check your credentials and try again.'),
+                500
+            );
+        }
+    }
+
+    public function testRazorpay(): JsonResponse
+    {
+        $this->authorize('viewAny', Setting::class);
+
+        try {
+            $result = $this->paymentSettingsResolver->testRazorpayConnection();
+
+            return $result['success']
+                ? ApiResponse::success($result, $result['message'])
+                : ApiResponse::error($result['message'], 422);
+        } catch (Throwable $e) {
+            report($e);
+
+            return ApiResponse::error(
+                __('Could not connect to Razorpay. Please check your credentials and try again.'),
                 500
             );
         }

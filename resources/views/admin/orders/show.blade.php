@@ -317,36 +317,50 @@
                                     </div>
                                 @endif
                             </div>
-                        @elseif($order->payment_reference || $order->payment_amount !== null || $order->payment_made_at)
+                        @elseif($order->hasDisplayablePaymentDetails())
                             <div class="space-y-4">
-                                @if($order->payment_reference)
+                                <div class="grid grid-cols-2 gap-4 text-sm">
                                     <div>
-                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Reference') }}</p>
-                                        <p class="font-semibold text-gray-900">{{ $order->payment_reference }}</p>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Payment method') }}</p>
+                                        <p class="font-semibold text-gray-900">{{ $order->paymentMethodLabel() }}</p>
                                     </div>
-                                @endif
-                                
-                                <div class="grid grid-cols-2 gap-4">
-                                    @if($order->payment_amount !== null)
+                                    @if($order->displayPaymentAmount() !== null)
                                         <div>
                                             <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Amount Paid') }}</p>
-                                            <p class="font-semibold text-gray-900">₹ {{ number_format($order->payment_amount, 2) }}</p>
-                                        </div>
-                                    @endif
-                                    @if($order->payment_made_at)
-                                        <div>
-                                            <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Date') }}</p>
-                                            <p class="font-semibold text-gray-900">{{ $order->payment_made_at->setTimezone($tz)->format('M d, Y') }}</p>
+                                            <p class="font-semibold text-gray-900">₹ {{ number_format($order->displayPaymentAmount(), 2) }}</p>
                                         </div>
                                     @endif
                                 </div>
-                                
+
+                                @if($order->displayPaymentReference())
+                                    <div>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">
+                                            {{ $order->isRazorpayPayment() ? __('Payment ID') : __('Reference') }}
+                                        </p>
+                                        <p class="break-all font-semibold text-gray-900">{{ $order->displayPaymentReference() }}</p>
+                                    </div>
+                                @endif
+
+                                @php $paidPayment = $order->paidPayment(); @endphp
+                                @if($paidPayment?->gateway_order_id && $order->isRazorpayPayment())
+                                    <div>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Gateway order ID') }}</p>
+                                        <p class="break-all font-mono text-sm font-semibold text-gray-900">{{ $paidPayment->gateway_order_id }}</p>
+                                    </div>
+                                @endif
+
+                                @if($order->displayPaymentMadeAt())
+                                    <div>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Date') }}</p>
+                                        <p class="font-semibold text-gray-900">{{ $order->displayPaymentMadeAt()->setTimezone($tz)->format('M d, Y, h:i A') }}</p>
+                                    </div>
+                                @endif
+
                                 @php $proof = $order->getFirstMedia('payment_proof'); @endphp
                                 @if($proof)
                                     <div class="border-t border-gray-100 pt-4">
                                         <p class="mb-2 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Payment Proof') }}</p>
                                         <a href="{{ $proof->getUrl() }}" target="_blank" class="group block overflow-hidden rounded-lg border border-gray-200">
-                                            {{-- Fallback logic for thumbnail. If image conversion fails, just shows the original image --}}
                                             <img src="{{ $proof->getUrl() }}" alt="Proof" class="h-32 w-full object-contain transition duration-300 group-hover:scale-105" onerror="this.onerror=null; this.src='{{ $proof->getUrl() }}';" />
                                         </a>
                                     </div>
