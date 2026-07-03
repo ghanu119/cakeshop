@@ -56,6 +56,12 @@ class SettingsService
             Setting::setEncrypted('razorpay_key_secret', null);
         }
 
+        if ($request->boolean('clear_pusher_credentials')) {
+            foreach (['pusher_app_id', 'pusher_app_key', 'pusher_app_secret', 'pusher_app_cluster'] as $key) {
+                Setting::setEncrypted($key, null);
+            }
+        }
+
         foreach (Setting::ENCRYPTED_KEYS as $key) {
             if ($request->filled($key)) {
                 Setting::setEncrypted($key, $request->input($key));

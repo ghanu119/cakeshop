@@ -250,15 +250,6 @@
                     <h2 class="text-xl font-semibold text-gray-900">{{ __('Real-time notifications') }}</h2>
                     <p class="mt-1 text-sm text-gray-500">{{ __('Configure in-app alerts for admin and kitchen staff. Pusher credentials are encrypted in the database.') }}</p>
                 </div>
-                @php
-                    $pusherConfigured = \App\Models\Setting::isPusherConfigured();
-                    $notificationsOn = ($settings['notifications_enabled'] ?? '1') === '1';
-                    $pusherIdSaved = \App\Models\Setting::hasEncryptedValue('pusher_app_id');
-                    $pusherKeySaved = \App\Models\Setting::hasEncryptedValue('pusher_app_key');
-                    $pusherSecretSaved = \App\Models\Setting::hasEncryptedValue('pusher_app_secret');
-                    $pusherClusterSaved = \App\Models\Setting::hasEncryptedValue('pusher_app_cluster');
-                    $pusherCluster = \App\Models\Setting::getPusherCluster();
-                @endphp
                 <div class="text-right">
                     <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $notificationsOn && $pusherConfigured ? 'bg-emerald-100 text-emerald-800' : ($notificationsOn ? 'bg-amber-100 text-amber-800' : 'bg-gray-100 text-gray-600') }}">
                         {{ $notificationsOn && $pusherConfigured ? __('Ready') : ($notificationsOn ? __('Setup needed') : __('Disabled')) }}
@@ -307,21 +298,30 @@
                             <label for="pusher_app_id" class="text-sm font-medium text-gray-700">{{ __('Pusher App ID') }}</label>
                             <span class="text-xs font-medium {{ $pusherIdSaved ? 'text-emerald-600' : 'text-amber-600' }}">{{ $pusherIdSaved ? __('Saved') : __('Required') }}</span>
                         </div>
-                        <x-input type="password" name="pusher_app_id" id="pusher_app_id" placeholder="{{ $pusherIdSaved ? __('Leave blank to keep saved value') : __('Paste App ID from pusher.com') }}" class="block w-full font-mono" autocomplete="new-password" />
+                        @if ($pusherIdMasked)
+                            <p class="mb-1 font-mono text-xs text-gray-500">{{ __('Currently saved: :value', ['value' => $pusherIdMasked]) }}</p>
+                        @endif
+                        <x-input type="password" name="pusher_app_id" id="pusher_app_id" placeholder="{{ $pusherIdSaved ? __('Enter new value to replace saved key') : __('Paste App ID from pusher.com') }}" class="block w-full font-mono" autocomplete="new-password" />
                     </div>
                     <div>
                         <div class="mb-1 flex items-center justify-between gap-2">
                             <label for="pusher_app_key" class="text-sm font-medium text-gray-700">{{ __('Pusher App Key') }}</label>
                             <span class="text-xs font-medium {{ $pusherKeySaved ? 'text-emerald-600' : 'text-amber-600' }}">{{ $pusherKeySaved ? __('Saved') : __('Required') }}</span>
                         </div>
-                        <x-input type="password" name="pusher_app_key" id="pusher_app_key" placeholder="{{ $pusherKeySaved ? __('Leave blank to keep saved value') : __('Paste App Key from pusher.com') }}" class="block w-full font-mono" autocomplete="new-password" />
+                        @if ($pusherKeyMasked)
+                            <p class="mb-1 font-mono text-xs text-gray-500">{{ __('Currently saved: :value', ['value' => $pusherKeyMasked]) }}</p>
+                        @endif
+                        <x-input type="password" name="pusher_app_key" id="pusher_app_key" placeholder="{{ $pusherKeySaved ? __('Enter new value to replace saved key') : __('Paste App Key from pusher.com') }}" class="block w-full font-mono" autocomplete="new-password" />
                     </div>
                     <div>
                         <div class="mb-1 flex items-center justify-between gap-2">
                             <label for="pusher_app_secret" class="text-sm font-medium text-gray-700">{{ __('Pusher App Secret') }}</label>
                             <span class="text-xs font-medium {{ $pusherSecretSaved ? 'text-emerald-600' : 'text-amber-600' }}">{{ $pusherSecretSaved ? __('Saved') : __('Required') }}</span>
                         </div>
-                        <x-input type="password" name="pusher_app_secret" id="pusher_app_secret" placeholder="{{ $pusherSecretSaved ? __('Leave blank to keep saved value') : __('Paste App Secret from pusher.com') }}" class="block w-full font-mono" autocomplete="new-password" />
+                        @if ($pusherSecretMasked)
+                            <p class="mb-1 font-mono text-xs text-gray-500">{{ __('Currently saved: :value', ['value' => $pusherSecretMasked]) }}</p>
+                        @endif
+                        <x-input type="password" name="pusher_app_secret" id="pusher_app_secret" placeholder="{{ $pusherSecretSaved ? __('Enter new value to replace saved key') : __('Paste App Secret from pusher.com') }}" class="block w-full font-mono" autocomplete="new-password" />
                     </div>
                     <div>
                         <div class="mb-1 flex items-center justify-between gap-2">
@@ -336,6 +336,17 @@
                         <x-input type="text" name="pusher_app_cluster" id="pusher_app_cluster" placeholder="{{ $pusherClusterSaved ? __('Leave blank to keep :cluster', ['cluster' => $pusherCluster]) : __('e.g. ap2') }}" class="block w-full font-mono" autocomplete="off" />
                     </div>
                 </div>
+                @if ($pusherIdSaved || $pusherKeySaved || $pusherSecretSaved || $pusherClusterSaved)
+                    <div class="rounded-lg border border-amber-200 bg-amber-50 p-3">
+                        <label class="flex items-start gap-2">
+                            <input type="checkbox" name="clear_pusher_credentials" value="1" class="mt-0.5 rounded border-gray-300 text-gray-900 focus:ring-gray-500" {{ old('clear_pusher_credentials') ? 'checked' : '' }} />
+                            <span>
+                                <span class="text-sm font-medium text-gray-900">{{ __('Clear all saved Pusher credentials') }}</span>
+                                <span class="mt-0.5 block text-xs text-gray-600">{{ __('Takes effect when you save settings. You will need to re-enter all four values to enable real-time notifications again.') }}</span>
+                            </span>
+                        </label>
+                    </div>
+                @endif
                 <button
                     type="button"
                     data-test-pusher

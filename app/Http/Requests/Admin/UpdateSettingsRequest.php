@@ -32,6 +32,7 @@ class UpdateSettingsRequest extends FormRequest
             'razorpay_key_id' => ['nullable', 'string', 'max:255'],
             'razorpay_key_secret' => ['nullable', 'string', 'max:255'],
             'clear_razorpay_credentials' => ['nullable', 'boolean'],
+            'clear_pusher_credentials' => ['nullable', 'boolean'],
             'currency' => ['nullable', 'string', 'max:10'],
             'timezone' => ['nullable', 'string', 'max:50'],
             'kitchen_lead_hours' => ['nullable', 'integer', 'min:0'],

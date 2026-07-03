@@ -37,6 +37,17 @@ class SettingsController extends Controller
         $razorpayKeySecretMasked = Setting::maskedEncryptedValue('razorpay_key_secret', 4);
         $onlinePaymentReady = $paymentGateway === 'razorpay' && $razorpayConfigured;
 
+        $pusherConfigured = Setting::isPusherConfigured();
+        $notificationsOn = ($settings['notifications_enabled'] ?? '1') === '1';
+        $pusherIdSaved = Setting::hasEncryptedValue('pusher_app_id');
+        $pusherKeySaved = Setting::hasEncryptedValue('pusher_app_key');
+        $pusherSecretSaved = Setting::hasEncryptedValue('pusher_app_secret');
+        $pusherClusterSaved = Setting::hasEncryptedValue('pusher_app_cluster');
+        $pusherCluster = Setting::getPusherCluster();
+        $pusherIdMasked = Setting::maskedEncryptedValue('pusher_app_id', 4);
+        $pusherKeyMasked = Setting::maskedEncryptedValue('pusher_app_key', 4);
+        $pusherSecretMasked = Setting::maskedEncryptedValue('pusher_app_secret', 4);
+
         return view('admin.settings.index', compact(
             'settings',
             'siteSetting',
@@ -47,6 +58,16 @@ class SettingsController extends Controller
             'razorpayKeyIdMasked',
             'razorpayKeySecretMasked',
             'onlinePaymentReady',
+            'pusherConfigured',
+            'notificationsOn',
+            'pusherIdSaved',
+            'pusherKeySaved',
+            'pusherSecretSaved',
+            'pusherClusterSaved',
+            'pusherCluster',
+            'pusherIdMasked',
+            'pusherKeyMasked',
+            'pusherSecretMasked',
         ));
     }
 
