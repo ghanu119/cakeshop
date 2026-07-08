@@ -47,8 +47,80 @@ class OrderService
 
     public function listForAdmin(Request $request): LengthAwarePaginator
     {
-        $query = Order::query()->with(['product', 'media']);
+        $query = $this->buildAdminListQuery($request)->with(['product', 'media']);
 
+        $this->applyAdminListSorting($query, $request);
+
+        return $query->paginate(15)->withQueryString();
+    }
+
+    /**
+     * @return array{
+     *     order_count: int,
+     *     total_order_amount: float,
+     *     online_received: float,
+     *     cash_received: float,
+     *     total_received: float,
+     *     pending_amount: float,
+     *     cash_due: float,
+     *     total_remaining: float
+     * }
+     */
+    public function paymentStatsForAdminList(Request $request): array
+    {
+        $cashOnStore = Order::PAYMENT_METHOD_CASH_ON_STORE;
+        $verified = Order::PAYMENT_STATUS_VERIFIED;
+        $pending = Order::PAYMENT_STATUS_PENDING;
+        $partiallyPaid = Order::PAYMENT_STATUS_PARTIALLY_PAID;
+
+        $stats = $this->buildAdminListQuery($request)
+            ->selectRaw('COUNT(*) as order_count')
+            ->selectRaw('COALESCE(SUM(amount), 0) as total_order_amount')
+            ->selectRaw(
+                "COALESCE(SUM(CASE WHEN payment_status = '{$verified}' AND NOT (payment_method = '{$cashOnStore}' OR placed_by_user_id IS NOT NULL) THEN COALESCE(payment_amount, amount) ELSE 0 END), 0) as online_received"
+            )
+            ->selectRaw(
+                "COALESCE(SUM(CASE WHEN payment_method = '{$cashOnStore}' OR placed_by_user_id IS NOT NULL THEN COALESCE(payment_amount, 0) ELSE 0 END), 0) as cash_received"
+            )
+            ->selectRaw(
+                "COALESCE(SUM(CASE WHEN payment_status IN ('{$pending}', '{$partiallyPaid}') THEN amount ELSE 0 END), 0) as pending_amount"
+            )
+            ->selectRaw(
+                "COALESCE(SUM(CASE WHEN (payment_method = '{$cashOnStore}' OR placed_by_user_id IS NOT NULL) AND amount - COALESCE(payment_amount, 0) > 0.01 THEN amount - COALESCE(payment_amount, 0) ELSE 0 END), 0) as cash_due"
+            )
+            ->first();
+
+        $onlineReceived = round((float) ($stats->online_received ?? 0), 2);
+        $cashReceived = round((float) ($stats->cash_received ?? 0), 2);
+        $totalOrderAmount = round((float) ($stats->total_order_amount ?? 0), 2);
+        $totalReceived = round($onlineReceived + $cashReceived, 2);
+        $pendingAmount = round((float) ($stats->pending_amount ?? 0), 2);
+        $cashDue = round((float) ($stats->cash_due ?? 0), 2);
+        $totalRemaining = round(max(0, $totalOrderAmount - $totalReceived), 2);
+
+        return [
+            'order_count' => (int) ($stats->order_count ?? 0),
+            'total_order_amount' => $totalOrderAmount,
+            'online_received' => $onlineReceived,
+            'cash_received' => $cashReceived,
+            'total_received' => $totalReceived,
+            'pending_amount' => $pendingAmount,
+            'cash_due' => $cashDue,
+            'total_remaining' => $totalRemaining,
+        ];
+    }
+
+    public function buildAdminListQuery(Request $request): Builder
+    {
+        $query = Order::query();
+
+        $this->applyAdminListFilters($query, $request);
+
+        return $query;
+    }
+
+    private function applyAdminListFilters(Builder $query, Request $request): void
+    {
         if ($request->filled('search')) {
             $term = $request->input('search');
             $query->where(function ($q) use ($term) {
@@ -64,6 +136,8 @@ class OrderService
         if ($request->filled('payment_status')) {
             if ($request->input('payment_status') === Order::PAYMENT_METHOD_CASH_ON_STORE) {
                 $query->where('payment_method', Order::PAYMENT_METHOD_CASH_ON_STORE);
+            } elseif ($request->input('payment_status') === 'in_store_outstanding') {
+                $query->inStoreOutstanding();
             } else {
                 $query->where('payment_status', $request->input('payment_status'));
             }
@@ -80,10 +154,6 @@ class OrderService
         if ($request->boolean('awaiting_payment_verification')) {
             $query->awaitingPaymentVerification();
         }
-
-        $this->applyAdminListSorting($query, $request);
-
-        return $query->paginate(15)->withQueryString();
     }
 
     private function applyAdminListSorting(Builder $query, Request $request): void
@@ -259,6 +329,11 @@ class OrderService
 
         $order = $this->buildOrderFromPricing($product, $data, $customer, $pricing);
         $this->paymentOrchestrator->initializeOrderPayment($order);
+
+        if (app(CustomerContext::class)->isImpersonating()) {
+            $this->applyInStoreCashReceived($order, (float) ($data['cash_received'] ?? 0));
+        }
+
         $order->save();
 
         if ($pricing['variant'] !== null) {
@@ -441,8 +516,53 @@ class OrderService
 
     public function verifyPayment(Order $order): void
     {
-        $order->payment_status = 'verified';
+        $order->payment_status = Order::PAYMENT_STATUS_VERIFIED;
         $order->save();
+    }
+
+    public function recordInStoreCashPayment(Order $order, float $amountReceived): void
+    {
+        if (! $order->isInStoreOrder()) {
+            throw ValidationException::withMessages([
+                'amount_received' => [__('Cash payments can only be recorded for in-store orders.')],
+            ]);
+        }
+
+        if (! $order->hasOutstandingBalance()) {
+            throw ValidationException::withMessages([
+                'amount_received' => [__('This order is already fully paid.')],
+            ]);
+        }
+
+        $balanceDue = $order->balanceDue();
+
+        if ($amountReceived < 0.01) {
+            throw ValidationException::withMessages([
+                'amount_received' => [__('Enter an amount greater than zero.')],
+            ]);
+        }
+
+        if ($amountReceived > $balanceDue + 0.01) {
+            throw ValidationException::withMessages([
+                'amount_received' => [__('Amount cannot exceed the balance due of :amount.', [
+                    'amount' => '₹ '.number_format($balanceDue, 2),
+                ])],
+            ]);
+        }
+
+        $newTotal = round($order->totalCashReceived() + $amountReceived, 2);
+        $order->payment_amount = min($newTotal, (float) $order->amount);
+        $order->payment_made_at = now();
+        $order->payment_status = Order::PAYMENT_STATUS_VERIFIED;
+        $order->save();
+    }
+
+    private function applyInStoreCashReceived(Order $order, float $cashReceived): void
+    {
+        $cash = min(max(0, $cashReceived), (float) $order->amount);
+        $order->payment_amount = $cash;
+        $order->payment_made_at = $cash > 0 ? now() : null;
+        $order->payment_status = Order::PAYMENT_STATUS_VERIFIED;
     }
 
     public function updateOrderStatus(Order $order, string $orderStatus, ?string $preparationAt = null): void

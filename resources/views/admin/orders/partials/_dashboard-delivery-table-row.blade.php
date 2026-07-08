@@ -15,6 +15,12 @@
         $order->hasPaymentDetailsSubmitted() => 'warning',
         default => 'default',
     };
+    $paymentLabel = match(true) {
+        $order->isPaymentVerified() => __('Paid'),
+        $order->hasPaymentDetailsSubmitted() => __('Awaiting'),
+        default => __('Pending'),
+    };
+    $showVerifiedTick = $order->isPaymentVerified();
 @endphp
 
 <tr class="group border-b border-gray-100 transition hover:bg-orange-50/30 last:border-b-0">
@@ -42,17 +48,21 @@
         <x-badge :variant="$statusVariant" class="uppercase tracking-wide">{{ $order->order_status }}</x-badge>
     </td>
     <td class="whitespace-nowrap px-4 py-3.5 sm:px-6">
-        <span class="inline-flex items-center gap-1.5">
-            @if($order->isPaymentVerified())
-                <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
-                    <svg class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                </span>
-            @else
-                <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
-                    <svg class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                </span>
-            @endif
-            <x-badge :variant="$paymentVariant" class="uppercase">{{ $order->isPaymentVerified() ? __('Paid') : ($order->hasPaymentDetailsSubmitted() ? __('Awaiting') : __('Pending')) }}</x-badge>
-        </span>
+        @if($order->isInStoreOrder())
+            @include('admin.orders.partials._in-store-payment-list-badge', ['order' => $order])
+        @else
+            <span class="inline-flex items-center gap-1.5">
+                @if($showVerifiedTick)
+                    <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+                        <svg class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                    </span>
+                @else
+                    <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+                        <svg class="h-3 w-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </span>
+                @endif
+                <x-badge :variant="$paymentVariant" class="uppercase">{{ $paymentLabel }}</x-badge>
+            </span>
+        @endif
     </td>
 </tr>

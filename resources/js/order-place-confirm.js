@@ -40,12 +40,19 @@ document.addEventListener('DOMContentLoaded', function () {
     const otpInput = document.getElementById('order-confirm-otp-code');
     const otpStatus = document.getElementById('order-confirm-otp-status');
     const otpError = document.getElementById('order-confirm-otp-error');
+    const cashSection = document.querySelector('[data-in-store-cash-section]');
+    const cashInput = document.querySelector('[data-in-store-cash-input]');
+    const cashError = document.querySelector('[data-in-store-cash-error]');
+    const cashDisplay = document.querySelector('[data-in-store-cash-display]');
+    const balanceDueDisplay = document.querySelector('[data-in-store-balance-due]');
+    const orderTotalDisplay = document.querySelector('[data-in-store-order-total]');
     const sendOtpUrl = modal.dataset.sendOtpUrl;
     const verifyOtpUrl = modal.dataset.verifyOtpUrl;
     const otpRequiredMessage = modal.dataset.otpRequiredMessage ?? 'Please enter the 6-digit verification code.';
     const otpSendingMessage = modal.dataset.otpSendingMessage ?? 'Sending verification code...';
     const verifyingLabel = modal.dataset.otpVerifyingLabel ?? 'Verifying...';
     const payBeforeOrder = modal.dataset.payBeforeOrder === '1';
+    const isImpersonating = modal.dataset.isImpersonating === '1';
     const prepareUrl = modal.dataset.prepareUrl ?? '';
     const finalizeUrl = modal.dataset.finalizeUrl ?? '';
     const payLabelPrefix = modal.dataset.payLabelPrefix ?? 'Pay';
@@ -121,11 +128,167 @@ document.addEventListener('DOMContentLoaded', function () {
         scrollToPlaceOrderError(form);
     }
 
-    function getEstimatedTotalText(form) {
-        const totalEl = form?.querySelector('[data-summary-total]')
-            ?? form?.querySelector('#order-estimated-total');
+    function parseAmountFromText(text) {
+        if (!text) {
+            return null;
+        }
 
-        return totalEl?.textContent?.trim() || null;
+        const normalized = String(text).replace(/[^\d.,-]/g, '').replace(/,/g, '');
+        const value = Number.parseFloat(normalized);
+
+        return Number.isFinite(value) ? value : null;
+    }
+
+    function formatCurrency(amount) {
+        return `${currencySymbol}${Number(amount).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
+    }
+
+    function getEstimatedTotalText(form) {
+        const sources = [
+            () => form?.dataset.checkoutTotal,
+            () => form?.querySelector('[data-order-summary] [data-summary-total]')?.textContent?.trim(),
+            () => form?.querySelector('[data-summary-total]')?.textContent?.trim(),
+            () => form?.querySelector('#order-estimated-total')?.textContent?.trim(),
+            () => document.getElementById('order-estimated-total')?.textContent?.trim(),
+        ];
+
+        for (const read of sources) {
+            const text = read();
+
+            if (text && parseAmountFromText(text) !== null) {
+                return text;
+            }
+        }
+
+        return null;
+    }
+
+    function getOrderTotalAmount(form) {
+        if (checkoutQuoteTotal !== null && Number.isFinite(checkoutQuoteTotal)) {
+            return checkoutQuoteTotal;
+        }
+
+        const parsed = parseAmountFromText(getEstimatedTotalText(form));
+
+        if (parsed !== null) {
+            return parsed;
+        }
+
+        return computeFallbackOrderTotal(form);
+    }
+
+    function computeFallbackOrderTotal(form) {
+        if (!form) {
+            return null;
+        }
+
+        const unitPriceText = form.querySelector('#order-unit-price')?.textContent?.trim()
+            ?? document.getElementById('order-unit-price')?.textContent?.trim();
+        const unitPrice = parseAmountFromText(unitPriceText);
+        const quantity = Math.max(1, Number.parseInt(form.querySelector('#quantity')?.value ?? '1', 10) || 1);
+
+        if (unitPrice === null) {
+            return null;
+        }
+
+        return unitPrice * quantity;
+    }
+
+    function getCashReceivedValue() {
+        const raw = String(cashInput?.value ?? '0').trim().replace(/,/g, '');
+        const value = Number.parseFloat(raw);
+
+        return Number.isFinite(value) ? Math.max(0, value) : 0;
+    }
+
+    function syncCashReceivedToForm(form) {
+        const hidden = form?.querySelector('#cash_received, [name="cash_received"]');
+
+        if (hidden) {
+            hidden.value = String(getCashReceivedValue());
+        }
+    }
+
+    function clearCashError() {
+        if (!cashError) {
+            return;
+        }
+
+        cashError.textContent = '';
+        cashError.classList.add('hidden');
+    }
+
+    function showCashError(message) {
+        if (!cashError) {
+            return;
+        }
+
+        cashError.textContent = message;
+        cashError.classList.remove('hidden');
+    }
+
+    function updateInStoreCashSummary(form) {
+        if (!isImpersonating || !cashSection) {
+            return;
+        }
+
+        const total = getOrderTotalAmount(form);
+        const cash = getCashReceivedValue();
+        const balance = total !== null ? Math.max(0, total - cash) : null;
+
+        if (orderTotalDisplay) {
+            orderTotalDisplay.textContent = total !== null ? formatCurrency(total) : '—';
+        }
+
+        if (cashDisplay) {
+            cashDisplay.textContent = formatCurrency(cash);
+        }
+
+        if (balanceDueDisplay) {
+            if (balance === null) {
+                balanceDueDisplay.textContent = '—';
+            } else if (balance <= 0.01) {
+                balanceDueDisplay.textContent = formatCurrency(0);
+                balanceDueDisplay.classList.remove('text-amber-700');
+                balanceDueDisplay.classList.add('text-green-700');
+            } else {
+                balanceDueDisplay.textContent = formatCurrency(balance);
+                balanceDueDisplay.classList.remove('text-green-700');
+                balanceDueDisplay.classList.add('text-amber-700');
+            }
+        }
+
+        syncCashReceivedToForm(form);
+    }
+
+    function validateInStoreCash(form) {
+        if (!isImpersonating) {
+            return true;
+        }
+
+        clearCashError();
+
+        const total = getOrderTotalAmount(form);
+        const cash = getCashReceivedValue();
+
+        if (total === null) {
+            showCashError('Unable to read the order total. Please try again.');
+            cashInput?.focus();
+            return false;
+        }
+
+        if (cash > total + 0.01) {
+            showCashError(`Cash received cannot exceed the order total of ${formatCurrency(total)}.`);
+            cashInput?.focus();
+            return false;
+        }
+
+        syncCashReceivedToForm(form);
+
+        return true;
     }
 
     function buildPayButtonLabel(form) {
@@ -165,6 +328,16 @@ document.addEventListener('DOMContentLoaded', function () {
                 notifyCouponInvalid(couponResult.message);
                 scrollToPlaceOrderError(form);
                 return;
+            }
+
+            checkoutQuoteTotal = typeof couponResult.total === 'number'
+                ? couponResult.total
+                : null;
+
+            if (checkoutQuoteTotal !== null) {
+                form.dataset.checkoutTotal = String(checkoutQuoteTotal);
+            } else {
+                delete form.dataset.checkoutTotal;
             }
 
             openModal(form);
@@ -427,6 +600,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let otpSending = false;
     let checkoutPayload = null;
     let modalLocked = false;
+    let checkoutQuoteTotal = null;
 
     function setModalInteractiveControlsDisabled(disabled) {
         submitBtn && (submitBtn.disabled = disabled);
@@ -639,6 +813,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         updateSubmitPayLabel(form);
+        updateInStoreCashSummary(form);
 
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
@@ -756,6 +931,10 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
+        if (!validateInStoreCash(activeForm)) {
+            return;
+        }
+
         confirmed = true;
         const form = activeForm;
         closeModal();
@@ -797,6 +976,17 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    cashInput?.addEventListener('input', () => {
+        if (cashInput) {
+            cashInput.value = cashInput.value.replace(/[^\d.]/g, '');
+        }
+
+        if (activeForm) {
+            updateInStoreCashSummary(activeForm);
+            clearCashError();
+        }
+    });
+
     document.addEventListener('order-coupon:composition-changed', () => {
         document.querySelectorAll('[data-order-place-confirm], form[action*="order/product"]').forEach((form) => {
             clearPlaceOrderError(form);
@@ -804,6 +994,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (activeForm && modal.classList.contains('is-open') && payBeforeOrder) {
             updateSubmitPayLabel(activeForm);
+        }
+
+        if (activeForm && modal.classList.contains('is-open') && isImpersonating) {
+            checkoutQuoteTotal = null;
+            delete activeForm.dataset.checkoutTotal;
+            updateInStoreCashSummary(activeForm);
         }
     });
 });

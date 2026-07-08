@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\RecordInStoreCashPaymentRequest;
 use App\Http\Requests\Admin\UpdateOrderStatusRequest;
 use App\Models\Order;
 use App\Services\OrderNotificationService;
@@ -21,16 +22,17 @@ class OrderController extends Controller
     {
         $this->authorize('viewAny', Order::class);
         $orders = $this->orderService->listForAdmin(request());
+        $paymentStats = $this->orderService->paymentStatsForAdminList(request());
 
         $isTodayEntry = request('view') === 'today';
         $showTodayChrome = request()->boolean('delivery_today') || $isTodayEntry;
         $todayListMode = $isTodayEntry || (request()->ajax() && request()->boolean('delivery_today'));
 
         if (request()->ajax()) {
-            return view('admin.orders.partials._list-results', compact('orders', 'showTodayChrome', 'todayListMode'));
+            return view('admin.orders.partials._list-results', compact('orders', 'showTodayChrome', 'todayListMode', 'paymentStats'));
         }
 
-        return view('admin.orders.index', compact('orders', 'showTodayChrome', 'isTodayEntry', 'todayListMode'));
+        return view('admin.orders.index', compact('orders', 'showTodayChrome', 'isTodayEntry', 'todayListMode', 'paymentStats'));
     }
 
     public function show(Order $order): View
@@ -45,27 +47,51 @@ class OrderController extends Controller
     public function verifyPayment(Order $order): RedirectResponse
     {
         $this->authorize('update', $order);
-        $this->orderService->verifyPayment($order);
 
-        $this->orderNotificationService->notifyPaymentVerified($order->fresh());
-
-        $showParams = ['order' => $order];
-        if (request()->boolean('delivery_today') || request('view') === 'today') {
-            $showParams['view'] = 'today';
+        if ($order->isPaymentVerified()) {
+            return redirect()->route('admin.orders.show', $this->showRedirectParams($order))
+                ->withErrors(['_form' => __('Payment is already verified for this order.')]);
         }
 
-        return redirect()->route('admin.orders.show', $showParams)->with('status', __('Payment verified.'));
+        $this->orderService->verifyPayment($order);
+
+        $order->refresh();
+
+        $this->orderNotificationService->notifyPaymentVerified($order);
+
+        $message = $order->isInStoreOrder()
+            ? ($order->hasOutstandingBalance()
+                ? __('Payment verified for kitchen. ₹:amount is still due on this order.', [
+                    'amount' => number_format($order->balanceDue(), 2),
+                ])
+                : __('Payment marked as fully collected.'))
+            : __('Payment verified.');
+
+        return redirect()->route('admin.orders.show', $this->showRedirectParams($order))
+            ->with('status', $message);
+    }
+
+    public function recordCashPayment(RecordInStoreCashPaymentRequest $request, Order $order): RedirectResponse
+    {
+        $this->orderService->recordInStoreCashPayment(
+            $order,
+            (float) $request->validated('amount_received')
+        );
+
+        $order->refresh();
+
+        if ($order->isPaymentVerified()) {
+            $this->orderNotificationService->notifyPaymentVerified($order);
+        }
+
+        return redirect()->route('admin.orders.show', $this->showRedirectParams($order))
+            ->with('status', __('Cash payment recorded.'));
     }
 
     public function updateStatus(UpdateOrderStatusRequest $request, Order $order): RedirectResponse
     {
-        if (! $order->isPaymentVerified()) {
-            $showParams = ['order' => $order];
-            if (request()->boolean('delivery_today') || request('view') === 'today') {
-                $showParams['view'] = 'today';
-            }
-
-            return redirect()->route('admin.orders.show', $showParams)
+        if ($order->requiresPaymentBeforeStatusChange() && ! $order->isPaymentVerified()) {
+            return redirect()->route('admin.orders.show', $this->showRedirectParams($order))
                 ->withErrors(['_form' => __('Payment must be verified before you can change the order status.')]);
         }
 
@@ -92,5 +118,19 @@ class OrderController extends Controller
             : route('admin.orders.show', $order);
 
         return redirect()->to($redirect)->with('status', __('Order status updated.'));
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function showRedirectParams(Order $order): array
+    {
+        $params = ['order' => $order];
+
+        if (request()->boolean('delivery_today') || request('view') === 'today') {
+            $params['view'] = 'today';
+        }
+
+        return $params;
     }
 }

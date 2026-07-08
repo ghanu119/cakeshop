@@ -82,16 +82,49 @@ class ImpersonationOrderTest extends TestCase
         $this->assertSame($customer->id, $order->user_id);
         $this->assertSame('cash_on_store', $order->payment_method);
         $this->assertSame('verified', $order->payment_status);
+        $this->assertSame(750.0, $order->balanceDue());
         $this->assertSame($admin->id, $order->placed_by_user_id);
 
         $this->actingAs($admin, AuthGuards::STAFF)
             ->get(route('admin.orders.show', $order))
             ->assertOk()
-            ->assertSee(__('Cash on store — collected'), false)
-            ->assertSee(__('Cash collected in store'), false)
+            ->assertSee(__('Payment verified — balance still due'), false)
             ->assertSee(__('Order source'), false)
             ->assertSee($admin->name, false)
             ->assertDontSee(__('No payment details submitted.'), false);
+    }
+
+    public function test_admin_impersonation_places_fully_paid_in_store_order_when_full_cash_received(): void
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('Admin');
+
+        $customer = User::factory()->customer()->create([
+            'name' => 'Impersonated',
+            'phone' => '9876000099',
+            'email' => null,
+            'registered_via' => RegisteredVia::ADMIN_CREATED,
+        ]);
+
+        $product = Product::factory()->create(['status' => 'active', 'price' => 750]);
+
+        $this->actingAs($admin, AuthGuards::STAFF)
+            ->post(route('admin.customers.impersonate', $customer));
+
+        $this->actingAs($admin, AuthGuards::STAFF)
+            ->post(route('order.store', $product), array_merge($this->orderPayload($customer), [
+                'cash_received' => 750,
+            ]))
+            ->assertRedirect();
+
+        $order = Order::latest('id')->first();
+        $this->assertSame('verified', $order->payment_status);
+        $this->assertSame(750.0, (float) $order->payment_amount);
+
+        $this->actingAs($admin, AuthGuards::STAFF)
+            ->get(route('admin.orders.show', $order))
+            ->assertOk()
+            ->assertSee(__('Cash on store — fully collected'), false);
     }
 
     public function test_impersonated_phone_only_customer_can_place_order_without_email(): void

@@ -88,4 +88,39 @@ class OrderFactory extends Factory
             'preparation_at' => null,
         ]);
     }
+
+    public function inStore(?int $placedByUserId = null): static
+    {
+        return $this->state(fn () => [
+            'payment_method' => Order::PAYMENT_METHOD_CASH_ON_STORE,
+            'placed_by_user_id' => $placedByUserId ?? \App\Models\User::factory(),
+        ]);
+    }
+
+    public function inStorePending(): static
+    {
+        return $this->inStore()->state(fn (array $attributes) => [
+            'payment_status' => Order::PAYMENT_STATUS_PENDING,
+            'payment_amount' => 0,
+            'payment_made_at' => null,
+        ]);
+    }
+
+    public function inStorePartial(float $cashReceived = 250): static
+    {
+        return $this->inStore()->state(fn (array $attributes) => [
+            'payment_status' => Order::PAYMENT_STATUS_PARTIALLY_PAID,
+            'payment_amount' => $cashReceived,
+            'payment_made_at' => now(),
+        ]);
+    }
+
+    public function inStoreVerified(): static
+    {
+        return $this->inStore()->state(fn (array $attributes) => [
+            'payment_status' => Order::PAYMENT_STATUS_VERIFIED,
+            'payment_amount' => $attributes['amount'] ?? 500,
+            'payment_made_at' => now(),
+        ]);
+    }
 }

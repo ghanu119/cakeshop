@@ -94,7 +94,7 @@ class OrderController extends Controller
                 ->withErrors(['_form' => __('An administrator must set the order to Processing with a preparation time before you can update the status.')]);
         }
 
-        if (! $order->isPaymentVerified()) {
+        if ($order->requiresPaymentBeforeStatusChange() && ! $order->isPaymentVerified()) {
             return redirect()->route('admin.kitchen.orders.show', $order)
                 ->withErrors(['_form' => __('Payment must be verified before you can change the order status.')]);
         }

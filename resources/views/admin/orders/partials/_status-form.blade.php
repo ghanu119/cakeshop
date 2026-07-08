@@ -1,5 +1,6 @@
 @php
     $canSetPreparationTime = $canSetPreparationTime ?? auth()->user()->hasRole('Admin');
+    $warnOnOutstandingBalance = $warnOnOutstandingBalance ?? $canSetPreparationTime;
     $paymentBadge = $paymentBadge ?? null;
     $paymentBadgeLabel = $paymentBadgeLabel ?? __('Payment verified');
     $paymentBadgeInStore = $paymentBadgeInStore ?? false;
@@ -34,6 +35,11 @@
                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                 {{ $paymentBadgeLabel }}
             </span>
+        @elseif($paymentBadge === 'in_store_outstanding')
+            <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-800 shadow-sm">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                {{ $paymentBadgeLabel }}
+            </span>
         @endif
         <span class="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-sm font-semibold text-teal-800 shadow-sm">
             <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
@@ -52,6 +58,12 @@
         data-status-confirm-message="{{ __('Are you sure you want to change the order status to :status?') }}"
         data-status-confirm-yes="{{ __('Yes, update') }}"
         data-status-confirm-no="{{ __('Cancel') }}"
+        data-balance-due="{{ number_format($order->balanceDue(), 2, '.', '') }}"
+        data-has-outstanding-balance="{{ ($warnOnOutstandingBalance && $order->hasOutstandingBalance()) ? '1' : '0' }}"
+        data-delivered-unpaid-title="{{ __('Deliver with unpaid balance?') }}"
+        data-delivered-unpaid-message="{{ __('This order still has :amount unpaid. Mark as delivered anyway?') }}"
+        data-outstanding-warning-title="{{ __('Outstanding balance') }}"
+        data-outstanding-warning-message="{{ __('This order still has :amount unpaid. Continue updating the status?') }}"
         @if($canSetPreparationTime) data-allow-preparation="true" @endif
     >
         @csrf
@@ -64,6 +76,11 @@
                     'border-emerald-200 bg-emerald-50 text-emerald-700' => ! $paymentBadgeInStore,
                 ])>
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    {{ $paymentBadgeLabel }}
+                </span>
+            @elseif($paymentBadge === 'in_store_outstanding')
+                <span class="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-800 shadow-sm">
+                    <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                     {{ $paymentBadgeLabel }}
                 </span>
             @endif

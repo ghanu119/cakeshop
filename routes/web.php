@@ -180,6 +180,7 @@ Route::middleware(['ensure.admin.https', 'auth:web', 'verified', 'role:Admin|Kit
             Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
             Route::get('orders/{order}', [AdminOrderController::class, 'show'])->name('orders.show');
             Route::post('orders/{order}/verify-payment', [AdminOrderController::class, 'verifyPayment'])->name('orders.verify-payment');
+            Route::post('orders/{order}/record-cash-payment', [AdminOrderController::class, 'recordCashPayment'])->name('orders.record-cash-payment');
             Route::post('orders/{order}/update-status', [AdminOrderController::class, 'updateStatus'])->name('orders.update-status');
         });
         Route::get('contact-enquiries', [ContactEnquiryController::class, 'index'])->name('contact-enquiries.index');

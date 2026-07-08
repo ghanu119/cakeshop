@@ -121,6 +121,7 @@
     $currency = settings('currency') ?? 'INR';
     $currencySymbol = $currency === 'INR' ? '₹' : $currency . ' ';
     $payBeforeOrder = ! empty($checkoutPaymentConfig['pay_before_order']) && ! empty($checkoutPaymentConfig['enabled']);
+    $isImpersonating = $isImpersonating ?? false;
     $paymentMessages = [
         'payment_cancelled' => __('Payment was cancelled. You can try again or go back to edit your order.'),
         'payment_failed' => __('payments.errors.payment_failed'),
@@ -146,6 +147,7 @@
     data-otp-sending-message="{{ __('Sending verification code...') }}"
     data-otp-verifying-label="{{ __('Verifying...') }}"
     data-pay-before-order="{{ $payBeforeOrder ? '1' : '0' }}"
+    data-is-impersonating="{{ $isImpersonating ? '1' : '0' }}"
     data-prepare-url="{{ $checkoutPaymentConfig['prepare_url'] ?? '' }}"
     data-finalize-url="{{ $checkoutPaymentConfig['finalize_url'] ?? '' }}"
     data-currency-symbol="{{ $currencySymbol }}"
@@ -207,6 +209,11 @@
             </div>
 
             <div id="order-confirm-review-error" class="mt-4 hidden"></div>
+
+            @include('order.partials._in-store-cash-fields', [
+                'isImpersonating' => $isImpersonating,
+                'currencySymbol' => $currencySymbol,
+            ])
 
             @if($payBeforeOrder)
                 <p class="mt-4 text-xs leading-relaxed text-stone-500">

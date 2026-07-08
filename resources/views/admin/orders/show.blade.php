@@ -7,15 +7,29 @@
         $tz = settings('timezone') ?? 'Asia/Kolkata';
         $orderedAt = $order->ordered_at?->setTimezone($tz);
         $deliveryAt = $order->delivery_at?->setTimezone($tz);
-        $paymentPending = !$order->isPaymentVerified();
+        $paymentPending = ! $order->isPaymentVerified();
+        $onlinePaymentBlocking = $order->requiresPaymentBeforeStatusChange() && $paymentPending;
+        $inStoreOutstanding = $order->isInStoreOrder() && $order->hasOutstandingBalance();
+        $inStoreVerifiedWithBalance = $order->isVerifiedWithOutstandingBalance();
+        $reportedOnlinePayment = (float) ($order->displayPaymentAmount() ?? 0);
+        $isPartialOnlinePayment = ! $order->isInStoreOrder()
+            && $paymentPending
+            && $reportedOnlinePayment > 0
+            && $reportedOnlinePayment + 0.01 < (float) $order->amount;
+        $showStatusForm = ! $paymentPending || $order->isInStoreOrder();
+        $paymentBadge = match (true) {
+            $inStoreOutstanding => 'in_store_outstanding',
+            $order->isPaymentVerified() => 'verified',
+            default => null,
+        };
         $isTodayView = request()->boolean('delivery_today') || request('view') === 'today' || request()->query('from') === 'today';
         $backRoute = $isTodayView ? route('admin.orders.index', ['view' => 'today']) : route('admin.orders.index');
         $backLabel = $isTodayView ? __("Back to Today's orders") : __('Back to Orders');
     @endphp
 
     <div class="mx-auto max-w-6xl">
-        {{-- Banner for Pending Payment --}}
-        @if($paymentPending)
+        {{-- Banner for online pending payment --}}
+        @if($onlinePaymentBlocking)
             <div class="mb-6 flex flex-col justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm sm:flex-row sm:items-center">
                 <div class="flex items-start gap-3 sm:items-center">
                     <div class="rounded-full bg-amber-100 p-2 text-amber-600">
@@ -33,7 +47,7 @@
                         class="shrink-0"
                         data-verify-payment-form
                         data-confirm-title="{{ __('Verify payment?') }}"
-                        data-confirm-message="{{ __('Are you sure you want to verify payment for this order?') }}"
+                        data-confirm-message="{{ $isPartialOnlinePayment ? __('The customer reported :paid but the order total is :total. Verify payment anyway?', ['paid' => '₹ '.number_format($reportedOnlinePayment, 2), 'total' => '₹ '.number_format($order->amount, 2)]) : __('Are you sure you want to verify payment for this order?') }}"
                         data-confirm-yes="{{ __('Yes, verify') }}"
                         data-confirm-no="{{ __('Cancel') }}"
                     >
@@ -44,6 +58,26 @@
                         </button>
                     </form>
                 @endcan
+            </div>
+        @elseif($inStoreVerifiedWithBalance)
+            <div class="mb-6 flex flex-col gap-4 rounded-xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+                <div class="flex items-start gap-3">
+                    <div class="rounded-full bg-amber-100 p-2 text-amber-600">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-amber-800">{{ __('Payment verified — balance still due') }}</h3>
+                        <p class="mt-0.5 text-sm text-amber-700">
+                            {{ __('Payment is verified so the kitchen can proceed, but ₹:amount has not been collected yet. Record cash when received.', ['amount' => number_format($order->balanceDue(), 2)]) }}
+                        </p>
+                        <p class="mt-2 text-xs font-medium text-amber-800">
+                            {{ __('Cash received: ₹:received · Balance due: ₹:due', [
+                                'received' => number_format($order->totalCashReceived(), 2),
+                                'due' => number_format($order->balanceDue(), 2),
+                            ]) }}
+                        </p>
+                    </div>
+                </div>
             </div>
         @endif
 
@@ -65,12 +99,7 @@
                 </div>
 
                 <div class="w-full shrink-0 md:w-auto">
-                    @if($paymentPending)
-                        <span class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700 shadow-sm">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            {{ __('Payment Pending') }}
-                        </span>
-                    @else
+                    @if($showStatusForm)
                         @can('orders.update')
                             @include('admin.orders.partials._status-form', [
                                 'order' => $order,
@@ -78,20 +107,27 @@
                                 'statusFormAction' => route('admin.orders.update-status', $order),
                                 'fromKitchen' => request()->query('from') === 'kitchen',
                                 'fromToday' => $isTodayView,
-                                'paymentBadge' => 'verified',
+                                'paymentBadge' => $paymentBadge,
                                 'paymentBadgeLabel' => $order->adminPaymentStatusLabel(),
                                 'paymentBadgeInStore' => $order->isCashOnStore(),
                             ])
                         @else
                             <span @class([
                                 'inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-sm font-semibold shadow-sm',
-                                'border-violet-200 bg-violet-50 text-violet-800' => $order->isCashOnStore(),
-                                'border-emerald-200 bg-emerald-50 text-emerald-700' => ! $order->isCashOnStore(),
+                                'border-amber-200 bg-amber-50 text-amber-800' => $inStoreOutstanding,
+                                'border-violet-200 bg-violet-50 text-violet-800' => $order->isCashOnStore() && $order->isPaymentVerified() && ! $inStoreOutstanding,
+                                'border-amber-200 bg-amber-50 text-amber-700' => $order->isInStoreOrder() && $paymentPending,
+                                'border-emerald-200 bg-emerald-50 text-emerald-700' => ! $order->isCashOnStore() && $order->isPaymentVerified(),
                             ])>
                                 <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                 {{ $order->adminPaymentStatusLabel() }}
                             </span>
                         @endcan
+                    @else
+                        <span class="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700 shadow-sm">
+                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            {{ __('Payment Pending') }}
+                        </span>
                     @endif
                 </div>
             </div>
@@ -294,11 +330,25 @@
                         <h3 class="font-semibold text-gray-900">{{ __('Payment Details') }}</h3>
                     </div>
                     <div class="p-6">
-                        @if($order->isCashOnStore())
+                        @if($order->isInStoreOrder())
                             <div class="space-y-4">
-                                <div class="rounded-lg border border-violet-200 bg-violet-50 p-4">
-                                    <p class="text-sm font-semibold text-violet-900">{{ __('Cash collected in store') }}</p>
-                                    <p class="mt-1 text-sm text-violet-800">{{ __('This order was placed during an in-store visit. Payment is recorded as cash on store — no UPI reference or payment proof is required.') }}</p>
+                                <div @class([
+                                    'rounded-lg border p-4',
+                                    'border-violet-200 bg-violet-50' => $order->isPaymentVerified() && ! $inStoreOutstanding,
+                                    'border-amber-200 bg-amber-50' => $inStoreOutstanding || ! $order->isPaymentVerified(),
+                                ])>
+                                    <p @class([
+                                        'text-sm font-semibold',
+                                        'text-amber-900' => $inStoreOutstanding || ! $order->isPaymentVerified(),
+                                        'text-violet-900' => $order->isPaymentVerified() && ! $inStoreOutstanding,
+                                    ])>{{ $order->adminPaymentStatusLabel() }}</p>
+                                    <p class="mt-1 text-sm text-stone-700">
+                                        @if($inStoreVerifiedWithBalance)
+                                            {{ __('Payment is verified for kitchen processing. Collect the remaining balance before handover.') }}
+                                        @else
+                                            {{ __('In-store cash payment tracked on this order.') }}
+                                        @endif
+                                    </p>
                                 </div>
                                 <div class="grid grid-cols-2 gap-4 text-sm">
                                     <div>
@@ -306,16 +356,54 @@
                                         <p class="font-semibold text-gray-900">{{ $order->paymentMethodLabel() }}</p>
                                     </div>
                                     <div>
-                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Amount') }}</p>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Order total') }}</p>
                                         <p class="font-semibold text-gray-900">₹ {{ number_format($order->amount, 2) }}</p>
                                     </div>
+                                    <div>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Cash received') }}</p>
+                                        <p class="font-semibold text-violet-800">₹ {{ number_format($order->totalCashReceived(), 2) }}</p>
+                                    </div>
+                                    <div>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Balance due') }}</p>
+                                        <p @class([
+                                            'font-semibold',
+                                            'text-green-700' => $order->balanceDue() <= 0.01,
+                                            'text-amber-700' => $order->balanceDue() > 0.01,
+                                        ])>₹ {{ number_format($order->balanceDue(), 2) }}</p>
+                                    </div>
                                 </div>
+                                @if($order->payment_made_at)
+                                    <div>
+                                        <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Last payment at') }}</p>
+                                        <p class="font-semibold text-gray-900">{{ $order->payment_made_at->setTimezone($tz)->format('M d, Y, h:i A') }}</p>
+                                    </div>
+                                @endif
                                 @if($order->placedBy)
                                     <div>
                                         <p class="mb-1 text-xs font-medium uppercase tracking-wider text-gray-500">{{ __('Placed by staff') }}</p>
                                         <p class="font-semibold text-gray-900">{{ $order->placedBy->name }}</p>
                                     </div>
                                 @endif
+                                @can('orders.update')
+                                    @if($order->hasOutstandingBalance())
+                                        @include('admin.orders.partials._record-cash-payment-form', [
+                                            'order' => $order,
+                                            'fromToday' => $isTodayView,
+                                        ])
+
+                                        @if(! $order->isPaymentVerified())
+                                            <div class="flex flex-wrap items-center gap-3 border-t border-stone-100 pt-4">
+                                                <p class="text-sm text-stone-600">{{ __('Or verify payment now so the kitchen can start — the balance due will remain on this order.') }}</p>
+                                                @include('admin.orders.partials._verify-payment-form', [
+                                                    'order' => $order,
+                                                    'fromToday' => $isTodayView,
+                                                    'formClass' => 'inline-flex',
+                                                    'buttonClass' => 'inline-flex items-center justify-center rounded-lg border border-violet-300 bg-violet-50 px-4 py-2 text-sm font-semibold text-violet-800 shadow-sm transition hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-70',
+                                                ])
+                                            </div>
+                                        @endif
+                                    @endif
+                                @endcan
                             </div>
                         @elseif($order->hasDisplayablePaymentDetails())
                             <div class="space-y-4">

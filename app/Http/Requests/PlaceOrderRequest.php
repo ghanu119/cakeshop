@@ -44,6 +44,10 @@ class PlaceOrderRequest extends FormRequest
             'coupon_declined' => ['nullable', 'boolean'],
         ];
 
+        if ($isImpersonating) {
+            $rules['cash_received'] = ['nullable', 'numeric', 'min:0'];
+        }
+
         if (uses_better_buns_checkout()) {
             $rules['fulfillment_type'] = ['required', 'string', 'in:takeaway,delivery'];
             $rules['delivery_address'] = ['nullable', 'string', 'max:1000', 'required_if:fulfillment_type,delivery'];
@@ -158,6 +162,31 @@ class PlaceOrderRequest extends FormRequest
                             $validator->errors()->add($field, $message);
                         }
                     }
+                }
+            }
+
+            if (app(CustomerContext::class)->isImpersonating() && $this->has('cash_received')) {
+                $quote = app(OrderService::class)->quoteOrder(
+                    $product,
+                    $this->only([
+                        'quantity',
+                        'product_variant_id',
+                        'coupon_code',
+                        'coupon_id',
+                        'coupon_declined',
+                    ]),
+                    app(CustomerContext::class)->effectiveCustomer(),
+                );
+
+                $cashReceived = (float) $this->input('cash_received', 0);
+
+                if ($cashReceived > $quote['amount'] + 0.01) {
+                    $validator->errors()->add(
+                        'cash_received',
+                        __('Cash received cannot exceed the order total of :amount.', [
+                            'amount' => '₹ '.number_format($quote['amount'], 2),
+                        ])
+                    );
                 }
             }
         });

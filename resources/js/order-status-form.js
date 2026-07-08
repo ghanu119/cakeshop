@@ -49,6 +49,54 @@ document.addEventListener('DOMContentLoaded', function () {
     select?.addEventListener('change', togglePreparationPanel);
     togglePreparationPanel();
 
+    function formatBalanceAmount(value) {
+        const amount = Number.parseFloat(value);
+
+        if (!Number.isFinite(amount)) {
+            return '₹0.00';
+        }
+
+        return `₹${amount.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        })}`;
+    }
+
+    function buildOutstandingWarning(form, selectedStatus) {
+        const hasOutstandingBalance = form.dataset.hasOutstandingBalance === '1';
+        const balanceDue = Number.parseFloat(form.dataset.balanceDue ?? '0');
+
+        if (!hasOutstandingBalance || balanceDue <= 0.01) {
+            return null;
+        }
+
+        const amount = formatBalanceAmount(balanceDue);
+
+        if (selectedStatus === 'delivered') {
+            const template = form.dataset.deliveredUnpaidMessage
+                || 'This order still has ₹:amount unpaid. Mark as delivered anyway?';
+
+            return {
+                title: form.dataset.deliveredUnpaidTitle || 'Deliver with unpaid balance?',
+                text: template.replace(':amount', amount),
+                confirmColor: '#d97706',
+            };
+        }
+
+        if (selectedStatus === 'processing' || selectedStatus === 'completed') {
+            const template = form.dataset.outstandingWarningMessage
+                || 'This order still has ₹:amount unpaid. Continue updating the status?';
+
+            return {
+                title: form.dataset.outstandingWarningTitle || 'Outstanding balance',
+                text: template.replace(':amount', amount),
+                confirmColor: '#d97706',
+            };
+        }
+
+        return null;
+    }
+
     form.addEventListener('submit', function (event) {
         if (form.dataset.statusConfirmed === 'true') {
             disableSubmitButton();
@@ -67,8 +115,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 form.dataset.statusConfirmMessage ||
                 'Are you sure you want to change the order status to :status?';
             const message = template.replace(':status', selectedLabel);
+            const outstandingWarning = buildOutstandingWarning(form, selectedStatus);
 
-            confirmAction({
+            const runStatusConfirm = () => confirmAction({
                 title: form.dataset.statusConfirmTitle || 'Change order status?',
                 text: message,
                 confirmText: form.dataset.statusConfirmYes || 'Yes, update',
@@ -82,6 +131,26 @@ document.addEventListener('DOMContentLoaded', function () {
                 disableSubmitButton();
                 form.requestSubmit();
             });
+
+            if (outstandingWarning) {
+                confirmAction({
+                    title: outstandingWarning.title,
+                    text: outstandingWarning.text,
+                    confirmText: form.dataset.statusConfirmYes || 'Yes, update',
+                    cancelText: form.dataset.statusConfirmNo || 'Cancel',
+                    confirmColor: outstandingWarning.confirmColor,
+                }).then((result) => {
+                    if (!result.isConfirmed) {
+                        return;
+                    }
+
+                    runStatusConfirm();
+                });
+
+                return;
+            }
+
+            runStatusConfirm();
 
             return;
         }

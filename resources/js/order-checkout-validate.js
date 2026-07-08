@@ -84,7 +84,7 @@ export async function validateCouponsForCheckout(form, csrfToken) {
     const hasCouponIntent = Boolean(manualCode) || isApplied || body.has('auto_select_best');
 
     if (!hasCouponIntent) {
-        return { ok: true };
+        return { ok: true, total: data.total ?? null, subtotal: data.subtotal ?? null };
     }
 
     if (manualCode || isApplied) {
@@ -96,7 +96,7 @@ export async function validateCouponsForCheckout(form, csrfToken) {
             };
         }
 
-        return { ok: true };
+        return { ok: true, total: data.total ?? null, subtotal: data.subtotal ?? null };
     }
 
     if (body.has('auto_select_best') && data.message && !data.valid) {
@@ -107,5 +107,5 @@ export async function validateCouponsForCheckout(form, csrfToken) {
         };
     }
 
-    return { ok: true };
+    return { ok: true, total: data.total ?? null, subtotal: data.subtotal ?? null };
 }

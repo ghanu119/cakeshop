@@ -27,6 +27,14 @@ class Order extends Model implements HasMedia
 
     public const PAYMENT_METHOD_RAZORPAY = 'razorpay';
 
+    public const PAYMENT_STATUS_PENDING = 'pending';
+
+    public const PAYMENT_STATUS_PARTIALLY_PAID = 'partially_paid';
+
+    public const PAYMENT_STATUS_VERIFIED = 'verified';
+
+    private const PAYMENT_TOLERANCE = 0.01;
+
     /** Default max inscription length when no site or product override is set. */
     public const MESSAGE_ON_CAKE_MAX_LENGTH = 50;
 
@@ -273,10 +281,67 @@ class Order extends Model implements HasMedia
         };
     }
 
+    public function totalCashReceived(): float
+    {
+        if ($this->payment_amount !== null) {
+            return (float) $this->payment_amount;
+        }
+
+        return 0.0;
+    }
+
+    public function balanceDue(): float
+    {
+        return max(0.0, round((float) $this->amount - $this->totalCashReceived(), 2));
+    }
+
+    public function hasOutstandingBalance(): bool
+    {
+        return $this->isInStoreOrder() && $this->balanceDue() > self::PAYMENT_TOLERANCE;
+    }
+
+    public function isPartiallyPaid(): bool
+    {
+        return $this->payment_status === self::PAYMENT_STATUS_PARTIALLY_PAID;
+    }
+
+    public function isInStorePaymentComplete(): bool
+    {
+        return $this->isInStoreOrder() && ! $this->hasOutstandingBalance();
+    }
+
+    public function isVerifiedWithOutstandingBalance(): bool
+    {
+        return $this->isInStoreOrder()
+            && $this->isPaymentVerified()
+            && $this->hasOutstandingBalance();
+    }
+
+    public function requiresPaymentBeforeStatusChange(): bool
+    {
+        return ! $this->isInStoreOrder();
+    }
+
     public function adminPaymentStatusLabel(): string
     {
-        if ($this->isCashOnStore() && $this->isPaymentVerified()) {
-            return __('Cash on store — collected');
+        if ($this->isInStoreOrder()) {
+            if ($this->isVerifiedWithOutstandingBalance()) {
+                return __('Payment verified — :amount due', [
+                    'amount' => '₹ '.number_format($this->balanceDue(), 2),
+                ]);
+            }
+
+            if ($this->isPaymentVerified()) {
+                return __('Cash on store — fully collected');
+            }
+
+            if ($this->isPartiallyPaid()) {
+                return __('Partially paid — :amount due', [
+                    'amount' => '₹ '.number_format($this->balanceDue(), 2),
+                ]);
+            }
+
+            return __('Payment pending — pay on pickup');
         }
 
         if ($this->isPaymentVerified()) {
@@ -412,7 +477,30 @@ class Order extends Model implements HasMedia
 
     public function scopePaymentVerified($query): void
     {
-        $query->where('payment_status', 'verified');
+        $query->where('payment_status', self::PAYMENT_STATUS_VERIFIED);
+    }
+
+    public function scopeInStoreOutstanding($query): void
+    {
+        $query->inStore()
+            ->whereRaw('COALESCE(payment_amount, 0) + ? < amount', [self::PAYMENT_TOLERANCE]);
+    }
+
+    public function scopeInStore($query): void
+    {
+        $query->where(function ($q) {
+            $q->where('payment_method', self::PAYMENT_METHOD_CASH_ON_STORE)
+                ->orWhereNotNull('placed_by_user_id');
+        });
+    }
+
+    public function scopeKitchenPaymentEligible($query): void
+    {
+        $query->where(function ($q) {
+            $q->where('payment_status', self::PAYMENT_STATUS_VERIFIED)
+                ->orWhere('payment_method', self::PAYMENT_METHOD_CASH_ON_STORE)
+                ->orWhereNotNull('placed_by_user_id');
+        });
     }
 
     public function scopeDeliveryToday($query): void
@@ -439,7 +527,7 @@ class Order extends Model implements HasMedia
      */
     public function scopeKitchenTodayVisible($query): void
     {
-        $query->paymentVerified()
+        $query->kitchenPaymentEligible()
             ->deliveryToday()
             ->whereIn('order_status', ['pending', 'processing']);
     }
@@ -449,7 +537,7 @@ class Order extends Model implements HasMedia
      */
     public function scopeKitchenTodayQueue($query): void
     {
-        $query->paymentVerified()
+        $query->kitchenPaymentEligible()
             ->deliveryToday()
             ->where('order_status', 'processing')
             ->whereNotNull('preparation_at');
@@ -464,7 +552,7 @@ class Order extends Model implements HasMedia
 
     public function scopeKitchenUpcoming($query): void
     {
-        $query->paymentVerified()
+        $query->kitchenPaymentEligible()
             ->deliveryUpcoming()
             ->whereIn('order_status', ['pending', 'processing']);
     }
@@ -493,10 +581,19 @@ class Order extends Model implements HasMedia
 
     public function isAwaitingKitchenSetup(): bool
     {
-        return $this->isPaymentVerified()
+        return $this->isKitchenPaymentEligible()
             && $this->isDeliveryToday()
             && in_array($this->order_status, ['pending', 'processing'], true)
             && (! $this->isProcessing() || ! $this->hasPreparationDeadline());
+    }
+
+    public function isKitchenPaymentEligible(): bool
+    {
+        if ($this->isPaymentVerified()) {
+            return true;
+        }
+
+        return $this->isInStoreOrder();
     }
 
     public function isDeliveryToday(): bool
@@ -512,7 +609,7 @@ class Order extends Model implements HasMedia
 
     public function isKitchenActionable(): bool
     {
-        if (! $this->isPaymentVerified()
+        if (! $this->isKitchenPaymentEligible()
             || ! $this->isProcessing()
             || ! $this->hasPreparationDeadline()
             || ! $this->isDeliveryToday()) {
@@ -575,7 +672,7 @@ class Order extends Model implements HasMedia
 
     public function isPaymentVerified(): bool
     {
-        return $this->payment_status === 'verified';
+        return $this->payment_status === self::PAYMENT_STATUS_VERIFIED;
     }
 
     public function hasPaymentDetailsSubmitted(): bool
@@ -589,6 +686,22 @@ class Order extends Model implements HasMedia
 
     public function paymentStatusBadgeLabel(): string
     {
+        if ($this->isInStoreOrder()) {
+            if ($this->isVerifiedWithOutstandingBalance()) {
+                return __('Verified — due');
+            }
+
+            if ($this->isPaymentVerified()) {
+                return __('Paid');
+            }
+
+            if ($this->isPartiallyPaid()) {
+                return __('Partially paid');
+            }
+
+            return __('Payment pending');
+        }
+
         if ($this->isPaymentVerified()) {
             return __('Paid');
         }
@@ -598,6 +711,27 @@ class Order extends Model implements HasMedia
         }
 
         return __('Payment pending');
+    }
+
+    public function inStorePaymentListBadgeLabel(): string
+    {
+        if ($this->isVerifiedWithOutstandingBalance()) {
+            return __('Verified — :amount due', [
+                'amount' => '₹'.number_format($this->balanceDue(), 2),
+            ]);
+        }
+
+        if ($this->isPaymentVerified()) {
+            return __('In-store — paid');
+        }
+
+        if ($this->isPartiallyPaid()) {
+            return __('Partial — :amount due', [
+                'amount' => '₹'.number_format($this->balanceDue(), 2),
+            ]);
+        }
+
+        return __('Pay later');
     }
 
     public function isTakeaway(): bool
@@ -667,6 +801,18 @@ class Order extends Model implements HasMedia
 
     public function paymentStatusBadgeVariant(): string
     {
+        if ($this->isInStoreOrder()) {
+            if ($this->isPaymentVerified()) {
+                return 'success';
+            }
+
+            if ($this->isPartiallyPaid()) {
+                return 'warning';
+            }
+
+            return 'warning';
+        }
+
         if ($this->isPaymentVerified()) {
             return 'success';
         }

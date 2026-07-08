@@ -98,6 +98,8 @@ class OrderController extends Controller
             'key_id' => $paymentCheckoutConfig['key_id'] ?? null,
         ];
 
+        $isImpersonating = $this->customerContext->isImpersonating();
+
         return view('order.place', compact(
             'product',
             'customer',
@@ -114,6 +116,7 @@ class OrderController extends Controller
             'defaultCouponId',
             'defaultCouponCode',
             'checkoutPaymentConfig',
+            'isImpersonating',
         ));
     }
 

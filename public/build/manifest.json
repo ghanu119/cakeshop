@@ -65,7 +65,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BcD6hpT9.css",
+    "file": "assets/app-CN8tGNPf.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -150,7 +150,7 @@
     "isEntry": true
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-Dr1ArEJq.js",
+    "file": "assets/admin-DZNUp_bm.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true,
@@ -216,7 +216,7 @@
     "isEntry": true
   },
   "resources/js/order-place-confirm.js": {
-    "file": "assets/order-place-confirm-D-wdOwgi.js",
+    "file": "assets/order-place-confirm-CJ1H2fTP.js",
     "name": "order-place-confirm",
     "src": "resources/js/order-place-confirm.js",
     "isEntry": true,
@@ -234,7 +234,7 @@
     ]
   },
   "resources/js/order-status-form.js": {
-    "file": "assets/order-status-form-CA551Lby.js",
+    "file": "assets/order-status-form-BlMn1iqR.js",
     "name": "order-status-form",
     "src": "resources/js/order-status-form.js",
     "isEntry": true,

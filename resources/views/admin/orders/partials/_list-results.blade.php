@@ -81,8 +81,8 @@
                     @endrole
                     <x-table.cell class="whitespace-nowrap font-medium">₹ {{ number_format($order->amount, 2) }}</x-table.cell>
                     <x-table.cell>
-                        @if($order->isCashOnStore())
-                            <x-badge variant="default">{{ __('In-store') }}</x-badge>
+                        @if($order->isInStoreOrder())
+                            @include('admin.orders.partials._in-store-payment-list-badge', ['order' => $order])
                         @else
                             <x-badge :variant="$order->payment_status === 'verified' ? 'success' : 'warning'">{{ $order->payment_status }}</x-badge>
                         @endif

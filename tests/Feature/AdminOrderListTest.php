@@ -116,4 +116,90 @@ class AdminOrderListTest extends TestCase
             ->assertSee($inStore->order_no, false)
             ->assertDontSee('ORD-UPI-001', false);
     }
+
+    public function test_admin_order_list_shows_in_store_payment_stats_for_filtered_results(): void
+    {
+        $admin = $this->adminUser();
+        $product = Product::factory()->create();
+
+        Order::factory()->for($product)->create([
+            'order_no' => 'ORD-DUE-001',
+            'payment_method' => Order::PAYMENT_METHOD_CASH_ON_STORE,
+            'payment_status' => Order::PAYMENT_STATUS_VERIFIED,
+            'payment_amount' => 500,
+            'amount' => 854.10,
+            'placed_by_user_id' => $admin->id,
+        ]);
+
+        Order::factory()->for($product)->create([
+            'order_no' => 'ORD-DUE-002',
+            'payment_method' => Order::PAYMENT_METHOD_CASH_ON_STORE,
+            'payment_status' => Order::PAYMENT_STATUS_VERIFIED,
+            'payment_amount' => 100,
+            'amount' => 449.00,
+            'placed_by_user_id' => $admin->id,
+        ]);
+
+        Order::factory()->for($product)->verified()->create([
+            'order_no' => 'ORD-PAID-001',
+            'payment_method' => Order::PAYMENT_METHOD_CASH_ON_STORE,
+            'payment_amount' => 700,
+            'amount' => 700,
+            'placed_by_user_id' => $admin->id,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.orders.index', [
+            'payment_status' => 'in_store_outstanding',
+        ]));
+
+        $response->assertOk()
+            ->assertSee(__('Total'), false)
+            ->assertSee('₹1,303.10', false)
+            ->assertSee(__('Received'), false)
+            ->assertSee('₹600.00', false)
+            ->assertSee(__('Remaining'), false)
+            ->assertSee('₹703.10', false)
+            ->assertSee('ORD-DUE-001', false)
+            ->assertSee('ORD-DUE-002', false)
+            ->assertDontSee('ORD-PAID-001', false);
+    }
+
+    public function test_admin_order_list_payment_stats_include_online_and_pending_totals(): void
+    {
+        $admin = $this->adminUser();
+        $product = Product::factory()->create();
+
+        Order::factory()->for($product)->verified()->create([
+            'order_no' => 'ORD-ONLINE-001',
+            'payment_method' => Order::PAYMENT_METHOD_UPI,
+            'payment_amount' => 1200,
+            'amount' => 1200,
+            'placed_by_user_id' => null,
+        ]);
+
+        Order::factory()->for($product)->create([
+            'order_no' => 'ORD-PENDING-001',
+            'payment_method' => Order::PAYMENT_METHOD_UPI,
+            'payment_status' => Order::PAYMENT_STATUS_PENDING,
+            'amount' => 500,
+            'placed_by_user_id' => null,
+        ]);
+
+        Order::factory()->for($product)->create([
+            'order_no' => 'ORD-CASH-001',
+            'payment_method' => Order::PAYMENT_METHOD_CASH_ON_STORE,
+            'payment_status' => Order::PAYMENT_STATUS_VERIFIED,
+            'payment_amount' => 300,
+            'amount' => 800,
+            'placed_by_user_id' => $admin->id,
+        ]);
+
+        $response = $this->actingAs($admin)->get(route('admin.orders.index'));
+
+        $response->assertOk()
+            ->assertSee(__('Total'), false)
+            ->assertSee('₹2,500.00', false)
+            ->assertSee('₹1,500.00', false)
+            ->assertSee('₹1,000.00', false);
+    }
 }

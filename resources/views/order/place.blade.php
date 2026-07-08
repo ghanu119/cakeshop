@@ -27,8 +27,11 @@
         @if($hasVariants)
             <p class="mb-2 text-sm font-medium text-gray-700">{{ __('Estimated total') }}: <span id="order-estimated-total">{{ $symbol }}{{ number_format($product->price, 2) }}</span></p>
         @endif
-        <form method="post" action="{{ route('order.store', $product) }}" class="space-y-4" @if(!$customer) data-guest-checkout @endif>
+        <form method="post" action="{{ route('order.store', $product) }}" class="space-y-4" @if(!$customer) data-guest-checkout @endif @if($isImpersonating ?? false) data-order-place-confirm @endif>
             @csrf
+            @if($isImpersonating ?? false)
+                <input type="hidden" name="cash_received" id="cash_received" value="{{ old('cash_received', '0') }}" />
+            @endif
             <x-form-errors show-system-errors :show-validation-summary="true" />
             @if($hasVariants && $variantChoices->isNotEmpty())
                 <div>
@@ -99,7 +102,7 @@
         </form>
     </x-card>
 
-    @include('order.partials._place-order-confirm-modal')
+    @include('order.partials._place-order-confirm-modal', ['isImpersonating' => $isImpersonating ?? false])
 </div>
 @endsection
 

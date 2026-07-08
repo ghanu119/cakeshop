@@ -37,7 +37,7 @@ class PaymentOrchestrator
     {
         if ($this->shouldSkipGateway()) {
             $order->payment_method = Order::PAYMENT_METHOD_CASH_ON_STORE;
-            $order->payment_status = 'verified';
+            $order->payment_status = Order::PAYMENT_STATUS_PENDING;
             $order->placed_by_user_id = $this->customerContext->impersonator()?->id;
 
             return;
@@ -45,13 +45,13 @@ class PaymentOrchestrator
 
         if (active_theme() === 'better-buns') {
             $order->payment_method = Order::PAYMENT_METHOD_RAZORPAY;
-            $order->payment_status = 'pending';
+            $order->payment_status = Order::PAYMENT_STATUS_PENDING;
 
             return;
         }
 
         $order->payment_method = Order::PAYMENT_METHOD_UPI;
-        $order->payment_status = 'pending';
+        $order->payment_status = Order::PAYMENT_STATUS_PENDING;
     }
 
     /**
