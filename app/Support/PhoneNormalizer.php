@@ -23,6 +23,32 @@ class PhoneNormalizer
         return $digits !== '' ? $digits : null;
     }
 
+    public static function isValidIndianMobile(?string $phone): bool
+    {
+        $normalized = self::normalize($phone);
+
+        return $normalized !== null
+            && strlen($normalized) === 10
+            && (bool) preg_match('/^[6-9]\d{9}$/', $normalized);
+    }
+
+    /**
+     * Build a dial-ready international number (digits only, no plus) by prefixing
+     * the given country code to the normalized local number. Used only for sending.
+     */
+    public static function toE164(?string $phone, string $countryCode = '91'): ?string
+    {
+        $normalized = self::normalize($phone);
+
+        if ($normalized === null) {
+            return null;
+        }
+
+        $code = preg_replace('/\D+/', '', $countryCode) ?? '';
+
+        return $code.$normalized;
+    }
+
     public static function mask(?string $phone): string
     {
         $normalized = self::normalize($phone);

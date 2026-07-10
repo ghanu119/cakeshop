@@ -31,7 +31,7 @@ class PlaceOrderRequest extends FormRequest
 
         $rules = [
             'guest_name' => ['required', 'string', 'max:255'],
-            'guest_email' => [$isImpersonating ? 'nullable' : 'required', 'email', 'max:255'],
+            'guest_email' => [($isImpersonating || whatsapp_login_enabled()) ? 'nullable' : 'required', 'email', 'max:255'],
             'guest_phone' => ['required', 'string', 'max:50'],
             'quantity' => ['required', 'integer', 'min:1', 'max:10'],
             'message_on_cake' => ['nullable', 'string', 'max:'.$messageMax],
@@ -79,13 +79,22 @@ class PlaceOrderRequest extends FormRequest
             );
 
             if ($customer === null) {
-                $verifiedEmail = app(CustomerAuthService::class)->verifiedEmail();
-                $submittedEmail = strtolower(trim((string) $this->input('guest_email', '')));
+                $auth = app(CustomerAuthService::class);
 
-                if ($verifiedEmail === null || $verifiedEmail !== $submittedEmail) {
+                $submittedEmail = strtolower(trim((string) $this->input('guest_email', '')));
+                $emailVerified = $submittedEmail !== ''
+                    && $auth->verifiedEmail() !== null
+                    && $auth->verifiedEmail() === $submittedEmail;
+
+                $submittedPhone = \App\Support\PhoneNormalizer::normalize((string) $this->input('guest_phone', ''));
+                $phoneVerified = $submittedPhone !== null
+                    && $auth->verifiedPhone() !== null
+                    && $auth->verifiedPhone() === $submittedPhone;
+
+                if (! $emailVerified && ! $phoneVerified) {
                     $validator->errors()->add(
                         'guest_email',
-                        __('Please verify your email with the code we sent before placing your order.')
+                        __('Please verify your contact with the code we sent before placing your order.')
                     );
                 }
             }

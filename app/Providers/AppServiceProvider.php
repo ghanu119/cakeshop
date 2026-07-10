@@ -2,6 +2,9 @@
 
 namespace App\Providers;
 
+use App\Messaging\Contracts\MessagingGateway;
+use App\Messaging\Drivers\NullMessagingDriver;
+use App\Messaging\Drivers\WhatsAppCloudDriver;
 use App\Services\PusherSettingsResolver;
 use App\View\Composers\AdminNotificationComposer;
 use App\View\Composers\StorefrontCategoryNavComposer;
@@ -19,7 +22,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Provider-agnostic messaging gateway resolved from config (future-ready).
+        $this->app->singleton(MessagingGateway::class, function (): MessagingGateway {
+            $driver = (string) config('services.messaging.driver', 'whatsapp_cloud');
+
+            return match ($driver) {
+                'whatsapp_cloud' => new WhatsAppCloudDriver((array) config('services.whatsapp', [])),
+                default => new NullMessagingDriver(),
+            };
+        });
     }
 
     /**

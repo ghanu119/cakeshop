@@ -28,6 +28,12 @@ class AccountCheckoutTest extends TestCase
         Setting::set('order_max_future_days', '7');
         Setting::set('order_min_hours_before_delivery', '4');
         Setting::flushCache();
+
+        config([
+            'services.whatsapp.enabled' => false,
+            'services.whatsapp.phone_number_id' => null,
+            'services.whatsapp.access_token' => null,
+        ]);
     }
 
     private function validDeliveryAt(): string

@@ -9,6 +9,7 @@ use App\Services\CustomerAuthService;
 use App\Services\CustomerContext;
 use App\Services\OrderNotificationService;
 use App\Services\OrderService;
+use App\Support\PhoneNormalizer;
 use App\Services\Payments\DTOs\CreatePaymentOrderData;
 use App\Services\Payments\DTOs\VerifyPaymentData;
 use App\Services\Payments\Exceptions\PaymentException;
@@ -179,6 +180,17 @@ class CheckoutPaymentService
         }
 
         $email = (string) ($validated['guest_email'] ?? '');
+        $normalizedPhone = PhoneNormalizer::normalize((string) $validated['guest_phone']);
+        $verifiedPhone = $this->customerAuthService->verifiedPhone();
+
+        if ($verifiedPhone !== null && $normalizedPhone !== null && $verifiedPhone === $normalizedPhone) {
+            return $this->customerAuthService->resolveCustomerForVerifiedPhone(
+                (string) $validated['guest_phone'],
+                (string) $validated['guest_name'],
+                $email !== '' ? $email : null,
+            );
+        }
+
         $this->customerAuthService->assertOtpVerifiedFor($email);
 
         return $this->customerAuthService->resolveCustomerForVerifiedEmail(

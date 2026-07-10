@@ -3,6 +3,24 @@
     "file": "assets/_commonjsHelpers-CqkleIqs.js",
     "name": "_commonjsHelpers"
   },
+  "_admin-form-confirm-ByEa3BEb.js": {
+    "file": "assets/admin-form-confirm-ByEa3BEb.js",
+    "name": "admin-form-confirm",
+    "imports": [
+      "_admin-swal-SKDSaTEx.js"
+    ]
+  },
+  "_admin-swal-BuZ9JEVh.css": {
+    "file": "assets/admin-swal-BuZ9JEVh.css",
+    "src": "_admin-swal-BuZ9JEVh.css"
+  },
+  "_admin-swal-SKDSaTEx.js": {
+    "file": "assets/admin-swal-SKDSaTEx.js",
+    "name": "admin-swal",
+    "css": [
+      "assets/admin-swal-BuZ9JEVh.css"
+    ]
+  },
   "_admin-toast-CFkj4sdH.js": {
     "file": "assets/admin-toast-CFkj4sdH.js",
     "name": "admin-toast"
@@ -65,7 +83,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CN8tGNPf.css",
+    "file": "assets/app-uPON0Fak.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -74,10 +92,14 @@
     ]
   },
   "resources/js/account-otp.js": {
-    "file": "assets/account-otp-Bj-1TE2b.js",
+    "file": "assets/account-otp-xiv5bgqZ.js",
     "name": "account-otp",
     "src": "resources/js/account-otp.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_admin-form-confirm-ByEa3BEb.js",
+      "_admin-swal-SKDSaTEx.js"
+    ]
   },
   "resources/js/account-register.js": {
     "file": "assets/account-register-CCdHmcAp.js",
@@ -150,12 +172,14 @@
     "isEntry": true
   },
   "resources/js/admin.js": {
-    "file": "assets/admin-DZNUp_bm.js",
+    "file": "assets/admin-DGYElhsU.js",
     "name": "admin",
     "src": "resources/js/admin.js",
     "isEntry": true,
     "imports": [
       "_bootstrap-BZN5sx2X.js",
+      "_admin-swal-SKDSaTEx.js",
+      "_admin-form-confirm-ByEa3BEb.js",
       "resources/js/order-status-form.js",
       "_index-C0Zqfgkc.js",
       "_admin-toast-CFkj4sdH.js",
@@ -216,7 +240,7 @@
     "isEntry": true
   },
   "resources/js/order-place-confirm.js": {
-    "file": "assets/order-place-confirm-CJ1H2fTP.js",
+    "file": "assets/order-place-confirm-BxASG5Qg.js",
     "name": "order-place-confirm",
     "src": "resources/js/order-place-confirm.js",
     "isEntry": true,
@@ -234,12 +258,12 @@
     ]
   },
   "resources/js/order-status-form.js": {
-    "file": "assets/order-status-form-BlMn1iqR.js",
+    "file": "assets/order-status-form-Ci-Hi7iy.js",
     "name": "order-status-form",
     "src": "resources/js/order-status-form.js",
     "isEntry": true,
-    "css": [
-      "assets/order-status-form-BuZ9JEVh.css"
+    "imports": [
+      "_admin-swal-SKDSaTEx.js"
     ]
   },
   "resources/js/product-filters-select2.js": {

@@ -153,6 +153,10 @@
     data-currency-symbol="{{ $currencySymbol }}"
     data-pay-label-prefix="{{ __('Pay') }}"
     data-messages='@json($paymentMessages)'
+    data-whatsapp-enabled="{{ whatsapp_login_enabled() ? '1' : '0' }}"
+    data-otp-status-email="{{ __('Enter the verification code we sent to your email.') }}"
+    data-otp-status-whatsapp="{{ __('Enter the verification code we sent to your WhatsApp.') }}"
+    data-otp-missing-email="{{ __('Please add an email address to verify by email.') }}"
 >
     <div class="order-confirm-backdrop" data-order-confirm-backdrop></div>
     <div class="order-confirm-panel">
@@ -191,6 +195,12 @@
             </dl>
 
             <div id="order-confirm-otp-section" class="mt-6 hidden rounded-xl border border-stone-200 bg-stone-50 p-4">
+                @if(whatsapp_login_enabled())
+                    <div data-otp-channel-toggle class="mb-3 grid grid-cols-2 gap-2 rounded-lg border border-stone-200 bg-white p-1">
+                        <button type="button" data-otp-channel="whatsapp" class="rounded-md px-3 py-2 text-sm font-medium transition">{{ __('WhatsApp') }}</button>
+                        <button type="button" data-otp-channel="email" class="rounded-md px-3 py-2 text-sm font-medium transition">{{ __('Email') }}</button>
+                    </div>
+                @endif
                 <p id="order-confirm-otp-status" class="text-sm text-stone-600">{{ __('Enter the verification code we sent to your email.') }}</p>
                 <label for="order-confirm-otp-code" class="mb-1 mt-3 block text-sm font-medium text-stone-700">{{ __('Verification code') }}</label>
                 <input

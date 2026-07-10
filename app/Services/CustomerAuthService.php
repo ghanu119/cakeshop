@@ -3,8 +3,10 @@
 namespace App\Services;
 
 use App\Mail\CustomerLoginOtp;
+use App\Messaging\Contracts\MessagingGateway;
+use App\Messaging\Exceptions\MessageDeliveryException;
 use App\Models\CustomerAccountEvent;
-use App\Models\EmailLoginOtp;
+use App\Models\LoginOtp;
 use App\Models\User;
 use App\Models\User\RegisteredVia;
 use App\Support\AuthGuards;
@@ -21,6 +23,8 @@ class CustomerAuthService
 {
     public const SESSION_VERIFIED_EMAIL = 'customer_otp_verified_email';
 
+    public const SESSION_VERIFIED_PHONE = 'customer_otp_verified_phone';
+
     public const OTP_EXPIRY_MINUTES = 10;
 
     public const SEND_OTP_EMAIL_MAX = 5;
@@ -33,31 +37,23 @@ class CustomerAuthService
 
     public function __construct(
         private OrderLinkingService $orderLinkingService,
-        private Request $request
+        private Request $request,
+        private MessagingGateway $messaging,
     ) {}
+
+    /*
+    |--------------------------------------------------------------------------
+    | Email OTP (existing public API — behavior preserved)
+    |--------------------------------------------------------------------------
+    */
 
     public function sendOtp(string $email): void
     {
         $email = strtolower(trim($email));
 
-        $this->ensureCanSendOtp($email);
+        $this->ensureCanSendOtp(LoginOtp::CHANNEL_EMAIL, $email);
 
-        EmailLoginOtp::query()
-            ->where('email', $email)
-            ->whereNull('consumed_at')
-            ->where('expires_at', '>', now())
-            ->update(['consumed_at' => now()]);
-
-        $code = (string) random_int(100000, 999999);
-
-        EmailLoginOtp::create([
-            'email' => $email,
-            'code_hash' => Hash::make($code),
-            'purpose' => EmailLoginOtp::PURPOSE_LOGIN,
-            'expires_at' => now()->addMinutes(self::OTP_EXPIRY_MINUTES),
-            'ip_address' => $this->request->ip(),
-            'created_at' => now(),
-        ]);
+        $code = $this->issueOtp(LoginOtp::CHANNEL_EMAIL, $email);
 
         Mail::to($email)->send(new CustomerLoginOtp($code, self::OTP_EXPIRY_MINUTES));
     }
@@ -66,27 +62,8 @@ class CustomerAuthService
     {
         $email = strtolower(trim($email));
 
-        $otp = EmailLoginOtp::query()
-            ->where('email', $email)
-            ->whereNull('consumed_at')
-            ->orderByDesc('id')
-            ->first();
+        $this->confirmOtp(LoginOtp::CHANNEL_EMAIL, $email, $code, 'code');
 
-        if (! $otp || $otp->isExpired()) {
-            throw $this->otpValidationException($email, 'code', __('This code has expired. Please request a new one.'));
-        }
-
-        if ($otp->hasExceededAttempts()) {
-            throw $this->otpValidationException($email, 'code', __('Too many attempts. Please request a new code.'));
-        }
-
-        if (! Hash::check($code, $otp->code_hash)) {
-            $otp->increment('attempts');
-
-            throw $this->otpValidationException($email, 'code', __('The code you entered is incorrect.'));
-        }
-
-        $otp->forceFill(['consumed_at' => now()])->save();
         session([self::SESSION_VERIFIED_EMAIL => $email]);
     }
 
@@ -96,6 +73,74 @@ class CustomerAuthService
 
         return is_string($email) && $email !== '' ? $email : null;
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | WhatsApp OTP
+    |--------------------------------------------------------------------------
+    */
+
+    /**
+     * Send a WhatsApp OTP to the given number.
+     *
+     * @return string the normalized phone the code was keyed to.
+     *
+     * @throws ValidationException with a human-readable message on failure.
+     */
+    public function sendWhatsAppOtp(string $phone): string
+    {
+        $normalized = $this->normalizePhoneOrFail($phone);
+
+        $this->ensureCanSendOtp(LoginOtp::CHANNEL_WHATSAPP, $normalized);
+
+        $code = $this->issueOtp(LoginOtp::CHANNEL_WHATSAPP, $normalized);
+
+        try {
+            $this->messaging->sendOtp($normalized, $code);
+        } catch (MessageDeliveryException $e) {
+            // Invalidate the just-issued code so the user can retry cleanly.
+            LoginOtp::query()
+                ->where('channel', LoginOtp::CHANNEL_WHATSAPP)
+                ->where('destination', $normalized)
+                ->whereNull('consumed_at')
+                ->update(['consumed_at' => now()]);
+
+            throw ValidationException::withMessages([
+                'phone' => [$this->whatsappFailureMessage($e)],
+            ]);
+        }
+
+        return $normalized;
+    }
+
+    public function verifyWhatsAppOtp(string $phone, string $code): string
+    {
+        $normalized = $this->normalizePhoneOrFail($phone);
+
+        $this->confirmOtp(LoginOtp::CHANNEL_WHATSAPP, $normalized, $code, 'code');
+
+        session([self::SESSION_VERIFIED_PHONE => $normalized]);
+
+        return $normalized;
+    }
+
+    public function verifiedPhone(): ?string
+    {
+        $phone = session(self::SESSION_VERIFIED_PHONE);
+
+        return is_string($phone) && $phone !== '' ? $phone : null;
+    }
+
+    public function whatsappEnabled(): bool
+    {
+        return (bool) config('services.whatsapp.enabled', false) && $this->messaging->isEnabled();
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Customer lookups
+    |--------------------------------------------------------------------------
+    */
 
     public function findCustomerByEmail(string $email): ?User
     {
@@ -143,12 +188,12 @@ class CustomerAuthService
 
         Auth::guard(AuthGuards::CUSTOMER)->login($customer);
         session()->regenerate();
-        session()->forget(self::SESSION_VERIFIED_EMAIL);
+        $this->clearVerifiedSession();
 
         $this->orderLinkingService->linkGuestOrdersForUser($customer);
     }
 
-    public function createCustomer(string $name, string $phone, ?string $email = null): User
+    public function createCustomer(string $name, string $phone, ?string $email = null, bool $emailVerified = true): User
     {
         $email = $email !== null ? strtolower(trim($email)) : $this->verifiedEmail();
         $normalizedPhone = PhoneNormalizer::normalize($phone);
@@ -157,7 +202,8 @@ class CustomerAuthService
         $user->name = trim($name);
         $user->phone = $normalizedPhone;
         $user->email = $email;
-        $user->email_verified_at = $email ? now() : null;
+        // Only stamp email as verified when it was actually confirmed via email OTP.
+        $user->email_verified_at = ($email && $emailVerified) ? now() : null;
         $user->registered_via = RegisteredVia::FRONT_OTP;
         $user->password = null;
         $user->save();
@@ -206,6 +252,12 @@ class CustomerAuthService
 
         return $existing;
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Verified-email resolution (existing)
+    |--------------------------------------------------------------------------
+    */
 
     public function assertOtpVerifiedFor(string $email): void
     {
@@ -256,9 +308,60 @@ class CustomerAuthService
         return $customer;
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Verified-phone resolution (WhatsApp)
+    |--------------------------------------------------------------------------
+    */
+
+    public function assertPhoneOtpVerifiedFor(string $phone): void
+    {
+        $normalized = PhoneNormalizer::normalize($phone);
+        $verified = $this->verifiedPhone();
+
+        if ($verified === null || $normalized === null || $verified !== $normalized) {
+            throw ValidationException::withMessages([
+                'guest_phone' => [__('Please verify your WhatsApp number with the code we sent before placing your order.')],
+            ]);
+        }
+    }
+
+    public function resolveCustomerForVerifiedPhone(string $phone, string $name, ?string $email = null): User
+    {
+        $normalized = PhoneNormalizer::normalize($phone);
+        $verified = $this->verifiedPhone();
+
+        if ($verified === null || $normalized === null || $verified !== $normalized) {
+            throw ValidationException::withMessages([
+                'phone' => [__('Your session has expired. Please verify your WhatsApp number again.')],
+            ]);
+        }
+
+        $customer = $this->findCustomerByPhone($normalized);
+
+        if ($customer === null) {
+            // Email (if provided) was entered during a WhatsApp verification,
+            // so it is NOT email-verified — only the phone/WhatsApp is.
+            $customer = $this->createCustomer($name, $normalized, $email, emailVerified: false);
+        }
+
+        $this->markWhatsAppVerified($customer);
+
+        return $customer;
+    }
+
+    public function authenticateCustomerForVerifiedPhone(string $phone, string $name, ?string $email = null): User
+    {
+        $customer = $this->resolveCustomerForVerifiedPhone($phone, $name, $email);
+        $this->loginCustomer($customer);
+
+        return $customer;
+    }
+
     public function clearVerifiedSession(): void
     {
         session()->forget(self::SESSION_VERIFIED_EMAIL);
+        session()->forget(self::SESSION_VERIFIED_PHONE);
     }
 
     public function maskEmail(?string $email): string
@@ -273,37 +376,128 @@ class CustomerAuthService
         return $maskedLocal.'@'.$domain;
     }
 
-    private function otpValidationException(string $email, string $field, string $message): ValidationException
+    public function maskPhone(?string $phone): string
     {
-        return ValidationException::withMessages([
-            $field => [$message],
-        ]);
+        return PhoneNormalizer::mask($phone);
     }
 
-    private function ensureCanSendOtp(string $email): void
+    /*
+    |--------------------------------------------------------------------------
+    | Internals
+    |--------------------------------------------------------------------------
+    */
+
+    private function issueOtp(string $channel, string $destination): string
     {
-        $emailKey = 'customer-otp-send:email:'.sha1($email);
+        LoginOtp::query()
+            ->where('channel', $channel)
+            ->where('destination', $destination)
+            ->whereNull('consumed_at')
+            ->where('expires_at', '>', now())
+            ->update(['consumed_at' => now()]);
+
+        $code = (string) random_int(100000, 999999);
+
+        LoginOtp::create([
+            'channel' => $channel,
+            'destination' => $destination,
+            'code_hash' => Hash::make($code),
+            'purpose' => LoginOtp::PURPOSE_LOGIN,
+            'expires_at' => now()->addMinutes(self::OTP_EXPIRY_MINUTES),
+            'ip_address' => $this->request->ip(),
+            'created_at' => now(),
+        ]);
+
+        return $code;
+    }
+
+    private function confirmOtp(string $channel, string $destination, string $code, string $field): void
+    {
+        $otp = LoginOtp::query()
+            ->where('channel', $channel)
+            ->where('destination', $destination)
+            ->whereNull('consumed_at')
+            ->orderByDesc('id')
+            ->first();
+
+        if (! $otp || $otp->isExpired()) {
+            throw ValidationException::withMessages([
+                $field => [__('This code has expired. Please request a new one.')],
+            ]);
+        }
+
+        if ($otp->hasExceededAttempts()) {
+            throw ValidationException::withMessages([
+                $field => [__('Too many attempts. Please request a new code.')],
+            ]);
+        }
+
+        if (! Hash::check($code, $otp->code_hash)) {
+            $otp->increment('attempts');
+
+            throw ValidationException::withMessages([
+                $field => [__('The code you entered is incorrect.')],
+            ]);
+        }
+
+        $otp->forceFill(['consumed_at' => now()])->save();
+    }
+
+    private function markWhatsAppVerified(User $user): void
+    {
+        $user->phone_verified_at = now();
+        $user->whatsapp_verified_at = now();
+        $user->save();
+    }
+
+    private function normalizePhoneOrFail(string $phone): string
+    {
+        $normalized = PhoneNormalizer::normalize($phone);
+
+        if ($normalized === null || strlen($normalized) < 8) {
+            throw ValidationException::withMessages([
+                'phone' => [__('Please enter a valid mobile number.')],
+            ]);
+        }
+
+        return $normalized;
+    }
+
+    private function whatsappFailureMessage(MessageDeliveryException $e): string
+    {
+        return match ($e->reason) {
+            MessageDeliveryException::REASON_INVALID_NUMBER,
+            MessageDeliveryException::REASON_UNDELIVERABLE => __('We couldn\'t send a WhatsApp code to this number — it may not be on WhatsApp. Try another number or use email instead.'),
+            MessageDeliveryException::REASON_DISABLED => __('WhatsApp sign-in is currently unavailable. Please use email instead.'),
+            default => __('We couldn\'t send your WhatsApp code right now. Please try again or use email instead.'),
+        };
+    }
+
+    private function ensureCanSendOtp(string $channel, string $destination): void
+    {
+        $destKey = 'customer-otp-send:'.$channel.':'.sha1($destination);
         $ipKey = 'customer-otp-send:ip:'.sha1((string) $this->request->ip());
 
-        if (RateLimiter::tooManyAttempts($emailKey, self::SEND_OTP_EMAIL_MAX)) {
-            $this->throwSendOtpRateLimitException($emailKey, $email);
+        if (RateLimiter::tooManyAttempts($destKey, self::SEND_OTP_EMAIL_MAX)) {
+            $this->throwSendOtpRateLimitException($destKey, $channel);
         }
 
         if (RateLimiter::tooManyAttempts($ipKey, self::SEND_OTP_IP_MAX)) {
-            $this->throwSendOtpRateLimitException($ipKey, $email);
+            $this->throwSendOtpRateLimitException($ipKey, $channel);
         }
 
-        RateLimiter::hit($emailKey, self::SEND_OTP_EMAIL_DECAY_SECONDS);
+        RateLimiter::hit($destKey, self::SEND_OTP_EMAIL_DECAY_SECONDS);
         RateLimiter::hit($ipKey, self::SEND_OTP_IP_DECAY_SECONDS);
     }
 
-    private function throwSendOtpRateLimitException(string $key, string $email): void
+    private function throwSendOtpRateLimitException(string $key, string $channel): void
     {
         $seconds = RateLimiter::availableIn($key);
         $minutes = max(1, (int) ceil($seconds / 60));
+        $field = $channel === LoginOtp::CHANNEL_WHATSAPP ? 'phone' : 'email';
 
         throw ValidationException::withMessages([
-            'email' => [__('Too many sign-in code requests. Please wait :minutes minute(s) and try again.', ['minutes' => $minutes])],
+            $field => [__('Too many sign-in code requests. Please wait :minutes minute(s) and try again.', ['minutes' => $minutes])],
         ]);
     }
 }

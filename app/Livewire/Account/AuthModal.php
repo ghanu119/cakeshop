@@ -2,25 +2,29 @@
 
 namespace App\Livewire\Account;
 
+use App\Models\LoginOtp;
 use App\Models\User;
+use App\Rules\IndianMobileNumber;
 use App\Services\CustomerAuthService;
-use App\Support\PhoneNormalizer;
 use App\Support\AuthGuards;
+use App\Support\PhoneNormalizer;
 use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
 class AuthModal extends Component
 {
-    public string $step = 'email';
+    public string $step = 'contact';
+
+    public string $channel = LoginOtp::CHANNEL_EMAIL;
 
     public string $email = '';
+
+    public string $phone = '';
 
     public string $code = '';
 
     public string $name = '';
-
-    public string $phone = '';
 
     public ?string $statusMessage = null;
 
@@ -28,9 +32,7 @@ class AuthModal extends Component
 
     public function mount(): void
     {
-        if (auth(AuthGuards::CUSTOMER)->user()?->isCustomer()) {
-            $this->step = 'email';
-        }
+        $this->channel = $this->defaultChannel();
     }
 
     #[On('open-auth-modal')]
@@ -44,8 +46,32 @@ class AuthModal extends Component
         $this->dispatch('open-modal', 'customer-auth-modal');
     }
 
+    public function switchChannel(string $channel): void
+    {
+        if ($channel === LoginOtp::CHANNEL_WHATSAPP && ! $this->whatsappEnabled()) {
+            $channel = LoginOtp::CHANNEL_EMAIL;
+        }
+
+        if (! in_array($channel, [LoginOtp::CHANNEL_EMAIL, LoginOtp::CHANNEL_WHATSAPP], true)) {
+            return;
+        }
+
+        $this->channel = $channel;
+        $this->step = 'contact';
+        $this->code = '';
+        $this->statusMessage = null;
+        $this->resetValidation();
+        app(CustomerAuthService::class)->clearVerifiedSession();
+    }
+
     public function sendOtp(CustomerAuthService $customerAuthService): void
     {
+        if ($this->channel === LoginOtp::CHANNEL_WHATSAPP) {
+            $this->sendWhatsAppOtp($customerAuthService);
+
+            return;
+        }
+
         $this->validate([
             'email' => ['required', 'email', 'max:255'],
         ]);
@@ -66,12 +92,31 @@ class AuthModal extends Component
         $this->statusMessage = __('We sent a sign-in code to your email.');
     }
 
+    private function sendWhatsAppOtp(CustomerAuthService $customerAuthService): void
+    {
+        $this->validate([
+            'phone' => ['required', 'string', new IndianMobileNumber],
+        ]);
+
+        // Throws ValidationException (keyed to 'phone') on delivery failure,
+        // keeping the user on the contact step with a clear message.
+        $this->phone = $customerAuthService->sendWhatsAppOtp($this->phone);
+        $this->step = 'otp';
+        $this->code = '';
+        $this->statusMessage = __('We sent a sign-in code to your WhatsApp.');
+    }
+
     public function verifyOtp(CustomerAuthService $customerAuthService): void
     {
         $this->validate([
-            'email' => ['required', 'email'],
             'code' => ['required', 'string', 'size:6'],
         ]);
+
+        if ($this->channel === LoginOtp::CHANNEL_WHATSAPP) {
+            $this->verifyWhatsAppOtp($customerAuthService);
+
+            return;
+        }
 
         $email = strtolower(trim($this->email));
         $customerAuthService->verifyOtp($email, $this->code);
@@ -89,6 +134,31 @@ class AuthModal extends Component
         $this->statusMessage = __('Almost done — tell us your name and phone number.');
     }
 
+    private function verifyWhatsAppOtp(CustomerAuthService $customerAuthService): void
+    {
+        $phone = $customerAuthService->verifyWhatsAppOtp($this->phone, $this->code);
+
+        $customer = $customerAuthService->findCustomerByPhone($phone);
+
+        if ($customer !== null && $customer->hasEmail()) {
+            $customerAuthService->authenticateCustomerForVerifiedPhone($phone, $customer->name);
+            $this->finishAuth();
+
+            return;
+        }
+
+        if ($customer !== null) {
+            // Phone-only account: just needs a login (name already known).
+            $customerAuthService->authenticateCustomerForVerifiedPhone($phone, $customer->name);
+            $this->finishAuth();
+
+            return;
+        }
+
+        $this->step = 'profile';
+        $this->statusMessage = __('Almost done — tell us your name and email.');
+    }
+
     public function resendOtp(CustomerAuthService $customerAuthService): void
     {
         $this->sendOtp($customerAuthService);
@@ -97,6 +167,10 @@ class AuthModal extends Component
     public function updatedPhone(): void
     {
         $this->phoneOnlyPreview = null;
+
+        if ($this->channel !== LoginOtp::CHANNEL_EMAIL || $this->step !== 'profile') {
+            return;
+        }
 
         if (strlen(trim($this->phone)) < 6) {
             return;
@@ -120,9 +194,28 @@ class AuthModal extends Component
 
     public function completeProfile(CustomerAuthService $customerAuthService): void
     {
+        if ($this->channel === LoginOtp::CHANNEL_WHATSAPP) {
+            $this->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['nullable', 'email', 'max:255'],
+            ]);
+
+            $email = trim($this->email) !== '' ? strtolower(trim($this->email)) : null;
+
+            $customerAuthService->authenticateCustomerForVerifiedPhone(
+                $this->phone,
+                $this->name,
+                $email,
+            );
+
+            $this->finishAuth();
+
+            return;
+        }
+
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
-            'phone' => ['required', 'string', 'max:50'],
+            'phone' => ['required', 'string', new IndianMobileNumber],
         ]);
 
         $customerAuthService->authenticateCustomerForVerifiedEmail(
@@ -134,11 +227,12 @@ class AuthModal extends Component
         $this->finishAuth();
     }
 
-    public function goBackToEmail(): void
+    public function goBackToContact(): void
     {
-        $this->step = 'email';
+        $this->step = 'contact';
         $this->code = '';
         $this->statusMessage = null;
+        $this->resetValidation();
         app(CustomerAuthService::class)->clearVerifiedSession();
     }
 
@@ -159,6 +253,16 @@ class AuthModal extends Component
         if ($name === 'customer-auth-modal') {
             $this->resetForm();
         }
+    }
+
+    public function whatsappEnabled(): bool
+    {
+        return app(CustomerAuthService::class)->whatsappEnabled();
+    }
+
+    private function defaultChannel(): string
+    {
+        return $this->whatsappEnabled() ? LoginOtp::CHANNEL_WHATSAPP : LoginOtp::CHANNEL_EMAIL;
     }
 
     private function finishAuth(): void
@@ -204,11 +308,12 @@ class AuthModal extends Component
 
     private function resetForm(): void
     {
-        $this->step = 'email';
+        $this->step = 'contact';
+        $this->channel = $this->defaultChannel();
         $this->email = '';
+        $this->phone = '';
         $this->code = '';
         $this->name = '';
-        $this->phone = '';
         $this->statusMessage = null;
         $this->phoneOnlyPreview = null;
         $this->resetValidation();
@@ -218,6 +323,8 @@ class AuthModal extends Component
     {
         return view('livewire.account.auth-modal', [
             'maskedEmail' => $customerAuthService->maskEmail($this->email ?: null),
+            'maskedPhone' => $customerAuthService->maskPhone($this->phone ?: null),
+            'whatsappEnabled' => $this->whatsappEnabled(),
         ]);
     }
 }

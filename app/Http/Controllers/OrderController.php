@@ -16,6 +16,7 @@ use App\Services\OrderService;
 use App\Services\Payments\CheckoutPaymentService;
 use App\Services\Payments\PaymentSettingsResolver;
 use App\Services\ProductVariantService;
+use App\Support\PhoneNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -126,6 +127,38 @@ class OrderController extends Controller
             abort(403);
         }
 
+        if ($this->isWhatsAppChannel($request)) {
+            $validated = $request->validate([
+                'phone' => ['required', 'string', 'max:20'],
+                'email' => ['nullable', 'email', 'max:255'],
+            ]);
+
+            $email = isset($validated['email']) ? strtolower(trim((string) $validated['email'])) : '';
+
+            try {
+                $this->customerAuthService->sendWhatsAppOtp($validated['phone']);
+            } catch (ValidationException $exception) {
+                $response = [
+                    'channel' => 'whatsapp',
+                    'message' => $email !== ''
+                        ? (collect($exception->errors())->flatten()->first()
+                            ?? __('We couldn\'t send your WhatsApp code. Please verify by email instead.'))
+                        : __('We couldn\'t send a verification code to this number. It may not be on WhatsApp — please check the number or try another one.'),
+                ];
+
+                if ($email !== '') {
+                    $response['fallback'] = 'email';
+                }
+
+                return response()->json($response, 422);
+            }
+
+            return response()->json([
+                'channel' => 'whatsapp',
+                'message' => __('We sent a verification code to your WhatsApp.'),
+            ]);
+        }
+
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255'],
         ]);
@@ -142,6 +175,7 @@ class OrderController extends Controller
         $this->customerAuthService->sendOtp($email);
 
         return response()->json([
+            'channel' => 'email',
             'message' => __('We sent a verification code to your email.'),
         ]);
     }
@@ -150,6 +184,24 @@ class OrderController extends Controller
     {
         if ($this->customerContext->effectiveCustomer() !== null) {
             abort(403);
+        }
+
+        if ($this->isWhatsAppChannel($request)) {
+            $validated = $request->validate([
+                'phone' => ['required', 'string', 'max:20'],
+                'code' => ['required', 'string', 'size:6'],
+            ]);
+
+            try {
+                $this->customerAuthService->verifyWhatsAppOtp($validated['phone'], $validated['code']);
+            } catch (ValidationException $exception) {
+                return response()->json([
+                    'message' => collect($exception->errors())->flatten()->first()
+                        ?? __('The code you entered is incorrect.'),
+                ], 422);
+            }
+
+            return response()->json(['verified' => true]);
         }
 
         $validated = $request->validate([
@@ -180,6 +232,11 @@ class OrderController extends Controller
             'authenticated' => true,
             'csrf_token' => csrf_token(),
         ]);
+    }
+
+    private function isWhatsAppChannel(Request $request): bool
+    {
+        return $request->input('channel') === 'whatsapp' && $this->customerAuthService->whatsappEnabled();
     }
 
     public function validateCoupon(Request $request, Product $product): JsonResponse
@@ -290,12 +347,25 @@ class OrderController extends Controller
         ];
 
         if ($customer === null) {
-            $this->customerAuthService->assertOtpVerifiedFor((string) $contact['guest_email']);
-            $customer = $this->customerAuthService->resolveCustomerForVerifiedEmail(
-                (string) $contact['guest_email'],
-                (string) $contact['guest_phone'],
-                (string) $contact['guest_name'],
-            );
+            $verifiedPhone = $this->customerAuthService->verifiedPhone();
+            $normalizedPhone = PhoneNormalizer::normalize((string) $contact['guest_phone']);
+
+            if ($verifiedPhone !== null && $normalizedPhone !== null && $verifiedPhone === $normalizedPhone) {
+                $this->customerAuthService->assertPhoneOtpVerifiedFor((string) $contact['guest_phone']);
+                $customer = $this->customerAuthService->resolveCustomerForVerifiedPhone(
+                    (string) $contact['guest_phone'],
+                    (string) $contact['guest_name'],
+                    ($contact['guest_email'] ?? null) !== null && $contact['guest_email'] !== '' ? (string) $contact['guest_email'] : null,
+                );
+            } else {
+                $this->customerAuthService->assertOtpVerifiedFor((string) $contact['guest_email']);
+                $customer = $this->customerAuthService->resolveCustomerForVerifiedEmail(
+                    (string) $contact['guest_email'],
+                    (string) $contact['guest_phone'],
+                    (string) $contact['guest_name'],
+                );
+            }
+
             $this->customerAuthService->loginCustomer($customer);
         }
 

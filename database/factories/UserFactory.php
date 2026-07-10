@@ -54,4 +54,18 @@ class UserFactory extends Factory
             $user->assignRole(Role::findByName('Customer', AuthGuards::STAFF));
         });
     }
+
+    /**
+     * Indicate the customer verified via WhatsApp (phone-only, no email).
+     */
+    public function whatsappVerified(): static
+    {
+        return $this->state(fn (array $attributes) => [
+            'email' => null,
+            'email_verified_at' => null,
+            'phone' => (string) fake()->numerify('9#########'),
+            'phone_verified_at' => now(),
+            'whatsapp_verified_at' => now(),
+        ]);
+    }
 }

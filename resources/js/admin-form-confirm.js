@@ -1,7 +1,9 @@
 import { confirmAction, confirmDelete } from './admin-swal';
 
 document.addEventListener('DOMContentLoaded', function () {
-    document.addEventListener('submit', function (event) {
+    document.addEventListener(
+        'submit',
+        function (event) {
         const form = event.target.closest('form[data-swal-confirm]');
         if (!form) {
             return;
@@ -39,5 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
             form.dataset.swalConfirmed = 'true';
             form.requestSubmit();
         });
-    });
+        },
+        true,
+    );
 });

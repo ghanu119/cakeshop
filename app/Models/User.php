@@ -102,6 +102,8 @@ class User extends Authenticatable
     {
         return [
             'email_verified_at' => 'datetime',
+            'phone_verified_at' => 'datetime',
+            'whatsapp_verified_at' => 'datetime',
             'email_claimed_at' => 'datetime',
             'deletion_requested_at' => 'datetime',
             'purged_at' => 'datetime',
@@ -161,6 +163,16 @@ class User extends Authenticatable
     public function hasEmail(): bool
     {
         return $this->email !== null && $this->email !== '';
+    }
+
+    public function isEmailVerified(): bool
+    {
+        return $this->hasEmail() && $this->email_verified_at !== null;
+    }
+
+    public function isWhatsAppVerified(): bool
+    {
+        return $this->whatsapp_verified_at !== null;
     }
 
     public function isPhoneOnly(): bool

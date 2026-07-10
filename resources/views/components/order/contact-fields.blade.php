@@ -8,7 +8,7 @@
     $contactPhone = old('guest_phone', $customer?->phone ?? '');
     $contactEmail = old('guest_email', $customer?->email ?? '');
     $isImpersonating = app(\App\Services\CustomerContext::class)->isImpersonating();
-    $emailRequired = ! $isImpersonating;
+    $emailRequired = ! $isImpersonating && ! whatsapp_login_enabled();
     $inputClass = $variant === 'checkout'
         ? 'w-full rounded-xl border border-stone-200 bg-stone-50/50 px-4 py-3 text-stone-900 focus:border-amber-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition-all shadow-sm'
         : 'block w-full';

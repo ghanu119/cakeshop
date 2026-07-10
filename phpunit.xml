@@ -28,6 +28,10 @@
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>
+        <env name="WHATSAPP_ENABLED" value="false"/>
+        <env name="WHATSAPP_TEST_MODE" value="false"/>
+        <env name="WHATSAPP_CUSTOMER_ORDER_NOTIFICATIONS" value="false"/>
+        <env name="WHATSAPP_ADMIN_NUMBER" value=""/>
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

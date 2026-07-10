@@ -2,6 +2,19 @@
 
 use App\Models\Product;
 
+if (! function_exists('whatsapp_login_enabled')) {
+    /**
+     * Whether WhatsApp OTP login/checkout is enabled and configured.
+     * Config-only (no database access) so it is safe to call from Blade.
+     */
+    function whatsapp_login_enabled(): bool
+    {
+        return (bool) config('services.whatsapp.enabled')
+            && ! empty(config('services.whatsapp.phone_number_id'))
+            && ! empty(config('services.whatsapp.access_token'));
+    }
+}
+
 if (! function_exists('whatsapp_url_for_contact')) {
     /**
      * Build a WhatsApp chat URL from a phone/contact string and optional pre-filled message.

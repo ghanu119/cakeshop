@@ -1,6 +1,9 @@
 @extends('layouts.app')
 
 @section('content')
+@push('scripts')
+    @vite('resources/js/account-otp.js')
+@endpush
 <div class="mx-auto max-w-xl px-4 py-8 sm:px-6 lg:px-8">
     <header class="mb-6">
         <a href="{{ route('account.dashboard') }}" class="text-sm text-stone-600 hover:underline">{{ __('← Account') }}</a>
@@ -18,11 +21,7 @@
                 <x-input type="text" name="name" id="name" value="{{ old('name', $customer->name) }}" class="block w-full" required />
                 @error('name')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
             </div>
-            <div>
-                <label class="mb-1 block text-sm font-medium text-stone-700">{{ __('Email') }}</label>
-                <x-input type="email" value="{{ $customer->email ?? __('Not added yet') }}" class="block w-full bg-stone-50" disabled />
-                <p class="mt-1 text-xs text-stone-500">{{ __('Contact the store to update your email.') }}</p>
-            </div>
+            <livewire:account.profile-email-verification />
             <div>
                 <label class="mb-1 block text-sm font-medium text-stone-700">{{ __('Phone') }}</label>
                 <x-input type="text" value="{{ $customer->phone }}" class="block w-full bg-stone-50" disabled />
@@ -92,7 +91,17 @@
     <x-card class="border-red-200">
         <h2 class="text-lg font-semibold text-red-900">{{ __('Delete my account') }}</h2>
         <p class="mt-2 text-sm text-stone-600">{{ __('Orders on this account will no longer be accessible to you. This cannot be undone from the website.') }}</p>
-        <form method="post" action="{{ route('account.profile.destroy') }}" class="mt-4" onsubmit="return confirm(@json(__('Are you sure you want to delete your account?')));">
+        <form
+            method="post"
+            action="{{ route('account.profile.destroy') }}"
+            class="mt-4"
+            data-swal-confirm
+            data-swal-confirm-variant="danger"
+            data-swal-confirm-title="{{ __('Are you sure you want to delete your account?') }}"
+            data-swal-confirm-text="{{ __('Orders on this account will no longer be accessible to you. This cannot be undone from the website.') }}"
+            data-swal-confirm-yes="{{ __('Yes, delete my account') }}"
+            data-swal-confirm-no="{{ __('Cancel') }}"
+        >
             @csrf
             @method('DELETE')
             <x-button type="submit" variant="danger">{{ __('Delete my account') }}</x-button>

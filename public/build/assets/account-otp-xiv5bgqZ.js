@@ -1,0 +1,1 @@
+import"./admin-form-confirm-ByEa3BEb.js";import"./admin-swal-SKDSaTEx.js";document.addEventListener("DOMContentLoaded",()=>{const t=document.querySelector("[data-otp-input]");t&&t.addEventListener("input",e=>{e.target.value=e.target.value.replace(/\D/g,"").slice(0,6)})});

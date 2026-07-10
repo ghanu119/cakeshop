@@ -1,3 +1,5 @@
+import './admin-form-confirm';
+
 document.addEventListener('DOMContentLoaded', () => {
     const input = document.querySelector('[data-otp-input]');
     if (input) {

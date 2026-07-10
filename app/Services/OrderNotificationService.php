@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Jobs\SendOrderNotificationMail;
+use App\Jobs\SendWhatsAppNotification;
 use App\Mail\NewOrderNotification;
 use App\Mail\OrderConfirmation;
 use App\Mail\OrderStatusUpdated;
@@ -33,6 +34,9 @@ class OrderNotificationService
         }
 
         $this->inAppOrderNotificationService->notifyAdmins(new NewOrderAdminNotification($order));
+
+        $this->whatsappToCustomer($order, __('Order received'));
+        $this->whatsappToAdmin($order, __('New order'));
     }
 
     public function notifyPaymentSubmitted(Order $order, bool $isUpdate = false): void
@@ -53,6 +57,8 @@ class OrderNotificationService
 
         $this->sendToCustomer($order, new PaymentVerifiedNotification($order));
 
+        $this->whatsappToCustomer($order, __('Payment verified'));
+
         if ($order->isDeliveryToday()) {
             $this->inAppOrderNotificationService->notifyKitchen(
                 new KitchenPaymentVerifiedTodayNotification($order)
@@ -69,6 +75,8 @@ class OrderNotificationService
         $order->loadMissing('product');
 
         $this->sendToCustomer($order, new OrderStatusUpdated($order, $previousStatus));
+
+        $this->whatsappToCustomer($order, $order->orderStatusLabel());
 
         if ($order->order_status === 'completed') {
             $this->inAppOrderNotificationService->notifyAdmins(
@@ -99,6 +107,52 @@ class OrderNotificationService
     {
         try {
             SendOrderNotificationMail::dispatch($recipient, $mailable);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    private function whatsappToCustomer(Order $order, string $statusText): void
+    {
+        if (! whatsapp_login_enabled() || ! config('services.whatsapp.customer_order_notifications')) {
+            return;
+        }
+
+        if (empty($order->guest_phone)) {
+            return;
+        }
+
+        $this->dispatchWhatsApp((string) $order->guest_phone, $order, $statusText);
+    }
+
+    private function whatsappToAdmin(Order $order, string $statusText): void
+    {
+        if (! whatsapp_login_enabled()) {
+            return;
+        }
+
+        $adminNumber = config('services.whatsapp.admin_number');
+
+        if (empty($adminNumber)) {
+            return;
+        }
+
+        $this->dispatchWhatsApp((string) $adminNumber, $order, $statusText);
+    }
+
+    private function dispatchWhatsApp(string $phone, Order $order, string $statusText): void
+    {
+        try {
+            SendWhatsAppNotification::dispatch(
+                $phone,
+                (string) config('services.whatsapp.order_template', 'order_update'),
+                (string) config('services.whatsapp.order_template_lang', 'en_US'),
+                [
+                    (string) ($order->guest_name ?: __('Customer')),
+                    (string) $order->order_no,
+                    $statusText,
+                ],
+            );
         } catch (\Throwable $e) {
             report($e);
         }

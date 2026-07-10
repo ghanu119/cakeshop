@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const cashDisplay = document.querySelector('[data-in-store-cash-display]');
     const balanceDueDisplay = document.querySelector('[data-in-store-balance-due]');
     const orderTotalDisplay = document.querySelector('[data-in-store-order-total]');
+    const channelButtons = modal.querySelectorAll('[data-otp-channel]');
     const sendOtpUrl = modal.dataset.sendOtpUrl;
     const verifyOtpUrl = modal.dataset.verifyOtpUrl;
     const otpRequiredMessage = modal.dataset.otpRequiredMessage ?? 'Please enter the 6-digit verification code.';
@@ -348,6 +349,13 @@ document.addEventListener('DOMContentLoaded', function () {
             setPlaceOrderButtonLoading(form, false);
         }
     }
+    const whatsappEnabled = modal.dataset.whatsappEnabled === '1';
+    const otpStatusEmail = modal.dataset.otpStatusEmail ?? 'Enter the verification code we sent to your email.';
+    const otpStatusWhatsapp = modal.dataset.otpStatusWhatsapp ?? 'Enter the verification code we sent to your WhatsApp.';
+    const otpMissingEmail = modal.dataset.otpMissingEmail ?? 'Please add an email address to verify by email.';
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
+
+    let otpChannel = 'email';
 
     function getPlaceOrderButton(form) {
         return form.querySelector('button[type="submit"]');
@@ -444,6 +452,14 @@ document.addEventListener('DOMContentLoaded', function () {
         return getGuestContact(form).guest_email;
     }
 
+    function hasGuestEmail(form) {
+        return Boolean(getGuestEmail(form));
+    }
+
+    function getGuestPhone(form) {
+        return getGuestContact(form).guest_phone;
+    }
+
     function markCheckoutAuthenticated(form) {
         form.removeAttribute('data-guest-checkout');
 
@@ -535,6 +551,42 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function updateChannelToggleVisibility(form) {
+        const emailBtn = modal.querySelector('[data-otp-channel="email"]');
+        if (!emailBtn) {
+            return;
+        }
+
+        if (hasGuestEmail(form)) {
+            emailBtn.classList.remove('hidden');
+            emailBtn.disabled = false;
+        } else {
+            emailBtn.classList.add('hidden');
+            if (otpChannel === 'email') {
+                setChannel(whatsappEnabled && getGuestPhone(form) ? 'whatsapp' : 'email');
+            }
+        }
+    }
+
+    function updateChannelButtons() {
+        channelButtons.forEach((btn) => {
+            const active = btn.dataset.otpChannel === otpChannel;
+            btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+            btn.classList.toggle('bg-white', active);
+            btn.classList.toggle('shadow', active);
+            btn.classList.toggle('text-stone-900', active);
+            btn.classList.toggle('text-stone-500', !active);
+        });
+    }
+
+    function setChannel(channel) {
+        otpChannel = whatsappEnabled && channel === 'whatsapp' ? 'whatsapp' : 'email';
+        updateChannelButtons();
+        if (otpStatus) {
+            otpStatus.textContent = otpChannel === 'whatsapp' ? otpStatusWhatsapp : otpStatusEmail;
+        }
+    }
+
     async function postJsonLocal(url, payload, retryOnCsrf = true) {
         const response = await fetch(url, {
             method: 'POST',
@@ -559,20 +611,44 @@ document.addEventListener('DOMContentLoaded', function () {
             const message = (nestedErrors ? Object.values(nestedErrors).flat()[0] : null)
                 || data.message
                 || 'Request failed';
-            throw new Error(message);
+            const error = new Error(message);
+            error.data = data;
+            throw error;
         }
 
         return data;
     }
 
-    async function sendCheckoutOtp(email) {
-        const data = await postJsonLocal(sendOtpUrl, { email });
+    async function sendCheckoutOtp(form) {
+        const email = getGuestEmail(form);
+        const payload = otpChannel === 'whatsapp'
+            ? {
+                channel: 'whatsapp',
+                phone: getGuestPhone(form),
+                ...(email ? { email } : {}),
+            }
+            : { channel: 'email', email };
+
+        const data = await postJsonLocal(sendOtpUrl, payload);
+
         if (otpStatus && data.message) {
             otpStatus.textContent = data.message;
         }
+
+        return data;
     }
 
-    async function verifyCheckoutOtp(email, code, form) {
+    async function verifyCheckoutOtp(form, code) {
+        if (otpChannel === 'whatsapp') {
+            await postJsonLocal(verifyOtpUrl, {
+                channel: 'whatsapp',
+                phone: getGuestPhone(form),
+                code,
+            });
+
+            return;
+        }
+
         const contact = getGuestContact(form);
 
         if (! contact.guest_name || ! contact.guest_phone) {
@@ -580,7 +656,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const data = await postJsonLocal(verifyOtpUrl, {
-            email,
+            channel: 'email',
+            email: getGuestEmail(form),
             code,
             guest_name: contact.guest_name,
             guest_phone: contact.guest_phone,
@@ -750,7 +827,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    async function prepareGuestOtp(form) {
+    async function requestOtp(form) {
         if (!otpSection || !otpInput) {
             return;
         }
@@ -759,8 +836,16 @@ document.addEventListener('DOMContentLoaded', function () {
         otpInput.value = '';
         clearOtpError();
 
-        const email = getGuestEmail(form);
-        if (!email || otpSending) {
+        if (otpChannel === 'email' && !getGuestEmail(form)) {
+            showOtpError(otpMissingEmail);
+            return;
+        }
+
+        if (otpChannel === 'whatsapp' && !getGuestPhone(form)) {
+            return;
+        }
+
+        if (otpSending) {
             return;
         }
 
@@ -769,13 +854,41 @@ document.addEventListener('DOMContentLoaded', function () {
             otpStatus.textContent = otpSendingMessage;
         }
 
+        let fallbackToEmail = false;
+
         try {
-            await sendCheckoutOtp(email);
+            const data = await sendCheckoutOtp(form);
+            if (otpStatus && data?.message) {
+                otpStatus.textContent = data.message;
+            }
         } catch (error) {
             showOtpError(error.message);
+            if (whatsappEnabled && otpChannel === 'whatsapp' && error?.data?.fallback === 'email' && hasGuestEmail(form)) {
+                fallbackToEmail = true;
+            }
         } finally {
             otpSending = false;
         }
+
+        if (fallbackToEmail) {
+            setChannel('email');
+            if (getGuestEmail(form)) {
+                await requestOtp(form);
+            }
+        }
+    }
+
+    async function prepareGuestOtp(form) {
+        if (!otpSection || !otpInput) {
+            return;
+        }
+
+        const defaultChannel = whatsappEnabled && getGuestPhone(form)
+            ? 'whatsapp'
+            : (hasGuestEmail(form) ? 'email' : 'whatsapp');
+        setChannel(defaultChannel);
+        updateChannelToggleVisibility(form);
+        await requestOtp(form);
     }
 
     function openModal(form) {
@@ -798,6 +911,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (otpSection) {
             if (guest) {
                 otpSection.classList.remove('hidden');
+                updateChannelToggleVisibility(form);
                 void prepareGuestOtp(form);
             } else {
                 otpSection.classList.add('hidden');
@@ -891,6 +1005,35 @@ document.addEventListener('DOMContentLoaded', function () {
         );
     });
 
+    channelButtons.forEach((btn) => {
+        btn.addEventListener('click', async function () {
+            if (!activeForm) {
+                return;
+            }
+
+            const channel = btn.dataset.otpChannel;
+            if (channel === otpChannel) {
+                return;
+            }
+
+            if (channel === 'email' && !hasGuestEmail(activeForm)) {
+                showOtpError(otpMissingEmail);
+                return;
+            }
+
+            setChannel(channel);
+            await requestOtp(activeForm);
+        });
+    });
+
+    document.addEventListener('input', (event) => {
+        if (!activeForm || event.target?.id !== 'guest_email') {
+            return;
+        }
+
+        updateChannelToggleVisibility(activeForm);
+    });
+
     submitBtn?.addEventListener('click', async function () {
         if (!activeForm || modalLocked) {
             return;
@@ -900,7 +1043,6 @@ document.addEventListener('DOMContentLoaded', function () {
         clearReviewError();
 
         if (isGuestCheckout(activeForm)) {
-            const email = getGuestEmail(activeForm);
             const code = otpInput?.value?.trim() ?? '';
 
             if (code.length !== 6) {
@@ -912,7 +1054,7 @@ document.addEventListener('DOMContentLoaded', function () {
             setSubmitLoading(true);
 
             try {
-                await verifyCheckoutOtp(email, code, activeForm);
+                await verifyCheckoutOtp(activeForm, code);
                 markCheckoutAuthenticated(activeForm);
             } catch (error) {
                 setSubmitLoading(false);
@@ -946,16 +1088,7 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        clearOtpError();
-        if (otpInput) {
-            otpInput.value = '';
-        }
-
-        try {
-            await sendCheckoutOtp(getGuestEmail(activeForm));
-        } catch (error) {
-            showOtpError(error.message);
-        }
+        await requestOtp(activeForm);
     });
 
     cancelBtn?.addEventListener('click', () => {

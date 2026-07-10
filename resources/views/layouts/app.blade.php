@@ -226,6 +226,10 @@
         <script>
             document.querySelectorAll('form').forEach(function(form) {
                 form.addEventListener('submit', function() {
+                    if (form.hasAttribute('data-swal-confirm') && form.dataset.swalConfirmed !== 'true') {
+                        return;
+                    }
+
                     var btn = form.querySelector('button[type="submit"], input[type="submit"]');
                     if (btn && !btn.disabled) {
                         btn.disabled = true;

@@ -45,6 +45,20 @@
         <dl class="grid gap-3 sm:grid-cols-2">
             <div><dt class="text-xs text-gray-500">{{ __('Email') }}</dt><dd class="font-medium">{{ $customer->email ?? __('No email yet') }}</dd></div>
             <div><dt class="text-xs text-gray-500">{{ __('Phone') }}</dt><dd class="font-medium">{{ $customer->phone ?? '—' }}</dd></div>
+            <div class="sm:col-span-2">
+                <dt class="text-xs text-gray-500">{{ __('Verification') }}</dt>
+                <dd class="mt-1 flex flex-wrap gap-2">
+                    @if($customer->isWhatsAppVerified())
+                        <x-badge variant="success">{{ __('WhatsApp verified') }}</x-badge>
+                    @endif
+                    @if($customer->isEmailVerified())
+                        <x-badge variant="success">{{ __('Email verified') }}</x-badge>
+                    @endif
+                    @unless($customer->isWhatsAppVerified() || $customer->isEmailVerified())
+                        <x-badge variant="warning">{{ __('Not verified') }}</x-badge>
+                    @endunless
+                </dd>
+            </div>
             <div><dt class="text-xs text-gray-500">{{ __('Gender') }}</dt><dd>{{ $customer->genderLabel() ?? '—' }}</dd></div>
             <div><dt class="text-xs text-gray-500">{{ __('Birthday') }}</dt><dd>{{ $customer->birth_day && $customer->birth_month ? $customer->birth_day.' / '.$customer->birth_month : '—' }}</dd></div>
             <div><dt class="text-xs text-gray-500">{{ __('Anniversary') }}</dt><dd>{{ $customer->anniversary_day && $customer->anniversary_month ? $customer->anniversary_day.' / '.$customer->anniversary_month : '—' }}</dd></div>

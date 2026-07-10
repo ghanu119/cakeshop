@@ -122,6 +122,39 @@ class CustomerAuthTest extends TestCase
         $this->assertGuest(AuthGuards::STAFF);
     }
 
+    public function test_invalid_email_is_rejected_on_send_otp(): void
+    {
+        Mail::fake();
+
+        Livewire::test(AuthModal::class)
+            ->set('channel', 'email')
+            ->set('email', 'not-an-email')
+            ->call('sendOtp')
+            ->assertHasErrors('email');
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_email_sign_up_profile_rejects_invalid_phone(): void
+    {
+        Mail::fake();
+        $email = 'profilephone@example.com';
+        $code = $this->sendAndCaptureOtp($email);
+
+        Livewire::test(AuthModal::class)
+            ->set('channel', 'email')
+            ->set('email', $email)
+            ->set('code', $code)
+            ->call('verifyOtp')
+            ->assertSet('step', 'profile')
+            ->set('name', 'Test User')
+            ->set('phone', '12345')
+            ->call('completeProfile')
+            ->assertHasErrors('phone');
+
+        $this->assertGuest(AuthGuards::CUSTOMER);
+    }
+
     public function test_legacy_login_route_redirects_with_auth_flag(): void
     {
         $this->get(route('account.login'))
@@ -154,7 +187,7 @@ class CustomerAuthTest extends TestCase
             ->set('step', 'otp')
             ->set('code', '123456')
             ->dispatch('close-modal', 'customer-auth-modal')
-            ->assertSet('step', 'email')
+            ->assertSet('step', 'contact')
             ->assertSet('email', '')
             ->assertSet('code', '');
     }
