@@ -38,6 +38,11 @@
             <p class="line-clamp-2 text-sm font-semibold leading-snug text-gray-900 group-hover:text-indigo-800">
                 {{ $order->displayProductName() }}
             </p>
+            @include('order.partials._order-options', [
+                'order' => $order,
+                'weightClass' => 'text-xs text-amber-700',
+                'flavorClass' => 'text-xs font-semibold text-rose-700',
+            ])
             <div class="mt-2 flex flex-wrap items-center gap-1.5">
                 @include('kitchen.orders.partials._days-until-delivery-badge', ['order' => $order])
                 <x-badge :variant="$statusVariant" class="capitalize">{{ $order->order_status }}</x-badge>

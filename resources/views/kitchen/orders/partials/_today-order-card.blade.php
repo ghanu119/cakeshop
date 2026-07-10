@@ -46,13 +46,15 @@
         <h3 class="line-clamp-2 font-semibold leading-snug text-gray-900 transition group-hover:text-indigo-700">
             {{ $order->displayProductName() }}
         </h3>
-        <div class="mt-2 flex flex-wrap items-center gap-2 text-xs text-gray-500">
-            <span class="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 font-medium text-gray-700">
+        <div class="mt-2 space-y-1">
+            <span class="inline-flex items-center rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-700">
                 {{ __('Qty') }} {{ $order->quantity }}
             </span>
-            @if($order->hasVariantSnapshot() || $order->hasFlavorSnapshot())
-                <span class="truncate">{{ $order->variant_summary ?: $order->displayFlavorName() }}</span>
-            @endif
+            @include('order.partials._order-options', [
+                'order' => $order,
+                'weightClass' => 'text-xs text-amber-700',
+                'flavorClass' => 'text-xs font-semibold text-rose-700',
+            ])
         </div>
     </div>
 

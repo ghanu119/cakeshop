@@ -149,6 +149,40 @@ class KitchenDashboardTest extends TestCase
         $response->assertSee(route('admin.kitchen.orders.upcoming'), false);
     }
 
+    public function test_kitchen_dashboard_shows_flavor_on_today_and_upcoming_cards(): void
+    {
+        $kitchen = $this->kitchenUser();
+        $product = Product::factory()->create();
+
+        $todayOrder = Order::factory()
+            ->verified()
+            ->for($product)
+            ->create([
+                'delivery_at' => $this->todayDeliveryAt(),
+                'variant_summary' => '1 kg',
+                'flavor_name' => 'Vanilla',
+            ]);
+
+        $upcomingOrder = Order::factory()
+            ->verified()
+            ->for($product)
+            ->create([
+                'delivery_at' => Carbon::now('Asia/Kolkata')->addDay()->addHours(4)->utc(),
+                'flavor_name' => 'Chocolate',
+            ]);
+
+        $response = $this->actingAs($kitchen)->get(route('admin.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee(__('Flavor'), false);
+        $response->assertSee('Vanilla', false);
+        $response->assertSee('Chocolate', false);
+        $response->assertSee(__('Weight'), false);
+        $response->assertSee('1 kg', false);
+        $response->assertSee($todayOrder->displayProductName(), false);
+        $response->assertSee($upcomingOrder->displayProductName(), false);
+    }
+
     public function test_upcoming_preview_respects_limit_of_six(): void
     {
         $kitchen = $this->kitchenUser();
@@ -188,10 +222,9 @@ class KitchenDashboardTest extends TestCase
         return $kitchen;
     }
 
-    private function verifiedOrderToday(): Order
+    private function todayDeliveryAt(): Carbon
     {
         $tz = 'Asia/Kolkata';
-        $product = Product::factory()->create();
         $now = Carbon::now($tz);
         $deliveryAt = $now->copy()->addHours(6);
 
@@ -199,11 +232,18 @@ class KitchenDashboardTest extends TestCase
             $deliveryAt = $now->copy()->endOfDay()->subHours(2);
         }
 
+        return $deliveryAt->utc();
+    }
+
+    private function verifiedOrderToday(): Order
+    {
+        $product = Product::factory()->create();
+
         return Order::factory()
             ->verified()
             ->for($product)
             ->create([
-                'delivery_at' => $deliveryAt->utc(),
+                'delivery_at' => $this->todayDeliveryAt(),
             ]);
     }
 
