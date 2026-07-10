@@ -7,8 +7,6 @@
     $hasVariants = $hasVariants ?? false;
     $hasFlavors = $hasFlavors ?? false;
     $variantChoices = $variantChoices ?? collect();
-    $initialFlavorId = old('flavor_id', $product->flavors->first()?->id);
-    $initialFlavorName = $product->flavors->firstWhere('id', (int) $initialFlavorId)?->name_en ?? '';
     $initialFulfillmentType = old('fulfillment_type', 'takeaway');
 @endphp
 
@@ -27,7 +25,7 @@
         @if($hasVariants)
             <p class="mb-2 text-sm font-medium text-gray-700">{{ __('Estimated total') }}: <span id="order-estimated-total">{{ $symbol }}{{ number_format($product->price, 2) }}</span></p>
         @endif
-        <form method="post" action="{{ route('order.store', $product) }}" class="space-y-4" @if(!$customer) data-guest-checkout @endif @if($isImpersonating ?? false) data-order-place-confirm @endif>
+        <form method="post" action="{{ route('order.store', $product) }}" class="space-y-4" @if(!$customer) data-guest-checkout @endif @if(!empty($hasFlavors)) data-has-flavors @endif @if($isImpersonating ?? false) data-order-place-confirm @endif>
             @csrf
             @if($isImpersonating ?? false)
                 <input type="hidden" name="cash_received" id="cash_received" value="{{ old('cash_received', '0') }}" />

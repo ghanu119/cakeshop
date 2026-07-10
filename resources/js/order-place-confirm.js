@@ -2,6 +2,11 @@ import {
     extractApiValidationError,
     validateCouponsForCheckout,
 } from './order-checkout-validate';
+import {
+    validateFlavorSelection,
+    setFlavorError,
+    scrollToFlavorPicker,
+} from './flavor-picker';
 import { getCsrfToken, refreshCsrfToken, applyCsrfToken } from './csrf-token';
 import {
     escapeHtml,
@@ -124,6 +129,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (field === 'coupon_code') {
             notifyCouponInvalid(message);
+        }
+
+        if (field === 'flavor_id') {
+            setFlavorError(form, message);
+            scrollToFlavorPicker(form);
+            return;
+        }
+
+        const fieldEl = field ? form.querySelector(`#${CSS.escape(field)}`) : null;
+        if (fieldEl) {
+            fieldEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            fieldEl.focus({ preventScroll: true });
+            return;
         }
 
         scrollToPlaceOrderError(form);
@@ -319,6 +337,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function tryOpenCheckoutModal(form) {
         clearPlaceOrderError(form);
+
+        const flavorResult = validateFlavorSelection(form);
+        if (!flavorResult.ok) {
+            showPlaceOrderError(form, flavorResult.message);
+            setFlavorError(form, flavorResult.message);
+            scrollToFlavorPicker(form);
+            return;
+        }
+
+        setFlavorError(form, null);
         setPlaceOrderButtonLoading(form, true);
 
         try {
@@ -386,9 +414,9 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function getFlavorLabel(form) {
-        const summary = document.getElementById('order-summary-flavor');
-        if (summary?.textContent?.trim()) {
-            return summary.textContent.trim();
+        const hiddenInput = form.querySelector('#flavor_id');
+        if (!hiddenInput?.value?.trim()) {
+            return '';
         }
 
         const picker = form.querySelector('[data-flavor-picker]');

@@ -1,6 +1,8 @@
 export function extractApiValidationError(payload) {
-    if (payload?.errors && typeof payload.errors === 'object') {
-        const entries = Object.entries(payload.errors);
+    const errors = payload?.data?.errors ?? payload?.errors;
+
+    if (errors && typeof errors === 'object') {
+        const entries = Object.entries(errors);
 
         if (entries.length > 0) {
             const [field, messages] = entries[0];

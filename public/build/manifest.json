@@ -32,6 +32,10 @@
       "_index-C0Zqfgkc.js"
     ]
   },
+  "_flavor-picker-Cnol9zBG.js": {
+    "file": "assets/flavor-picker-Cnol9zBG.js",
+    "name": "flavor-picker"
+  },
   "_index-C0Zqfgkc.js": {
     "file": "assets/index-C0Zqfgkc.js",
     "name": "index"
@@ -83,7 +87,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-uPON0Fak.css",
+    "file": "assets/app-BYIpxi4O.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -187,12 +191,13 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-vMQjUZYS.js",
+    "file": "assets/app-urRXYh25.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
     "imports": [
       "_bootstrap-BZN5sx2X.js",
+      "_flavor-picker-Cnol9zBG.js",
       "_jquery-BI420F6r.js",
       "__commonjsHelpers-CqkleIqs.js",
       "resources/js/product-gallery.js",
@@ -240,11 +245,12 @@
     "isEntry": true
   },
   "resources/js/order-place-confirm.js": {
-    "file": "assets/order-place-confirm-BxASG5Qg.js",
+    "file": "assets/order-place-confirm-Bc6RE0Lu.js",
     "name": "order-place-confirm",
     "src": "resources/js/order-place-confirm.js",
     "isEntry": true,
     "imports": [
+      "_flavor-picker-Cnol9zBG.js",
       "_order-razorpay-core-ByVC20oG.js"
     ]
   },

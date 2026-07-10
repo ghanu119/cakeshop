@@ -29,6 +29,20 @@
             color: #9f1239 !important;
             font-weight: 600;
         }
+        .flavor-picker.flavor-picker--error {
+            outline: 2px solid #ef4444;
+            outline-offset: 4px;
+            border-radius: 0.5rem;
+            padding: 0.25rem;
+        }
+        .flavor-picker.flavor-picker--error [data-flavor-id] {
+            border-color: #fca5a5;
+        }
+        [data-flavor-summary].is-empty {
+            border-style: dashed;
+            border-color: #fda4af;
+            background-color: #fff1f2;
+        }
         .fulfillment-picker [data-fulfillment-type][aria-pressed="true"] {
             background-color: #f0fdfa !important;
             border-color: #14b8a6 !important;

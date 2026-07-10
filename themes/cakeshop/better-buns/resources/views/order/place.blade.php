@@ -10,8 +10,10 @@
     $variantChoices = $variantChoices ?? collect();
     $initialVariantId = (int) old('product_variant_id', request('product_variant_id', $defaultVariant?->id));
     $summaryWeightLabel = ($variantChoices->firstWhere('id', $initialVariantId) ?? $variantChoices->first())['label'] ?? '';
-    $initialFlavorId = old('flavor_id', $product->flavors->first()?->id);
-    $summaryFlavorLabel = $product->flavors->firstWhere('id', (int) $initialFlavorId)?->name_en ?? '';
+    $initialFlavorId = old('flavor_id');
+    $summaryFlavorLabel = $initialFlavorId
+        ? ($product->flavors->firstWhere('id', (int) $initialFlavorId)?->name_en ?? '')
+        : '';
     $initialFulfillmentType = old('fulfillment_type', 'takeaway');
 @endphp
 
@@ -170,11 +172,18 @@
                         @if(!empty($hasFlavors) && $product->flavors->isNotEmpty())
                         <div class="mt-6 pt-6 border-t border-rose-200/70" aria-live="polite" aria-atomic="true">
                             <p class="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-rose-600 mb-2.5">{{ __('Selected flavor') }}</p>
-                            <div class="flex items-center gap-3 rounded-xl border border-rose-200/80 bg-rose-50/80 px-3 py-2.5">
+                            <div
+                                data-flavor-summary
+                                class="flex items-center gap-3 rounded-xl border border-rose-200/80 bg-rose-50/80 px-3 py-2.5 @if(!$summaryFlavorLabel) is-empty @endif"
+                            >
                                 <span class="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500 text-white shrink-0" aria-hidden="true">
                                     <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg>
                                 </span>
-                                <span id="order-summary-flavor" class="text-base font-bold text-rose-900">{{ $summaryFlavorLabel }}</span>
+                                <span
+                                    id="order-summary-flavor"
+                                    data-flavor-placeholder="{{ __('Select a flavor') }}"
+                                    class="text-base @if($summaryFlavorLabel) font-bold text-rose-900 @else italic text-rose-400 @endif"
+                                >{{ $summaryFlavorLabel ?: __('Select a flavor') }}</span>
                             </div>
                         </div>
                         @endif

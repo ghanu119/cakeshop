@@ -89,6 +89,33 @@ class OrderFlavorTest extends TestCase
         $this->assertSame(750.0, (float) $order->amount);
     }
 
+    public function test_place_page_does_not_preselect_flavor(): void
+    {
+        $category = Category::factory()->create();
+        $product = Product::factory()->create(['category_id' => $category->id, 'status' => 'active']);
+        $flavorA = Flavor::factory()->create(['slug' => 'chocolate', 'name_en' => 'Chocolate']);
+        $flavorB = Flavor::factory()->create(['slug' => 'vanilla', 'name_en' => 'Vanilla']);
+        $product->flavors()->attach($flavorA->id, ['sort_order' => 0]);
+        $product->flavors()->attach($flavorB->id, ['sort_order' => 1]);
+
+        $response = $this->actingAs($this->createStorefrontCustomer())
+            ->get(route('order.place', $product));
+
+        $response->assertOk();
+        $response->assertSee('data-has-flavors', false);
+        $response->assertSee('data-flavor-required', false);
+        $html = $response->getContent();
+        $this->assertMatchesRegularExpression('/id="flavor_id"[^>]*value=""/', $html);
+        $this->assertStringNotContainsString(
+            'data-flavor-id="'.$flavorA->id.'" aria-pressed="true"',
+            preg_replace('/\s+/', ' ', $html),
+        );
+        $this->assertStringNotContainsString(
+            'data-flavor-id="'.$flavorB->id.'" aria-pressed="true"',
+            preg_replace('/\s+/', ' ', $html),
+        );
+    }
+
     /**
      * @return array<string, mixed>
      */
