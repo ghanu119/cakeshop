@@ -68,7 +68,7 @@ class OrderProductImagePreviewTest extends TestCase
         $response->assertSee('data-image-lightbox-items', false);
         $response->assertSee(__('Product reference'), false);
         $response->assertSee('admin-product-ref-gallery__thumb', false);
-        $response->assertSee('admin-product-ref-gallery w-full', false);
+        $response->assertSee('admin-product-ref-gallery max-w-md', false);
 
         $content = $response->getContent();
         $productRefPos = strpos($content, (string) __('Product reference'));

@@ -23,11 +23,7 @@
         <h4 class="mb-4 text-xs font-bold uppercase tracking-wider text-gray-400">{{ __('Product reference') }}</h4>
 
         <div
-            @class([
-                'admin-product-ref-gallery',
-                'max-w-md' => ! $prominent,
-                'w-full' => $prominent,
-            ])
+            class="admin-product-ref-gallery max-w-md"
             data-image-lightbox-items='@json($lightboxItems)'
         >
             @php $primary = $galleryImages->first(); @endphp
@@ -37,16 +33,12 @@
                 data-gallery-index="0"
                 data-full-src="{{ $primary['full'] }}"
                 data-alt="{{ $order->displayProductName() }}"
-                class="js-admin-ref-main group block w-full cursor-zoom-in overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm ring-1 ring-gray-900/5 transition hover:border-indigo-200 hover:ring-indigo-200/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                class="js-admin-ref-main group block aspect-square w-full cursor-zoom-in overflow-hidden rounded-xl border border-gray-200 bg-gray-50 shadow-sm ring-1 ring-gray-900/5 transition hover:border-indigo-200 hover:ring-indigo-200/50 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
             >
                 <img
                     src="{{ $prominent ? $primary['full'] : $primary['medium'] }}"
                     alt="{{ $order->displayProductName() }}"
-                    @class([
-                        'js-admin-ref-main-img w-full object-cover transition duration-200 group-hover:opacity-95',
-                        'aspect-[4/3]' => ! $prominent,
-                        'max-h-[min(70vh,36rem)]' => $prominent,
-                    ])
+                    class="js-admin-ref-main-img h-full w-full object-contain transition duration-200 group-hover:opacity-95"
                 />
             </button>
 
