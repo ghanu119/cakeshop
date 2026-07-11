@@ -6,3 +6,4 @@ import './order-verify-payment';
 import './order-record-cash-payment';
 import './admin-notifications';
 import './admin-settings-notifications';
+import './admin-sidebar';

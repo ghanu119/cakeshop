@@ -302,24 +302,24 @@
                             </div>
                             <div class="flex items-center">
                                 <div class="w-40 shrink-0 text-gray-500">{{ __('Unit Price') }}</div>
-                                <div class="font-medium text-gray-900">₹ {{ number_format($order->displayUnitPrice(), 2) }}</div>
+                                <div class="shrink-0 whitespace-nowrap font-medium text-gray-900">₹ {{ number_format($order->displayUnitPrice(), 2) }}</div>
                             </div>
                         </div>
 
                         @if($order->hasDiscount())
-                            <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-4 text-sm">
-                                <span class="text-gray-500">{{ __('Subtotal') }}</span>
-                                <span class="font-medium text-gray-900">₹ {{ number_format($order->displaySubtotal(), 2) }}</span>
+                            <div class="mt-4 flex items-center justify-between gap-3 border-t border-gray-100 pt-4 text-sm">
+                                <span class="min-w-0 text-gray-500">{{ __('Subtotal') }}</span>
+                                <span class="shrink-0 whitespace-nowrap font-medium text-gray-900">₹ {{ number_format($order->displaySubtotal(), 2) }}</span>
                             </div>
-                            <div class="mt-2 flex items-center justify-between text-sm text-green-700">
-                                <span>{{ __('Discount') }}@if($order->coupon_label) ({{ $order->coupon_label }})@endif</span>
-                                <span>−₹ {{ number_format((float) $order->discount_amount, 2) }}</span>
+                            <div class="mt-2 flex items-center justify-between gap-3 text-sm text-green-700">
+                                <span class="min-w-0">{{ __('Discount') }}@if($order->coupon_label) ({{ $order->coupon_label }})@endif</span>
+                                <span class="shrink-0 whitespace-nowrap">−₹ {{ number_format((float) $order->discount_amount, 2) }}</span>
                             </div>
                         @endif
 
-                        <div class="mt-4 flex items-center justify-between border-t border-gray-100 pt-4">
+                        <div class="mt-4 flex items-center justify-between gap-3 border-t border-gray-100 pt-4">
                             <span class="font-bold text-gray-900">{{ __('Total') }}</span>
-                            <span class="text-xl font-bold text-indigo-600">₹ {{ number_format($order->amount, 2) }}</span>
+                            <span class="shrink-0 whitespace-nowrap text-xl font-bold text-indigo-600">₹ {{ number_format($order->amount, 2) }}</span>
                         </div>
                     </div>
                 </div>

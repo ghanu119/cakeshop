@@ -29,15 +29,15 @@
             <x-table.th>{{ __('Actions') }}</x-table.th>
             <x-table.sortable-th column="delivery_at" defaultSort="ordered_at" defaultDirection="desc">{{ __('Delivery at') }}</x-table.sortable-th>
             <x-table.sortable-th column="order_no" defaultSort="ordered_at" defaultDirection="desc">{{ __('Order no') }}</x-table.sortable-th>
-            <x-table.sortable-th column="guest_name" defaultSort="ordered_at" defaultDirection="desc">{{ __('Guest') }}</x-table.sortable-th>
-            <x-table.th>{{ __('Product') }}</x-table.th>
+            <x-table.sortable-th column="guest_name" defaultSort="ordered_at" defaultDirection="desc" class="hidden md:table-cell">{{ __('Guest') }}</x-table.sortable-th>
+            <x-table.th class="hidden md:table-cell">{{ __('Product') }}</x-table.th>
             @role('Admin')
-                <x-table.sortable-th column="fulfillment_type" defaultSort="ordered_at" defaultDirection="desc">{{ __('Type') }}</x-table.sortable-th>
+                <x-table.sortable-th column="fulfillment_type" defaultSort="ordered_at" defaultDirection="desc" class="hidden lg:table-cell">{{ __('Type') }}</x-table.sortable-th>
             @endrole
             <x-table.sortable-th column="amount" defaultSort="ordered_at" defaultDirection="desc">{{ __('Amount') }}</x-table.sortable-th>
             <x-table.sortable-th column="payment_status" defaultSort="ordered_at" defaultDirection="desc">{{ __('Payment') }}</x-table.sortable-th>
-            <x-table.sortable-th column="order_status" defaultSort="ordered_at" defaultDirection="desc">{{ __('Order status') }}</x-table.sortable-th>
-            <x-table.sortable-th column="ordered_at" defaultSort="ordered_at" defaultDirection="desc">{{ __('Ordered at') }}</x-table.sortable-th>
+            <x-table.sortable-th column="order_status" defaultSort="ordered_at" defaultDirection="desc" class="hidden lg:table-cell">{{ __('Order status') }}</x-table.sortable-th>
+            <x-table.sortable-th column="ordered_at" defaultSort="ordered_at" defaultDirection="desc" class="hidden lg:table-cell">{{ __('Ordered at') }}</x-table.sortable-th>
         </x-table.header>
         <x-table.body>
             @forelse($orders as $order)
@@ -59,8 +59,11 @@
                         <div class="text-sm font-semibold text-gray-900">{{ $deliveryAt?->format('d M Y') ?? '—' }}</div>
                         <div class="text-xs text-gray-500">{{ $deliveryAt?->format('H:i') ?? '' }}</div>
                     </x-table.cell>
-                    <x-table.cell class="whitespace-nowrap font-mono text-xs font-semibold tracking-tight text-gray-800">{{ $order->order_no }}</x-table.cell>
-                    <x-table.cell>
+                    <x-table.cell class="whitespace-nowrap font-mono text-xs font-semibold tracking-tight text-gray-800">
+                        <div>{{ $order->order_no }}</div>
+                        <div class="mt-0.5 font-sans font-normal text-gray-500 md:hidden">{{ $order->guest_name }}</div>
+                    </x-table.cell>
+                    <x-table.cell class="hidden md:table-cell">
                         <div class="font-medium text-gray-900">{{ $order->guest_name }}</div>
                         @if($order->hasDistinctContactFromAccount())
                             @php $order->loadMissing('user'); @endphp
@@ -68,14 +71,14 @@
                         @endif
                         <div class="text-xs text-gray-500">{{ $order->guest_phone }}</div>
                     </x-table.cell>
-                    <x-table.cell class="max-w-[220px]">
+                    <x-table.cell class="hidden max-w-[220px] md:table-cell">
                         <div class="truncate text-sm font-medium text-gray-900" title="{{ $order->displayProductName() }}">{{ $order->displayProductName() }}</div>
                         @if(count($productOptions))
                             <div class="truncate text-xs text-gray-500" title="{{ implode(' · ', $productOptions) }}">{{ implode(' · ', $productOptions) }}</div>
                         @endif
                     </x-table.cell>
                     @role('Admin')
-                        <x-table.cell>
+                        <x-table.cell class="hidden lg:table-cell">
                             <x-badge :variant="$order->isDeliveryFulfillment() ? 'info' : 'default'">{{ $order->fulfillmentLabel() }}</x-badge>
                         </x-table.cell>
                     @endrole
@@ -87,7 +90,7 @@
                             <x-badge :variant="$order->payment_status === 'verified' ? 'success' : 'warning'">{{ $order->payment_status }}</x-badge>
                         @endif
                     </x-table.cell>
-                    <x-table.cell>
+                    <x-table.cell class="hidden lg:table-cell">
                         @php
                             $statusVariant = match($order->order_status) {
                                 'pending' => 'warning',
@@ -100,7 +103,7 @@
                         @endphp
                         <x-badge :variant="$statusVariant">{{ $order->order_status }}</x-badge>
                     </x-table.cell>
-                    <x-table.cell class="whitespace-nowrap text-sm text-gray-600">{{ $order->ordered_at?->setTimezone($tz)->format('d M Y H:i') }}</x-table.cell>
+                    <x-table.cell class="hidden whitespace-nowrap text-sm text-gray-600 lg:table-cell">{{ $order->ordered_at?->setTimezone($tz)->format('d M Y H:i') }}</x-table.cell>
                 </x-table.row>
             @empty
                 <x-table.row>

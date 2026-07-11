@@ -25,11 +25,11 @@
                 <input type="hidden" name="direction" value="{{ request('direction') }}" />
             @endif
             <div class="flex flex-wrap items-end gap-4">
-            <div class="min-w-[200px] flex-1">
+            <div class="w-full min-w-0 flex-1 basis-full sm:min-w-[200px] sm:basis-auto">
                 <label for="search" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Search (phone, name, order no)') }}</label>
                 <x-input type="text" name="search" id="search" value="{{ request('search') }}" placeholder="{{ __('Search…') }}" class="block w-full" />
             </div>
-            <div class="w-40">
+            <div class="w-full sm:w-40">
                 <label for="order_status" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Order status') }}</label>
                 <select name="order_status" id="order_status" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
                     <option value="">{{ __('All') }}</option>
@@ -40,7 +40,7 @@
                     <option value="delivered" @selected(request('order_status') === 'delivered')>{{ __('Delivered') }}</option>
                 </select>
             </div>
-            <div class="w-40">
+            <div class="w-full sm:w-40">
                 <label for="payment_status" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Payment') }}</label>
                 <select name="payment_status" id="payment_status" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
                     <option value="">{{ __('All') }}</option>
@@ -51,11 +51,11 @@
                     <option value="in_store_outstanding" @selected(request('payment_status') === 'in_store_outstanding')>{{ __('In-store — balance due') }}</option>
                 </select>
             </div>
-            <div class="w-40">
+            <div class="w-full sm:w-40">
                 <label for="from_date" class="mb-1 block text-sm font-medium text-gray-700">{{ __('From date') }}</label>
                 <x-input type="date" name="from_date" id="from_date" value="{{ request('from_date') }}" class="block w-full" />
             </div>
-            <div class="w-40">
+            <div class="w-full sm:w-40">
                 <label for="to_date" class="mb-1 block text-sm font-medium text-gray-700">{{ __('To date') }}</label>
                 <x-input type="date" name="to_date" id="to_date" value="{{ request('to_date') }}" class="block w-full" />
             </div>
@@ -71,7 +71,8 @@
                 </label>
             </div>
             </div>
-            <div class="flex flex-wrap items-center gap-3 border-t border-gray-100 pt-3">
+            <div class="flex flex-col gap-3 border-t border-gray-100 pt-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <div class="flex flex-wrap items-center gap-3">
             <button type="submit" class="shrink-0 rounded-lg bg-gray-800 px-4 py-2 text-sm font-medium text-white transition duration-200 hover:bg-gray-700">
                 {{ __('Filter') }}
             </button>
@@ -80,6 +81,7 @@
                     {{ __('Reset') }}
                 </a>
             @endif
+            </div>
             @include('admin.orders.partials._in-store-payment-stats', ['paymentStats' => $paymentStats ?? null])
             </div>
         </form>

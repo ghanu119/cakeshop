@@ -229,6 +229,19 @@ class AdminDashboardTest extends TestCase
         $response->assertDontSeeText(__("Today's deliveries"));
     }
 
+    public function test_admin_layout_includes_collapsible_sidebar_markup(): void
+    {
+        $admin = $this->adminUser();
+
+        $response = $this->actingAs($admin)->get(route('admin.dashboard'));
+
+        $response->assertOk();
+        $response->assertSee('data-admin-sidebar-toggle', false);
+        $response->assertSee('id="admin-sidebar"', false);
+        $response->assertSee('data-admin-sidebar-backdrop', false);
+        $response->assertSee('aria-controls="admin-sidebar"', false);
+    }
+
     private function adminUser(): User
     {
         $admin = User::factory()->create(['email_verified_at' => now()]);
