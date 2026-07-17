@@ -149,7 +149,7 @@
 
             <div class="order-1 lg:order-2" data-aos="fade-left">
                 <span class="inline-block py-1 px-3 rounded-full bg-orange-100 text-orange-700 text-sm font-semibold tracking-wide mb-6">{{ __('About Us') }}</span>
-                <h2 class="font-display text-4xl sm:text-5xl font-bold text-stone-900 mb-6 leading-tight">{{ __('Baking memories since 2008') }}</h2>
+                <h2 class="font-display text-4xl sm:text-5xl font-bold text-stone-900 mb-6 leading-tight">{{ __('Baking memories since 2015') }}</h2>
 
                 <div class="space-y-6 text-lg text-stone-600 font-light mb-10">
                     <p>
