@@ -52,7 +52,7 @@
     $standards = [
         ['label' => __('No artificial colors'), 'detail' => __('Natural tints from fruit, cocoa, and caramel only.')],
         ['label' => __('Fresh daily bake'), 'detail' => __('Cakes prepared to order—never pulled from a freezer case.')],
-        ['label' => __('Allergen transparency'), 'detail' => __('Ask us about nuts, dairy, gluten, and eggs before you order.')],
+        ['label' => __('Allergen transparency'), 'detail' => __('Ask us about nuts, dairy, and gluten before you order.')],
         ['label' => __('Small-batch craft'), 'detail' => __('Every batch is tasted and adjusted by our pastry team.')],
     ];
 @endphp
@@ -82,7 +82,7 @@
                     {{ __('Ingredients') }} <span class="text-amber-600">{{ __('you can trust') }}</span>
                 </h1>
                 <p class="mt-6 max-w-xl text-lg font-light leading-relaxed text-stone-600 sm:text-xl">
-                    {{ __('At :name, we bake with real butter, fresh eggs, and ingredients chosen for flavor—not fillers. Here is what goes into our cakes, layer by layer.', ['name' => $siteName]) }}
+                    {{ __('At :name, we bake pure vegetarian, eggless cakes with real butter and ingredients chosen for flavor, never fillers. Here is what goes into our cakes, layer by layer.', ['name' => $siteName]) }}
                 </p>
                 <div class="mt-8 flex flex-wrap gap-3">
                     <a href="{{ route('products.index') }}" class="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 px-6 py-3.5 text-base font-semibold text-white shadow-lg transition-all duration-200 hover:from-amber-600 hover:to-orange-600 hover:shadow-xl">

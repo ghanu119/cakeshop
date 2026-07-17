@@ -73,7 +73,7 @@
             <div class="space-y-4">
                 <div>
                     <label for="product_note" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Product note / allergens text') }}</label>
-                    <textarea name="product_note" id="product_note" rows="4" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2" placeholder="{{ __('e.g. Allergens: Contains gluten, dairy, eggs. Contact us for dietary requirements.') }}">{{ old('product_note', $settings['product_note'] ?? '') }}</textarea>
+                    <textarea name="product_note" id="product_note" rows="4" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2" placeholder="{{ __('e.g. Pure vegetarian and eggless. Contains gluten and dairy. Contact us for dietary requirements.') }}">{{ old('product_note', $settings['product_note'] ?? '') }}</textarea>
                     <p class="mt-1 text-sm text-gray-500">{{ __('Shown on each product detail page in a note box (e.g. allergens, dietary info). Leave empty to hide the note.') }}</p>
                 </div>
             </div>
