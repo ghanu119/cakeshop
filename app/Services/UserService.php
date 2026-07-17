@@ -14,7 +14,7 @@ class UserService
      */
     public function list(Request $request): LengthAwarePaginator
     {
-        $query = User::query()->with('roles');
+        $query = User::staff()->with('roles');
 
         if ($request->filled('search')) {
             $term = $request->input('search');

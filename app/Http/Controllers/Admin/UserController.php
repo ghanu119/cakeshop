@@ -21,7 +21,7 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
         $users = $this->userService->list(request());
-        $roles = Role::where('guard_name', config('auth.defaults.guard'))->orderBy('name')->get();
+        $roles = $this->staffRoles();
 
         return view('admin.users.index', compact('users', 'roles'));
     }
@@ -29,7 +29,7 @@ class UserController extends Controller
     public function create(): View
     {
         $this->authorize('create', User::class);
-        $roles = Role::where('guard_name', config('auth.defaults.guard'))->orderBy('name')->get();
+        $roles = $this->staffRoles();
 
         return view('admin.users.create', compact('roles'));
     }
@@ -46,7 +46,7 @@ class UserController extends Controller
     {
         $this->authorize('update', $user);
         $user->load('roles');
-        $roles = Role::where('guard_name', config('auth.defaults.guard'))->orderBy('name')->get();
+        $roles = $this->staffRoles();
 
         return view('admin.users.edit', compact('user', 'roles'));
     }
@@ -68,5 +68,14 @@ class UserController extends Controller
         $user->delete();
 
         return redirect()->route('admin.users.index')->with('status', __('User deleted.'));
+    }
+
+    /** @return \Illuminate\Database\Eloquent\Collection<int, Role> */
+    private function staffRoles()
+    {
+        return Role::where('guard_name', config('auth.defaults.guard'))
+            ->whereNot('name', 'Customer')
+            ->orderBy('name')
+            ->get();
     }
 }

@@ -130,6 +130,11 @@ class User extends Authenticatable
         return $query->role('Customer', AuthGuards::STAFF);
     }
 
+    public function scopeStaff(Builder $query): Builder
+    {
+        return $query->role(['Admin', 'Kitchen'], AuthGuards::STAFF);
+    }
+
     public function scopeActiveCustomers(Builder $query): Builder
     {
         return $query->customers();

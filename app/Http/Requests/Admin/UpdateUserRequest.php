@@ -5,6 +5,7 @@ namespace App\Http\Requests\Admin;
 use App\Models\User;
 use App\Support\ValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class UpdateUserRequest extends FormRequest
@@ -25,7 +26,7 @@ class UpdateUserRequest extends FormRequest
             'phone' => ['nullable', 'string', 'max:50'],
             'password' => ['nullable', 'string', 'confirmed', Password::defaults()],
             'roles' => ['nullable', 'array'],
-            'roles.*' => ['string', 'exists:roles,name'],
+            'roles.*' => ['string', 'exists:roles,name', Rule::notIn(['Customer'])],
         ];
     }
 }

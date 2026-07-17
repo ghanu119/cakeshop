@@ -16,9 +16,14 @@ class UserPolicy
 
     public function view(User $user, User $model): bool
     {
+        if ($model->isCustomer()) {
+            return false;
+        }
+
         if ($user->hasRole('Admin')) {
             return true;
         }
+
         return $user->can('users.view');
     }
 
@@ -32,17 +37,27 @@ class UserPolicy
 
     public function update(User $user, User $model): bool
     {
+        if ($model->isCustomer()) {
+            return false;
+        }
+
         if ($user->hasRole('Admin')) {
             return true;
         }
+
         return $user->can('users.update');
     }
 
     public function delete(User $user, User $model): bool
     {
+        if ($model->isCustomer()) {
+            return false;
+        }
+
         if ($user->hasRole('Admin')) {
             return true;
         }
+
         return $user->can('users.delete');
     }
 }
