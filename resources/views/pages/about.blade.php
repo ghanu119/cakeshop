@@ -3,6 +3,30 @@
 @section('title', __('About us') . ' - ' . (settings('site_name') ?: config('app.name')))
 
 @section('content')
+@php
+    $productItems = [
+        __('Sandwich bread'),
+        __('Pav bhaji buns'),
+        __('Pizza bases'),
+        __('Toast'),
+        __('Cake rusk'),
+        __('Cakes and customized cakes'),
+        __('Pastries'),
+        __('Puffs'),
+        __('Different varieties of khari'),
+        __('Other freshly prepared bakery products'),
+    ];
+
+    $promises = [
+        __('Freshly prepared bakery products'),
+        __('Consistent taste and quality'),
+        __('Carefully selected ingredients'),
+        __('Hygienic preparation'),
+        __('A wide variety for every age and occasion'),
+        __('Friendly and dependable customer service'),
+    ];
+@endphp
+
 {{-- Breadcrumb --}}
 <section class="border-b border-stone-100 bg-white py-4">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -15,7 +39,7 @@
 </section>
 
 {{-- Hero intro --}}
-<section class="py-20 lg:py-32 bg-gradient-to-b from-amber-50 to-white relative overflow-hidden">
+<section class="py-20 lg:py-28 section-mesh relative overflow-hidden">
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
         <div class="absolute top-0 right-1/4 w-96 h-96 bg-amber-200/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob"></div>
         <div class="absolute bottom-10 left-1/4 w-72 h-72 bg-orange-200/20 rounded-full mix-blend-multiply filter blur-3xl opacity-50 animate-blob animation-delay-2000"></div>
@@ -25,10 +49,10 @@
         <div class="max-w-3xl">
             <span class="inline-block py-1.5 px-4 rounded-full bg-amber-100 text-amber-800 text-sm font-bold tracking-wider mb-6 border border-amber-200 shadow-sm">{{ __('About Us') }}</span>
             <h1 class="font-display text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight text-stone-900 mb-6 drop-shadow-sm leading-tight">
-                {{ __('About') }} <span class="text-amber-600">{{ settings('site_name') ?: config('app.name') }}</span>
+                {{ __('About Better Buns Live Bakery') }}
             </h1>
             <p class="text-xl sm:text-2xl text-stone-600 leading-relaxed font-light">
-                {{ __('We aim to bring fresh, delicious cakes to every celebration and to be the trusted choice for quality cakes.') }}
+                {{ __('Baking freshness since August 2015 with fresh, delicious and dependable bakery products for every day and every celebration.') }}
             </p>
         </div>
     </div>
@@ -38,115 +62,118 @@
 <section class="section-warm py-20 lg:py-28 relative">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
         <div class="text-center mb-16" data-aos="fade-up">
-            <h2 class="font-display text-4xl sm:text-5xl font-bold text-stone-900 mb-4">{{ __('Our Story') }}</h2>
-            <p class="text-xl text-stone-500 max-w-2xl mx-auto font-light">{{ __('Key milestones on our journey') }}</p>
+            <h2 class="font-display text-4xl sm:text-5xl font-bold text-stone-900 mb-4">{{ __('Baking Freshness Since August 2015') }}</h2>
+            <p class="text-xl text-stone-500 max-w-3xl mx-auto font-light">{{ __('Better Buns Live Bakery began its journey in Rajkot in August 2015 with a simple vision: to provide fresh, delicious and dependable bakery products that families can enjoy every day.') }}</p>
         </div>
         @include('pages.partials._our-story-timeline')
     </div>
 </section>
 
-{{-- Core values: Pure Ingredients, Patient Craft, Modern Magic --}}
-<section class="py-20 lg:py-28 bg-stone-50">
+{{-- Product range --}}
+<section class="py-20 lg:py-28 section-light">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16" data-aos="fade-up">
-            <h2 class="font-display text-4xl sm:text-5xl font-bold text-stone-900 mb-4">{{ __('Core values') }}</h2>
-            <p class="text-xl text-stone-500 max-w-2xl mx-auto font-light">{{ __('What we stand for') }}</p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div class="bg-white rounded-3xl p-10 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.1)] border border-stone-100 transition-all duration-300 hover:-translate-y-2" data-aos="fade-up">
-                <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" /></svg>
-                </div>
-                <h3 class="font-display text-2xl font-bold text-stone-900 mb-3">{{ __('Pure ingredients') }}</h3>
-                <p class="text-stone-500 leading-relaxed">{{ __('We source the finest, natural ingredients. No shortcuts—just quality that you can taste.') }}</p>
+        <div class="grid grid-cols-1 lg:grid-cols-[0.95fr_1.05fr] gap-12 lg:gap-16 items-start">
+            <div data-aos="fade-up">
+                <span class="badge-warm mb-4">{{ __('Our Range') }}</span>
+                <h2 class="heading-display text-4xl sm:text-5xl mb-5">{{ __('From Everyday Breads to Special Celebrations') }}</h2>
+                <p class="text-xl text-stone-600 leading-relaxed">{{ __('What started as a passion for baking has grown into a trusted local bakery offering everyday bakery essentials, savoury snacks and celebration cakes.') }}</p>
+                <p class="text-lg text-stone-500 leading-relaxed mt-6">{{ __('At Better Buns, we believe a bakery should be part of both your everyday meals and your most memorable celebrations.') }}</p>
             </div>
-            <div class="bg-white rounded-3xl p-10 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.1)] border border-stone-100 transition-all duration-300 hover:-translate-y-2" data-aos="fade-up" data-aos-delay="100">
-                <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+
+            <div class="card-modern p-8 sm:p-10 relative overflow-hidden" data-aos="fade-up" data-aos-delay="100">
+                <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-t-2xl"></div>
+                <div class="relative">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        @foreach ($productItems as $item)
+                            <div class="rounded-2xl bg-stone-50 px-4 py-4 text-stone-700 border border-stone-100">
+                                <div class="flex items-start gap-3">
+                                    <span class="mt-1.5 h-2.5 w-2.5 rounded-full bg-gradient-to-r from-amber-500 to-orange-500 flex-shrink-0"></span>
+                                    <span class="text-base leading-relaxed">{{ $item }}</span>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+
+                    <div class="mt-6 rounded-2xl bg-amber-50 px-6 py-6 border border-amber-100">
+                        <h3 class="font-display text-2xl sm:text-3xl font-bold text-stone-900 mb-3">{{ __('Prepared for every moment') }}</h3>
+                        <p class="text-stone-600 leading-relaxed">{{ __('From soft bread for your morning breakfast and fresh buns for family meals to customized cakes for birthdays, anniversaries and special occasions, we prepare products for every moment.') }}</p>
+                    </div>
                 </div>
-                <h3 class="font-display text-2xl font-bold text-stone-900 mb-3">{{ __('Patient craft') }}</h3>
-                <p class="text-stone-500 leading-relaxed">{{ __('Every cake is made with time and care. Traditional methods meet consistent excellence.') }}</p>
-            </div>
-            <div class="bg-white rounded-3xl p-10 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.1)] border border-stone-100 transition-all duration-300 hover:-translate-y-2" data-aos="fade-up" data-aos-delay="200">
-                <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" /></svg>
-                </div>
-                <h3 class="font-display text-2xl font-bold text-stone-900 mb-3">{{ __('Modern magic') }}</h3>
-                <p class="text-stone-500 leading-relaxed">{{ __('Innovative designs and flavors that surprise and delight, while staying true to our roots.') }}</p>
             </div>
         </div>
     </div>
 </section>
 
-{{-- Mission, Vision, Values – clear editorial layout --}}
+{{-- Freshness and care --}}
 <section class="py-20 lg:py-28 bg-white relative">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16" data-aos="fade-up">
-            <h2 class="font-display text-4xl sm:text-5xl font-bold text-stone-900 mb-4">{{ __('Our mission, vision & values') }}</h2>
-            <p class="text-xl text-stone-500 max-w-2xl mx-auto font-light">{{ __('What drives us every day') }}</p>
+        <div class="max-w-3xl mb-14" data-aos="fade-up">
+            <span class="badge-warm mb-4">{{ __('Freshness First') }}</span>
+            <h2 class="heading-display text-4xl sm:text-5xl mt-6 mb-5">{{ __('Freshly Made with Care') }}</h2>
+            <p class="text-xl text-stone-600 leading-relaxed">{{ __('Freshness is at the heart of everything we do. Our products are prepared with carefully selected ingredients, attention to hygiene and consistent baking processes.') }}</p>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {{-- Column 1: Mission --}}
-            <div class="bg-white rounded-3xl p-10 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.1)] border border-stone-100 transition-all duration-300 hover:-translate-y-2" data-aos="fade-up">
-                <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+        <div class="grid grid-cols-1 xl:grid-cols-[0.9fr_1.1fr] gap-10 lg:gap-12 items-start">
+            <div class="card-modern p-8 sm:p-10" data-aos="fade-up">
+                <div class="w-14 h-14 rounded-xl bg-gradient-to-r from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-lg mb-6">
+                    <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                 </div>
-                <h3 class="font-display text-2xl font-bold text-stone-900 mb-3">{{ __('Our mission') }}</h3>
-                <p class="text-stone-500 leading-relaxed">{{ __('We aim to bring fresh, delicious cakes to every celebration.') }}</p>
+                <h3 class="text-3xl sm:text-4xl font-display font-bold text-stone-900 mb-8">{{ __('We focus on delivering') }}</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    @foreach ($promises as $promise)
+                        <div class="rounded-2xl bg-stone-50 px-5 py-5 border border-stone-100">
+                            <div class="flex items-start gap-3">
+                                <span class="mt-1.5 h-2.5 w-2.5 rounded-full bg-amber-500 flex-shrink-0"></span>
+                                <span class="text-base leading-relaxed text-stone-700">{{ $promise }}</span>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
             </div>
 
-            {{-- Column 2: Vision --}}
-            <div class="bg-white rounded-3xl p-10 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.1)] border border-stone-100 transition-all duration-300 hover:-translate-y-2" data-aos="fade-up" data-aos-delay="100">
-                <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
-                </div>
-                <h3 class="font-display text-2xl font-bold text-stone-900 mb-3">{{ __('Our vision') }}</h3>
-                <p class="text-stone-500 leading-relaxed">{{ __('To be the trusted choice for quality cakes.') }}</p>
-            </div>
+            <div class="space-y-6">
+                <article class="card-modern p-8 sm:p-10" data-aos="fade-up" data-aos-delay="100">
+                    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700 mb-4">{{ __('Custom Cakes') }}</p>
+                    <h3 class="text-3xl sm:text-4xl font-display font-bold text-stone-900 mb-4">{{ __('Customized cakes for your celebration') }}</h3>
+                    <p class="text-lg text-stone-600 leading-relaxed">{{ __('For our cakes, we also offer customization according to your preferred theme, design, flavour and celebration.') }}</p>
+                </article>
 
-            {{-- Column 3: Values --}}
-            <div class="bg-white rounded-3xl p-10 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_20px_40px_rgb(217,119,6,0.1)] border border-stone-100 transition-all duration-300 hover:-translate-y-2" data-aos="fade-up" data-aos-delay="200">
-                <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <svg class="h-8 w-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                </div>
-                <h3 class="font-display text-2xl font-bold text-stone-900 mb-4">{{ __('Our values') }}</h3>
-                <ul class="space-y-3 text-stone-500 text-left w-full max-w-[200px] mx-auto font-medium">
-                    <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span> {{ __('Quality ingredients') }}</li>
-                    <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span> {{ __('Best for everyone') }}</li>
-                    <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-amber-500 flex-shrink-0"></span> {{ __('Sustainability') }}</li>
-                </ul>
+                <article class="card-modern p-8 sm:p-10" data-aos="fade-up" data-aos-delay="200">
+                    <p class="text-sm font-semibold uppercase tracking-[0.18em] text-stone-500 mb-4">{{ __('Our Philosophy') }}</p>
+                    <h3 class="text-3xl sm:text-4xl font-display font-bold text-stone-900 mb-4">{{ __('A bakery for daily life and big moments') }}</h3>
+                    <p class="text-lg text-stone-600 leading-relaxed">{{ __('We do not want to be known only as a cake shop. We want Better Buns to be the bakery our customers can trust for their daily bread, evening snacks, family gatherings and special celebrations.') }}</p>
+                    <p class="text-lg text-stone-600 leading-relaxed mt-5">{{ __('Every loaf, bun, toast, pastry, puff and cake is prepared with the same commitment to make every bite fresh, tasty and enjoyable.') }}</p>
+                </article>
             </div>
         </div>
     </div>
 </section>
 
-{{-- The team --}}
-<section class="py-20 lg:py-28 bg-stone-50">
+{{-- Mission and vision --}}
+<section class="py-20 lg:py-28 section-warm">
     <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-16" data-aos="fade-up">
-            <h2 class="font-display text-4xl sm:text-5xl font-bold text-stone-900 mb-4">{{ __('The team') }}</h2>
-            <p class="text-xl text-stone-500 max-w-2xl mx-auto font-light">{{ __('The people behind the cakes') }}</p>
+            <span class="badge-warm mb-4">{{ __('What Drives Us') }}</span>
+            <h2 class="heading-display text-4xl sm:text-5xl mb-4">{{ __('Our Mission and Vision') }}</h2>
+            <p class="text-xl text-stone-500 max-w-3xl mx-auto font-light">{{ __('What drives Better Buns every day and where we want to go next.') }}</p>
         </div>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-            @foreach([
-                ['name' => __('Head Pastry Chef'), 'role' => __('Founder & Head Pastry Chef'), 'bio' => __('Passionate about French patisserie and bringing artisan quality to every creation.')],
-                ['name' => __('Lead Baker'), 'role' => __('Lead Baker'), 'bio' => __('Decades of experience in traditional recipes and modern techniques.')],
-                ['name' => __('Creative Director'), 'role' => __('Creative Director'), 'bio' => __('Designs our seasonal collections and custom cake experiences.')],
-            ] as $member)
-            <div class="bg-white rounded-3xl p-8 text-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-stone-100 transition-all duration-300 hover:shadow-[0_20px_40px_rgb(217,119,6,0.1)] hover:-translate-y-2" data-aos="fade-up" data-aos-delay="{{ $loop->index * 100 }}">
-                <div class="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-amber-100 to-orange-100 border-4 border-white shadow-sm flex items-center justify-center text-amber-600 text-3xl font-display font-bold">{{ Str::limit($member['name'], 1) }}</div>
-                <h3 class="font-display text-2xl font-bold text-stone-900">{{ $member['name'] }}</h3>
-                <p class="text-amber-600 font-medium mt-1 mb-4">{{ $member['role'] }}</p>
-                <p class="text-stone-500 leading-relaxed">{{ $member['bio'] }}</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+            <div class="card-modern p-8 sm:p-10" data-aos="fade-up">
+                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700 mb-4">{{ __('Mission') }}</p>
+                <h3 class="text-3xl sm:text-4xl font-display font-bold text-stone-900 mb-4">{{ __('Our Mission') }}</h3>
+                <p class="text-lg text-stone-600 leading-relaxed">{{ __('Our mission is to make fresh, high-quality bakery products easily available to every family while maintaining excellent taste, hygiene and customer satisfaction.') }}</p>
             </div>
-            @endforeach
+            <div class="card-modern p-8 sm:p-10" data-aos="fade-up" data-aos-delay="100">
+                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-amber-700 mb-4">{{ __('Vision') }}</p>
+                <h3 class="text-3xl sm:text-4xl font-display font-bold text-stone-900 mb-4">{{ __('Our Vision') }}</h3>
+                <p class="text-lg text-stone-600 leading-relaxed">{{ __('Our vision is to become one of Rajkot’s most trusted bakery brands, known for fresh everyday bakery products, innovative cakes and dependable service.') }}</p>
+            </div>
         </div>
     </div>
 </section>
 
 {{-- Visual + CTA block --}}
-<section class="py-20 lg:py-32 bg-white relative overflow-hidden">
+<section class="py-20 lg:py-28 section-mesh relative overflow-hidden">
     <!-- Soft background glow effect -->
     <div class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-gradient-to-tl from-amber-100/40 to-transparent rounded-full blur-3xl opacity-60 pointer-events-none"></div>
 
@@ -170,11 +197,13 @@
                 </div>
             </div>
             <div class="order-1 lg:order-2 text-center lg:text-left" data-aos="fade-left">
-                <h2 class="font-display text-4xl sm:text-5xl font-bold text-stone-900 mb-6 leading-tight">{{ __('Get in touch') }}</h2>
-                <p class="text-xl text-stone-500 mb-10 leading-relaxed font-light">{{ __('Have a question or want to place a custom order? We’d love to hear from you.') }}</p>
-                <a href="{{ route('contact.index') }}" class="group inline-flex items-center justify-center px-8 py-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white font-bold text-lg rounded-full shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 w-full sm:w-auto">
+                <span class="badge-warm mb-4">{{ __('Thank You') }}</span>
+                <h2 class="heading-display text-4xl sm:text-5xl mb-6 leading-tight">{{ __('Thank You for Being Part of Our Journey') }}</h2>
+                <p class="text-xl text-stone-500 mb-6 leading-relaxed font-light">{{ __('Since August 2015, the love and support of our customers have helped Better Buns grow and improve. We are grateful to every customer who chooses us for their everyday bakery needs and special celebrations.') }}</p>
+                <p class="text-lg text-stone-700 mb-10 font-medium">{{ __('Better Buns Live Bakery — Fresh Every Day, Special for Every Occasion.') }}</p>
+                <a href="{{ route('contact.index') }}" class="btn-primary-modern w-full sm:w-auto">
                     {{ __('Contact us') }}
-                    <svg class="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
+                    <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" /></svg>
                 </a>
             </div>
         </div>

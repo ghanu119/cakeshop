@@ -2,23 +2,23 @@
     $milestones = [
         [
             'icon' => 'gift',
-            'title' => __('The beginning'),
-            'text' => __('We opened our first kitchen with a dream to bring artisan cakes to every celebration.'),
+            'title' => __('August 2015'),
+            'text' => __('Better Buns Live Bakery began its journey in Rajkot with a vision to serve fresh, delicious and dependable bakery products every day.'),
         ],
         [
             'icon' => 'sparkles',
-            'title' => __('Growing roots'),
-            'text' => __('Expanded our range with seasonal favorites and custom wedding cakes.'),
+            'title' => __('Everyday bakery essentials'),
+            'text' => __('Our range grew to include sandwich bread, pav bhaji buns, pizza bases, toast, cake rusk, pastries, puffs and different varieties of khari.'),
         ],
         [
             'icon' => 'award',
-            'title' => __('Award recognition'),
-            'text' => __('Our recipes and quality were recognized by local food critics and community.'),
+            'title' => __('Celebration cakes'),
+            'text' => __('We became part of birthdays, anniversaries and special occasions with cakes and customized cake designs made to match each celebration.'),
         ],
         [
             'icon' => 'bulb',
-            'title' => __('Sweetness redefined'),
-            'text' => __('We continue to craft with intention—pure ingredients, patient process, and a touch of modern magic.'),
+            'title' => __('Trusted by families'),
+            'text' => __('We continue to serve our customers with freshness, consistent taste, hygienic preparation and dependable service for every age and occasion.'),
         ],
     ];
 @endphp
