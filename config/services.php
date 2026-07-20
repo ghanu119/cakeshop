@@ -80,7 +80,7 @@ return [
         // Admin WhatsApp alerts: if blank, admin WhatsApp notifications are disabled.
         'admin_number' => env('WHATSAPP_ADMIN_NUMBER'),
 
-        // When true, order-status notifications are also sent to the customer on WhatsApp.
+        // When true, send customer WhatsApp order-confirmation (in-store on place; online when payment verified). Not sent on status updates.
         'customer_order_notifications' => env('WHATSAPP_CUSTOMER_ORDER_NOTIFICATIONS', false),
     ],
 

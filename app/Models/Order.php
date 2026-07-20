@@ -792,6 +792,22 @@ class Order extends Model implements HasMedia
         return (string) $this->uuid;
     }
 
+    /**
+     * Third body variable for WhatsApp order templates (estimated delivery datetime only).
+     */
+    public function whatsappDeliveryTimeLine(): string
+    {
+        if (! $this->delivery_at) {
+            return (string) __('To be confirmed');
+        }
+
+        $tz = settings('timezone') ?? 'Asia/Kolkata';
+        $deliveryAt = $this->delivery_at->copy()->setTimezone($tz);
+        $line = $deliveryAt->format('d M Y').', '.$deliveryAt->format('H:i');
+
+        return strlen($line) > 100 ? substr($line, 0, 97).'...' : $line;
+    }
+
     public function adminOrderUrl(): string
     {
         return route('admin.orders.show', $this);

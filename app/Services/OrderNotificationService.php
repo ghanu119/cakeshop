@@ -35,8 +35,11 @@ class OrderNotificationService
 
         $this->inAppOrderNotificationService->notifyAdmins(new NewOrderAdminNotification($order));
 
-        $this->whatsappToCustomer($order, __('Order received'));
-        $this->whatsappToAdmin($order, __('New order'));
+        if ($order->isInStoreOrder()) {
+            $this->whatsappCustomerOrderConfirmed($order);
+        }
+
+        $this->whatsappToAdmin($order);
     }
 
     public function notifyPaymentSubmitted(Order $order, bool $isUpdate = false): void
@@ -57,7 +60,9 @@ class OrderNotificationService
 
         $this->sendToCustomer($order, new PaymentVerifiedNotification($order));
 
-        $this->whatsappToCustomer($order, __('Payment verified'));
+        if (! $order->isInStoreOrder()) {
+            $this->whatsappCustomerOrderConfirmed($order);
+        }
 
         if ($order->isDeliveryToday()) {
             $this->inAppOrderNotificationService->notifyKitchen(
@@ -75,8 +80,6 @@ class OrderNotificationService
         $order->loadMissing('product');
 
         $this->sendToCustomer($order, new OrderStatusUpdated($order, $previousStatus));
-
-        $this->whatsappToCustomer($order, $order->orderStatusLabel());
 
         if ($order->order_status === 'completed') {
             $this->inAppOrderNotificationService->notifyAdmins(
@@ -112,7 +115,7 @@ class OrderNotificationService
         }
     }
 
-    private function whatsappToCustomer(Order $order, string $statusText): void
+    private function whatsappCustomerOrderConfirmed(Order $order): void
     {
         if (! whatsapp_login_enabled() || ! config('services.whatsapp.customer_order_notifications')) {
             return;
@@ -122,10 +125,10 @@ class OrderNotificationService
             return;
         }
 
-        $this->dispatchWhatsApp((string) $order->guest_phone, $order, $statusText);
+        $this->dispatchWhatsApp((string) $order->guest_phone, $order);
     }
 
-    private function whatsappToAdmin(Order $order, string $statusText): void
+    private function whatsappToAdmin(Order $order): void
     {
         if (! whatsapp_login_enabled()) {
             return;
@@ -137,10 +140,10 @@ class OrderNotificationService
             return;
         }
 
-        $this->dispatchWhatsApp((string) $adminNumber, $order, $statusText);
+        $this->dispatchWhatsApp((string) $adminNumber, $order);
     }
 
-    private function dispatchWhatsApp(string $phone, Order $order, string $statusText): void
+    private function dispatchWhatsApp(string $phone, Order $order): void
     {
         try {
             SendWhatsAppNotification::dispatch(
@@ -150,7 +153,7 @@ class OrderNotificationService
                 [
                     (string) ($order->guest_name ?: __('Customer')),
                     (string) $order->order_no,
-                    $statusText,
+                    $order->whatsappDeliveryTimeLine(),
                 ],
                 $order->customerOrderWhatsAppUrlSuffix(),
             );
