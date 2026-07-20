@@ -51,7 +51,7 @@ class WhatsAppNotificationTest extends TestCase
         Bus::assertDispatched(SendWhatsAppNotification::class, function (SendWhatsAppNotification $job) use ($order) {
             return $job->phone === '9558517748'
                 && $job->lang === 'en_US'
-                && $job->dynamicUrlButtonSuffix === $order->customerOrderWhatsAppUrlSuffix();
+                && $job->dynamicUrlButtonSuffix === (string) $order->uuid;
         });
 
         Bus::assertDispatched(SendWhatsAppNotification::class, function (SendWhatsAppNotification $job) {

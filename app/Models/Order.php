@@ -785,18 +785,11 @@ class Order extends Model implements HasMedia
     }
 
     /**
-     * Dynamic URL suffix for WhatsApp template buttons (Meta {{1}} after the static site URL).
+     * Dynamic URL segment for WhatsApp template buttons (Meta {{1}}; site path prefix is in the approved template).
      */
     public function customerOrderWhatsAppUrlSuffix(): string
     {
-        $url = $this->customerOrderUrl();
-        $base = rtrim((string) config('app.url'), '/');
-
-        if ($base !== '' && str_starts_with($url, $base.'/')) {
-            return substr($url, strlen($base) + 1);
-        }
-
-        return ltrim((string) parse_url($url, PHP_URL_PATH), '/');
+        return (string) $this->uuid;
     }
 
     public function adminOrderUrl(): string
