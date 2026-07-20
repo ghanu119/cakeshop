@@ -70,9 +70,20 @@ class WhatsAppCloudDriver implements MessagingGateway
         );
     }
 
-    public function sendTemplate(string $phone, string $template, string $lang, array $bodyParams = []): void
-    {
-        $this->dispatchTemplate($phone, $template, $lang, array_values($bodyParams));
+    public function sendTemplate(
+        string $phone,
+        string $template,
+        string $lang,
+        array $bodyParams = [],
+        ?string $dynamicUrlButtonSuffix = null,
+    ): void {
+        $this->dispatchTemplate(
+            $phone,
+            $template,
+            $lang,
+            array_values($bodyParams),
+            $this->urlButtonComponents($dynamicUrlButtonSuffix),
+        );
     }
 
     /**
@@ -216,11 +227,33 @@ class WhatsAppCloudDriver implements MessagingGateway
             return [];
         }
 
+        return $this->urlButtonComponents($code, '0');
+    }
+
+    /**
+     * Dynamic URL button for approved WhatsApp templates (order detail links, etc.).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    private function urlButtonComponents(?string $suffix, ?string $index = null): array
+    {
+        if ($suffix === null || $suffix === '') {
+            return [];
+        }
+
+        if ($index === null) {
+            if (! $this->boolConfig('order_url_button')) {
+                return [];
+            }
+
+            $index = $this->stringConfig('order_url_button_index', '0');
+        }
+
         return [[
             'type' => 'button',
             'sub_type' => 'url',
-            'index' => '0',
-            'parameters' => [$this->textParameter($code)],
+            'index' => $index,
+            'parameters' => [$this->textParameter($suffix)],
         ]];
     }
 

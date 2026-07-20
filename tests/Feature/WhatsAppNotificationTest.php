@@ -48,8 +48,10 @@ class WhatsAppNotificationTest extends TestCase
 
         app(OrderNotificationService::class)->notifyOrderPlaced($order);
 
-        Bus::assertDispatched(SendWhatsAppNotification::class, function (SendWhatsAppNotification $job) {
-            return $job->phone === '9558517748' && $job->lang === 'en_US';
+        Bus::assertDispatched(SendWhatsAppNotification::class, function (SendWhatsAppNotification $job) use ($order) {
+            return $job->phone === '9558517748'
+                && $job->lang === 'en_US'
+                && $job->dynamicUrlButtonSuffix === $order->customerOrderWhatsAppUrlSuffix();
         });
 
         Bus::assertDispatched(SendWhatsAppNotification::class, function (SendWhatsAppNotification $job) {

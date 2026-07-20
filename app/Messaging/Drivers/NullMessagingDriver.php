@@ -19,8 +19,13 @@ class NullMessagingDriver implements MessagingGateway
         // Intentionally no-op.
     }
 
-    public function sendTemplate(string $phone, string $template, string $lang, array $bodyParams = []): void
-    {
+    public function sendTemplate(
+        string $phone,
+        string $template,
+        string $lang,
+        array $bodyParams = [],
+        ?string $dynamicUrlButtonSuffix = null,
+    ): void {
         // Intentionally no-op.
     }
 }

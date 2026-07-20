@@ -68,6 +68,9 @@ return [
         'otp_copy_code_button' => env('WHATSAPP_OTP_COPY_CODE_BUTTON', false),
         'order_template' => env('WHATSAPP_ORDER_TEMPLATE', 'order_update'),
         'order_template_lang' => env('WHATSAPP_ORDER_TEMPLATE_LANG', 'en_US'),
+        // Append the order-detail URL button (requires {{1}} on the approved template).
+        'order_url_button' => env('WHATSAPP_ORDER_URL_BUTTON', true),
+        'order_url_button_index' => env('WHATSAPP_ORDER_URL_BUTTON_INDEX', '0'),
 
         // Test mode: all sends are redirected to test_number, but OTPs are still
         // keyed to / verified against the number the user actually entered.

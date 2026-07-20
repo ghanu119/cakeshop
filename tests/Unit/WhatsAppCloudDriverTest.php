@@ -82,4 +82,28 @@ class WhatsAppCloudDriverTest extends TestCase
 
         $driver->sendOtp('9558517748', '123456');
     }
+
+    public function test_order_template_includes_url_button_component(): void
+    {
+        Http::fake([
+            '*' => Http::response(['messages' => [['id' => 'wamid.1']]], 200),
+        ]);
+
+        $driver = new WhatsAppCloudDriver($this->config([
+            'order_url_button' => true,
+            'order_url_button_index' => '0',
+        ]));
+
+        $driver->sendTemplate('9558517748', 'order_confirmation', 'en_US', ['A', 'ORD-1', 'Received'], 'order/confirm/abc-uuid');
+
+        Http::assertSent(function ($request) {
+            $components = $request['template']['components'] ?? [];
+
+            return collect($components)->contains(function (array $component) {
+                return ($component['type'] ?? null) === 'button'
+                    && ($component['sub_type'] ?? null) === 'url'
+                    && ($component['parameters'][0]['text'] ?? null) === 'order/confirm/abc-uuid';
+            });
+        });
+    }
 }

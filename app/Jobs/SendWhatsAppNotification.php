@@ -27,6 +27,7 @@ class SendWhatsAppNotification implements ShouldQueue
         public string $template,
         public string $lang,
         public array $bodyParams = [],
+        public ?string $dynamicUrlButtonSuffix = null,
         public array $backoff = [60, 300],
     ) {
         $this->afterCommit();
@@ -39,7 +40,13 @@ class SendWhatsAppNotification implements ShouldQueue
         }
 
         try {
-            $gateway->sendTemplate($this->phone, $this->template, $this->lang, $this->bodyParams);
+            $gateway->sendTemplate(
+                $this->phone,
+                $this->template,
+                $this->lang,
+                $this->bodyParams,
+                $this->dynamicUrlButtonSuffix,
+            );
         } catch (MessageDeliveryException $e) {
             // Notification-side failures must never break the flow; log and move on.
             Log::warning('WhatsApp notification failed.', [

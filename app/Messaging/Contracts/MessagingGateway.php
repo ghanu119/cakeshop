@@ -29,8 +29,15 @@ interface MessagingGateway
      * Send a pre-approved template message with ordered body parameters.
      *
      * @param  array<int, string|int|float>  $bodyParams
+     * @param  string|null  $dynamicUrlButtonSuffix  Dynamic suffix for an approved URL button ({{1}}).
      *
      * @throws MessageDeliveryException when the message cannot be delivered.
      */
-    public function sendTemplate(string $phone, string $template, string $lang, array $bodyParams = []): void;
+    public function sendTemplate(
+        string $phone,
+        string $template,
+        string $lang,
+        array $bodyParams = [],
+        ?string $dynamicUrlButtonSuffix = null,
+    ): void;
 }

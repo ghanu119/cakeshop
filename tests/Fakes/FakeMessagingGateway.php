@@ -14,7 +14,7 @@ class FakeMessagingGateway implements MessagingGateway
     /** @var array<int, array{phone: string, code: string}> */
     public array $otps = [];
 
-    /** @var array<int, array{phone: string, template: string, lang: string, params: array}> */
+    /** @var array<int, array{phone: string, template: string, lang: string, params: array, url_button_suffix: ?string}> */
     public array $templates = [];
 
     public function isEnabled(): bool
@@ -31,8 +31,13 @@ class FakeMessagingGateway implements MessagingGateway
         $this->otps[] = ['phone' => $phone, 'code' => $code];
     }
 
-    public function sendTemplate(string $phone, string $template, string $lang, array $bodyParams = []): void
-    {
+    public function sendTemplate(
+        string $phone,
+        string $template,
+        string $lang,
+        array $bodyParams = [],
+        ?string $dynamicUrlButtonSuffix = null,
+    ): void {
         if ($this->throwReason !== null) {
             throw new MessageDeliveryException($this->throwReason, 'Fake delivery failure.');
         }
@@ -42,6 +47,7 @@ class FakeMessagingGateway implements MessagingGateway
             'template' => $template,
             'lang' => $lang,
             'params' => $bodyParams,
+            'url_button_suffix' => $dynamicUrlButtonSuffix,
         ];
     }
 

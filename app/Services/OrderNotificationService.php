@@ -152,6 +152,7 @@ class OrderNotificationService
                     (string) $order->order_no,
                     $statusText,
                 ],
+                $order->customerOrderWhatsAppUrlSuffix(),
             );
         } catch (\Throwable $e) {
             report($e);
