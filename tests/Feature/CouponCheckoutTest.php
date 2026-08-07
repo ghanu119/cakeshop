@@ -533,6 +533,20 @@ class CouponCheckoutTest extends TestCase
         );
     }
 
+    public function test_single_manual_coupon_still_appears_in_picker(): void
+    {
+        $product = Product::factory()->create(['status' => 'active', 'price' => 500]);
+
+        Coupon::factory()->fixed(50)->create(['code' => 'WELCOME10', 'label' => 'Welcome 10% Off']);
+
+        $response = $this->get(route('order.place', $product));
+
+        $response->assertOk();
+        $response->assertSee('Available offers', false);
+        $response->assertSee('data-coupon-offers-list', false);
+        $response->assertSee('WELCOME10', false);
+    }
+
     public function test_order_confirm_shows_coupon_code_when_discount_applied(): void
     {
         Setting::set('theme', 'better-buns');
@@ -653,5 +667,72 @@ class CouponCheckoutTest extends TestCase
         $response->assertOk();
         $response->assertJsonCount(1, 'universal_coupons');
         $response->assertJsonPath('universal_coupons.0.code', 'SAVE30');
+    }
+
+    public function test_category_scoped_coupon_appears_in_checkout_picker_for_matching_product(): void
+    {
+        $category = Category::factory()->create();
+        $product = Product::factory()->create(['status' => 'active', 'price' => 500, 'category_id' => $category->id]);
+
+        Coupon::factory()->fixed(30)->create([
+            'code' => 'CATSAVE',
+            'label' => 'Category save',
+            'product_scope' => Coupon::PRODUCT_SCOPE_CATEGORIES,
+        ])->categories()->attach($category);
+
+        $response = $this->postJson(route('order.product.validate-coupon', $product), [
+            'quantity' => 1,
+            'skip_auto_apply' => true,
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonCount(1, 'universal_coupons');
+        $response->assertJsonPath('universal_coupons.0.code', 'CATSAVE');
+    }
+
+    public function test_category_scoped_coupon_absent_for_non_matching_category(): void
+    {
+        $matchingCategory = Category::factory()->create();
+        $otherCategory = Category::factory()->create();
+        $product = Product::factory()->create(['status' => 'active', 'price' => 500, 'category_id' => $otherCategory->id]);
+
+        Coupon::factory()->fixed(30)->create([
+            'code' => 'CATSAVE',
+            'product_scope' => Coupon::PRODUCT_SCOPE_CATEGORIES,
+        ])->categories()->attach($matchingCategory);
+
+        $response = $this->postJson(route('order.product.validate-coupon', $product), [
+            'quantity' => 1,
+            'skip_auto_apply' => true,
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonCount(0, 'universal_coupons');
+    }
+
+    public function test_secret_coupon_excluded_from_checkout_picker_but_redeemable_by_code(): void
+    {
+        $product = Product::factory()->create(['status' => 'active', 'price' => 500]);
+
+        Coupon::factory()->secret()->fixed(40)->create(['code' => 'HIDDEN40']);
+
+        $listResponse = $this->postJson(route('order.product.validate-coupon', $product), [
+            'quantity' => 1,
+            'skip_auto_apply' => true,
+        ]);
+
+        $listResponse->assertOk();
+        $listResponse->assertJsonCount(0, 'universal_coupons');
+
+        $manualResponse = $this->postJson(route('order.product.validate-coupon', $product), [
+            'quantity' => 1,
+            'coupon_code' => 'HIDDEN40',
+        ]);
+
+        $manualResponse->assertOk();
+        $manualResponse->assertJson([
+            'valid' => true,
+            'discount_amount' => 40,
+        ]);
     }
 }

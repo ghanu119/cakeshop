@@ -37,13 +37,17 @@ export function initProductVariantPicker(root) {
         couponDiscount = null;
     }
 
+    function round2(value) {
+        return Math.round(value * 100) / 100;
+    }
+
     function applyCouponDiscount(price) {
         const subtotal = Number(price);
         if (!couponDiscount || subtotal <= 0) return subtotal;
         if (couponDiscount.type === 'fixed') {
-            return Math.max(0, subtotal - Number(couponDiscount.amount));
+            return Math.max(0, subtotal - round2(Number(couponDiscount.amount)));
         }
-        const raw = subtotal * (Number(couponDiscount.amount) / 100);
+        const raw = round2(subtotal * (Number(couponDiscount.amount) / 100));
         const cap = couponDiscount.max_cap != null ? Number(couponDiscount.max_cap) : raw;
         return Math.max(0, subtotal - Math.min(raw, cap, subtotal));
     }

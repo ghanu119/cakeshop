@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\ProductVariant;
 use App\Models\User;
 use App\Services\Payments\DTOs\VerifyPaymentResult;
 use App\Services\Payments\PaymentOrchestrator;
@@ -305,7 +306,7 @@ class OrderService
 
     /**
      * @param  array<string, mixed>  $data
-     * @return array{amount: float, subtotal: float, discount_amount: float, currency: string}
+     * @return array{amount: float, subtotal: float, discount_amount: float, delivery_charge: float, currency: string}
      */
     public function quoteOrder(Product $product, array $data, ?User $customer = null): array
     {
@@ -315,6 +316,7 @@ class OrderService
             'amount' => $pricing['amount'],
             'subtotal' => $pricing['subtotal'],
             'discount_amount' => $pricing['discount_amount'],
+            'delivery_charge' => $pricing['delivery_charge'],
             'currency' => (string) (settings('currency') ?: config('payment.currency', 'INR')),
         ];
     }
@@ -371,6 +373,7 @@ class OrderService
      *     amount: float,
      *     subtotal: float,
      *     discount_amount: float,
+     *     delivery_charge: float,
      *     unit_price: float,
      *     variant: \App\Models\ProductVariant|null,
      *     coupon_result: array{coupon: \App\Models\Coupon, discount_amount: float, label: string}|null
@@ -407,14 +410,36 @@ class OrderService
 
         $discountAmount = $couponResult['discount_amount'] ?? 0;
 
+        $fulfillmentType = (string) ($data['fulfillment_type'] ?? Order::FULFILLMENT_TAKEAWAY);
+        $deliveryCharge = $this->resolveDeliveryCharge($fulfillmentType, $product, $variant);
+
         return [
-            'amount' => max(0, $subtotal - $discountAmount),
+            'amount' => max(0, $subtotal - $discountAmount) + $deliveryCharge,
             'subtotal' => $subtotal,
             'discount_amount' => $discountAmount,
+            'delivery_charge' => $deliveryCharge,
             'unit_price' => $unitPrice,
             'variant' => $variant,
             'coupon_result' => $couponResult,
         ];
+    }
+
+    /**
+     * Delivery charge: the selected variant's weight has its own charge (set on the
+     * Cake weight), else the product's own flat delivery charge (only relevant for
+     * products without variants), else the site-wide default from Settings.
+     */
+    private function resolveDeliveryCharge(string $fulfillmentType, Product $product, ?ProductVariant $variant): float
+    {
+        if ($fulfillmentType !== Order::FULFILLMENT_DELIVERY) {
+            return 0.0;
+        }
+
+        $charge = $variant !== null
+            ? $this->productVariantService->weightValueForVariant($variant)?->delivery_charge
+            : $product->delivery_charge;
+
+        return $charge !== null ? (float) $charge : (float) (settings('default_delivery_charge') ?? 0);
     }
 
     /**
@@ -423,6 +448,7 @@ class OrderService
      *     amount: float,
      *     subtotal: float,
      *     discount_amount: float,
+     *     delivery_charge: float,
      *     unit_price: float,
      *     variant: \App\Models\ProductVariant|null,
      *     coupon_result: array{coupon: \App\Models\Coupon, discount_amount: float, label: string}|null
@@ -461,6 +487,7 @@ class OrderService
         $order->unit_price = $pricing['unit_price'];
         $order->subtotal = $pricing['subtotal'];
         $order->discount_amount = $pricing['discount_amount'];
+        $order->delivery_charge = $pricing['delivery_charge'];
         $order->amount = $pricing['amount'];
 
         $couponResult = $pricing['coupon_result'];

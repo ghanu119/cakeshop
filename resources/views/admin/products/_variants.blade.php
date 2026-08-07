@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const addSelect = document.getElementById('variant-weight-add');
     const addBtn = document.getElementById('variant-add-btn');
     const priceHint = document.getElementById('price-hint-starting');
+    const customWeightWrap = document.getElementById('custom-weight-wrap');
     const template = document.getElementById('variant-row-template');
 
     function usedValueIds() {
@@ -105,10 +106,22 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function updatePriceHint() {
-        if (rowsEl.querySelectorAll('.variant-row').length > 0) {
+        const hasVariants = rowsEl.querySelectorAll('.variant-row').length > 0;
+
+        if (hasVariants) {
             priceHint?.classList.remove('hidden');
         } else {
             priceHint?.classList.add('hidden');
+        }
+
+        // A product can't have both a per-weight price ladder and its own flat
+        // delivery charge — hide (and clear) that field once variants exist.
+        customWeightWrap?.classList.toggle('hidden', hasVariants);
+        if (hasVariants) {
+            const deliveryChargeInput = document.getElementById('delivery_charge');
+            if (deliveryChargeInput) {
+                deliveryChargeInput.value = '';
+            }
         }
     }
 

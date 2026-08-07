@@ -145,4 +145,49 @@ class CouponAdminTest extends TestCase
         $coupon = Coupon::where('code', 'CAT1')->first();
         $this->assertTrue($coupon->categories()->whereKey($category->id)->exists());
     }
+
+    public function test_secret_coupon_cannot_be_auto_apply(): void
+    {
+        $admin = $this->adminUser();
+
+        $response = $this->actingAs($admin)->post(route('admin.coupons.store'), [
+            'code' => 'SECRETAUTO',
+            'label' => 'Secret auto',
+            'from_date' => now()->toDateString(),
+            'to_date' => now()->addMonth()->toDateString(),
+            'discount_type' => 'fixed',
+            'discount_amount' => 25,
+            'status' => 'active',
+            'auto_apply' => 1,
+            'is_secret' => 1,
+            'product_scope' => 'all',
+            'user_scope' => 'all',
+        ]);
+
+        $response->assertSessionHasErrors('is_secret');
+        $this->assertDatabaseMissing('coupons', ['code' => 'SECRETAUTO']);
+    }
+
+    public function test_secret_coupon_toggle_persists(): void
+    {
+        $admin = $this->adminUser();
+
+        $this->actingAs($admin)->post(route('admin.coupons.store'), [
+            'code' => 'SECRET1',
+            'label' => 'Secret coupon',
+            'from_date' => now()->toDateString(),
+            'to_date' => now()->addMonth()->toDateString(),
+            'discount_type' => 'fixed',
+            'discount_amount' => 25,
+            'status' => 'active',
+            'auto_apply' => 0,
+            'is_secret' => 1,
+            'product_scope' => 'all',
+            'user_scope' => 'all',
+        ]);
+
+        $coupon = Coupon::where('code', 'SECRET1')->first();
+        $this->assertNotNull($coupon);
+        $this->assertTrue($coupon->is_secret);
+    }
 }

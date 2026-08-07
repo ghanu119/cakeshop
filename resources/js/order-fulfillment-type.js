@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
     const picker = document.querySelector('[data-fulfillment-picker]');
-    const fulfillmentLeftColumn = document.querySelector('[data-fulfillment-left-column]');
     const takeawayPanel = document.querySelector('[data-takeaway-notice-panel]');
     const addressInput = document.querySelector('[data-delivery-address-input]');
     const pincodeInput = document.querySelector('[data-delivery-pincode-input]');
@@ -34,14 +33,6 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
 
-        if (fulfillmentLeftColumn) {
-            if (isDelivery) {
-                fulfillmentLeftColumn.classList.remove('md:col-span-2');
-            } else {
-                fulfillmentLeftColumn.classList.add('md:col-span-2');
-            }
-        }
-
         if (takeawayPanel) {
             if (isDelivery) {
                 takeawayPanel.classList.add('hidden');
@@ -52,6 +43,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (isDelivery) {
             pincodeInput?.removeAttribute('disabled');
+            pincodeInput?.setAttribute('required', 'required');
+            addressInput?.removeAttribute('disabled');
+            addressInput?.setAttribute('required', 'required');
             document.dispatchEvent(new CustomEvent('fulfillment:delivery-selected'));
         } else {
             pincodeInput?.setAttribute('disabled', 'disabled');

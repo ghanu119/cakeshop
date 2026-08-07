@@ -22,6 +22,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const discountLabel = section.querySelector('[data-summary-discount-label]');
     const summaryMaxDiscountWrap = section.querySelector('[data-summary-max-discount-wrap]');
     const summaryMaxDiscountPopover = summaryMaxDiscountWrap?.querySelector('[data-max-discount-popover]');
+    const deliveryChargeRow = section.querySelector('[data-summary-delivery-charge-row]');
+    const deliveryChargeEl = section.querySelector('[data-summary-delivery-charge]');
     const totalEl = section.querySelector('[data-summary-total]');
     const offersPanel = section.querySelector('[data-coupon-offers-panel]');
 
@@ -31,9 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const saveLabel = section.dataset.saveLabel || 'Save';
     const availableOffersLabel = section.dataset.availableOffersLabel || 'Available offers';
     const pickOneLabel = section.dataset.pickOneLabel || 'Pick one';
+    const freeDeliveryLabel = section.dataset.freeDeliveryLabel || 'Free';
 
     let debounceTimer = null;
     let codeApplied = false;
+    let activeController = null;
 
     const formatMoney = (amount) => currencySymbol + Number(amount).toFixed(2);
 
@@ -210,7 +214,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const list = Array.isArray(coupons) ? coupons : [];
 
-        if (list.length < 2) {
+        // Mirrors the Blade $showPicker rule: a lone auto-apply coupon is already silently
+        // applied, so there's nothing to pick; a lone manual coupon still needs to surface here.
+        const showPicker = list.length > 1 || (list.length === 1 && !list[0].auto_apply);
+
+        if (!showPicker) {
             offersPanel.classList.add('hidden');
             offersPanel.setAttribute('aria-hidden', 'true');
             offersPanel.innerHTML = '';
@@ -238,6 +246,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const variantInput = form?.querySelector('#product_variant_id');
         const quantityInput = form?.querySelector('#quantity');
         const emailInput = form?.querySelector('#guest_email');
+        const fulfillmentTypeInput = form?.querySelector('#fulfillment_type');
         const manualCode = codeInput?.value?.trim() || null;
         const useCode = Boolean(manualCode) && (codeApplied || includePendingCode);
 
@@ -246,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             quantity: quantityInput?.value || 1,
             guest_email: emailInput?.value?.trim() || null,
             coupon_code: useCode ? manualCode : null,
+            fulfillment_type: fulfillmentTypeInput?.value || null,
         };
     };
 
@@ -292,6 +302,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateSummaryMaxDiscountInfo(null);
             }
         }
+
+        const deliveryCharge = Number(data.delivery_charge ?? 0);
+        const isDelivery = document.getElementById('fulfillment_type')?.value === 'delivery';
+        if (deliveryChargeRow && deliveryChargeEl) {
+            if (isDelivery) {
+                deliveryChargeRow.classList.remove('hidden');
+                deliveryChargeEl.textContent = deliveryCharge > 0 ? formatMoney(deliveryCharge) : freeDeliveryLabel;
+            } else {
+                deliveryChargeRow.classList.add('hidden');
+            }
+        }
     };
 
     const refresh = (options = {}) => {
@@ -304,12 +325,19 @@ document.addEventListener('DOMContentLoaded', () => {
         body.set('quantity', payload.quantity);
         if (payload.guest_email) body.set('guest_email', payload.guest_email);
         if (payload.coupon_code) body.set('coupon_code', payload.coupon_code);
+        if (payload.fulfillment_type) body.set('fulfillment_type', payload.fulfillment_type);
 
         if (options.skipAutoApply || isCouponDeclined()) {
             body.set('skip_auto_apply', '1');
         } else if (options.reapplyDefault && !payload.coupon_code) {
             body.set('auto_select_best', '1');
         }
+
+        if (activeController) {
+            activeController.abort();
+        }
+        const controller = new AbortController();
+        activeController = controller;
 
         if (applyBtn && !codeApplied) {
             applyBtn.disabled = true;
@@ -324,8 +352,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 'X-Requested-With': 'XMLHttpRequest',
             },
             body: body.toString(),
+            signal: controller.signal,
         })
-            .then((r) => r.json())
+            .then((r) => {
+                if (!r.ok) {
+                    // Server error — don't let an error-shaped JSON body (e.g. {"message": "..."})
+                    // be treated as valid pricing data and zero out the displayed total.
+                    throw new Error('validate-coupon request failed');
+                }
+                return r.json();
+            })
             .then((data) => {
                 if (options.reapplyDefault && !codeApplied && data.best_coupon_code && !isCouponDeclined()) {
                     if (codeInput) {
@@ -380,13 +416,19 @@ document.addEventListener('DOMContentLoaded', () => {
                     );
                 }
             })
-            .catch(() => {
+            .catch((error) => {
+                if (error?.name === 'AbortError') return;
+
                 if (options.fromCodeApply) {
                     setAppliedState(false);
                     showCodeFeedback('Could not validate the coupon. Please try again.');
                 }
             })
             .finally(() => {
+                // A newer request has already superseded this one — let its own
+                // finally() be the one to restore the Apply button state.
+                if (controller !== activeController) return;
+
                 if (applyBtn && !codeApplied) {
                     applyBtn.disabled = false;
                 }
@@ -489,6 +531,8 @@ document.addEventListener('DOMContentLoaded', () => {
     form?.querySelector('#product_variant_id')?.addEventListener('change', onOrderCompositionChanged);
 
     document.addEventListener('variant-price-changed', onOrderCompositionChanged);
+    document.addEventListener('fulfillment:delivery-selected', onOrderCompositionChanged);
+    document.addEventListener('fulfillment:takeaway-selected', onOrderCompositionChanged);
 
     initMaxDiscountPopovers();
     updateClearVisibility();

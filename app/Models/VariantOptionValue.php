@@ -16,6 +16,7 @@ class VariantOptionValue extends Model
         'label',
         'person_capacity_label',
         'grams',
+        'delivery_charge',
         'sort_order',
         'status',
     ];
@@ -24,6 +25,7 @@ class VariantOptionValue extends Model
     {
         return [
             'grams' => 'integer',
+            'delivery_charge' => 'decimal:2',
             'sort_order' => 'integer',
         ];
     }

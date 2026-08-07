@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\FinalizeCheckoutRequest;
+use App\Http\Requests\FinalizeFreeCheckoutRequest;
 use App\Http\Requests\PlaceOrderRequest;
 use App\Models\Product;
 use App\Services\Payments\CheckoutPaymentService;
@@ -46,6 +47,25 @@ class CheckoutPaymentController extends Controller
                 (string) $request->validated('razorpay_order_id'),
                 (string) $request->validated('razorpay_payment_id'),
                 (string) $request->validated('razorpay_signature'),
+            );
+
+            return response()->json([
+                'success' => true,
+                'message' => __('payments.success.verified'),
+                'retryable' => false,
+                'redirect_url' => route('order.confirm', $order),
+                'order_uuid' => $order->uuid,
+            ]);
+        } catch (Throwable $e) {
+            return $this->errorResponse($e);
+        }
+    }
+
+    public function finalizeFree(FinalizeFreeCheckoutRequest $request): JsonResponse
+    {
+        try {
+            $order = $this->checkoutPaymentService->finalizeFreeOrder(
+                (string) $request->validated('checkout_reference'),
             );
 
             return response()->json([

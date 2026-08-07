@@ -36,11 +36,11 @@ class CriticalErrorReporter
             return;
         }
 
-        if ($this->isReportingLoop($e) ) {
+        if ($this->isReportingLoop($e)) {
             return;
         }
 
-        if (! $this->acquireThrottle($e) && false) {
+        if (! $this->acquireThrottle($e)) {
             return;
         }
 
@@ -155,7 +155,7 @@ class CriticalErrorReporter
         ];
     }
 
-  /**
+    /**
      * @return array<string, mixed>|null
      */
     protected function buildRequestContext(?Request $request): ?array

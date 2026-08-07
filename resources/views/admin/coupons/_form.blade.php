@@ -4,6 +4,7 @@
     $selectedCategoryIds = old('category_ids', $coupon?->categories?->pluck('id')->all() ?? []);
     $selectedUserIds = old('user_ids', $coupon?->users?->pluck('id')->all() ?? []);
     $autoApply = (bool) old('auto_apply', $coupon?->auto_apply ?? false);
+    $isSecret = (bool) old('is_secret', $coupon?->is_secret ?? false);
     $discountType = old('discount_type', $coupon?->discount_type ?? 'percentage');
     $productScope = old('product_scope', $coupon?->product_scope ?? 'all');
     $userScope = old('user_scope', $coupon?->user_scope ?? 'all');
@@ -85,6 +86,16 @@
     <label for="auto_apply" class="text-sm font-medium text-gray-700">{{ __('Auto apply coupon to all orders') }}</label>
 </div>
 @error('auto_apply')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+
+<div class="flex items-center gap-3">
+    <input type="hidden" name="is_secret" value="0" />
+    <x-toggle-switch
+        name="is_secret"
+        :checked="$isSecret"
+        label="{{ __('Secret coupon (hidden from checkout offers list)') }}"
+    />
+</div>
+@error('is_secret')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
 
 <div data-scope-sections @class(['hidden' => $autoApply])>
     <fieldset class="space-y-3">

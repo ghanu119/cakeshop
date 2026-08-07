@@ -68,6 +68,7 @@ class Setting extends Model
         'checkout_delivery_notice' => 'We deliver only within Rajkot. Enter your pincode to check availability.',
         'checkout_takeaway_notice' => 'Pickup is only available at our store:',
         'checkout_takeaway_address' => null,
+        'default_delivery_charge' => '0',
         ...self::NOTIFICATION_DEFAULTS,
         ...self::PAYMENT_DEFAULTS,
     ];

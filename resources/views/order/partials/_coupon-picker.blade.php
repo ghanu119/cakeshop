@@ -4,7 +4,14 @@
 
     $symbol = $currency === 'INR' ? '₹' : $currency . ' ';
 
-    $showPicker = ($universalCoupons ?? collect())->count() >= 2;
+    $couponOffers = $universalCoupons ?? collect();
+
+    // A lone auto-apply coupon is already silently applied (see $defaultCouponCode below), so
+    // there's nothing to pick — showing a one-item "picker" for it would be redundant. A lone
+    // manual coupon has nothing pre-applying it, so it must still surface here or the customer
+    // has no way to discover it exists.
+    $showPicker = $couponOffers->count() > 1
+        || ($couponOffers->count() === 1 && ! $couponOffers->first()['auto_apply']);
 
     $initialCouponCode = old('coupon_code', $defaultCouponCode ?? '');
 
@@ -14,7 +21,7 @@
 
 
 
-<div class="space-y-4" data-order-coupon-section data-validate-url="{{ route('order.product.validate-coupon', $product) }}" data-csrf="{{ csrf_token() }}" data-default-coupon-id="{{ $defaultCouponId ?? '' }}" data-default-coupon-code="{{ $defaultCouponCode ?? '' }}" data-currency-symbol="{{ $symbol }}" data-max-discount-template="{{ __('Maximum discount of :amount applies to this offer.', ['amount' => ':amount']) }}" data-recommended-label="{{ __('Recommended') }}" data-save-label="{{ __('Save') }}" data-available-offers-label="{{ __('Available offers') }}" data-pick-one-label="{{ __('Pick one') }}">
+<div class="space-y-4" data-order-coupon-section data-validate-url="{{ route('order.product.validate-coupon', $product) }}" data-csrf="{{ csrf_token() }}" data-default-coupon-id="{{ $defaultCouponId ?? '' }}" data-default-coupon-code="{{ $defaultCouponCode ?? '' }}" data-currency-symbol="{{ $symbol }}" data-max-discount-template="{{ __('Maximum discount of :amount applies to this offer.', ['amount' => ':amount']) }}" data-recommended-label="{{ __('Recommended') }}" data-save-label="{{ __('Save') }}" data-available-offers-label="{{ __('Available offers') }}" data-pick-one-label="{{ __('Pick one') }}" data-free-delivery-label="{{ __('Free') }}">
 
     <input type="hidden" name="coupon_declined" value="{{ old('coupon_declined', '0') }}" data-coupon-declined>
 
@@ -401,6 +408,14 @@
                 </span>
 
                 <span class="font-semibold" data-summary-discount>−{{ $symbol }}0.00</span>
+
+            </div>
+
+            <div class="flex justify-between text-stone-600 hidden" data-summary-delivery-charge-row>
+
+                <span>{{ __('Delivery charge') }}</span>
+
+                <span class="font-medium text-stone-900" data-summary-delivery-charge>{{ $symbol }}0.00</span>
 
             </div>
 

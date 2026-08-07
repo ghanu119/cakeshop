@@ -34,6 +34,8 @@ class UpdateCouponRequest extends FormRequest
     public function withValidator($validator): void
     {
         $validator->after(function ($validator) {
+            $this->assertNotAutoApplyAndSecret($validator);
+
             if ($validator->errors()->isNotEmpty()) {
                 return;
             }

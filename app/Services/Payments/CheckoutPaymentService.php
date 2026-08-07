@@ -9,11 +9,11 @@ use App\Services\CustomerAuthService;
 use App\Services\CustomerContext;
 use App\Services\OrderNotificationService;
 use App\Services\OrderService;
-use App\Support\PhoneNormalizer;
 use App\Services\Payments\DTOs\CreatePaymentOrderData;
 use App\Services\Payments\DTOs\VerifyPaymentData;
 use App\Services\Payments\Exceptions\PaymentException;
 use App\Services\Payments\Exceptions\PaymentVerificationException;
+use App\Support\PhoneNormalizer;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -52,7 +52,7 @@ class CheckoutPaymentService
         $quote = $this->orderService->quoteOrder($product, $validated, $customer);
 
         if ($quote['amount'] <= 0) {
-            throw PaymentVerificationException::orderNotPayable();
+            return $this->prepareFreeOrder($product, $validated, $customer, $quote);
         }
 
         $checkoutReference = (string) Str::uuid();
@@ -93,6 +93,90 @@ class CheckoutPaymentService
             'customer_email' => $validated['guest_email'] ?? null,
             'customer_phone' => $validated['guest_phone'] ?? '',
         ];
+    }
+
+    /**
+     * A 100%-discount coupon can zero out the order amount, but the gateway can't create
+     * (and would reject) a zero-amount order. Skip the gateway entirely and hand the client
+     * a "free" checkout reference to finalize directly via finalizeFreeOrder().
+     *
+     * @param  array<string, mixed>  $validated
+     * @param  array<string, mixed>  $quote
+     * @return array<string, mixed>
+     */
+    private function prepareFreeOrder(Product $product, array $validated, ?User $customer, array $quote): array
+    {
+        $checkoutReference = (string) Str::uuid();
+        $currency = (string) ($quote['currency'] ?? 'INR');
+
+        Cache::put($this->cacheKey($checkoutReference), [
+            'product_id' => $product->id,
+            'validated' => $validated,
+            'customer_id' => $customer?->id,
+            'amount' => 0.0,
+            'currency' => $currency,
+            'gateway' => 'free',
+            'gateway_order_id' => null,
+            'created_at' => now()->toIso8601String(),
+        ], now()->addMinutes(self::CACHE_TTL_MINUTES));
+
+        return [
+            'checkout_reference' => $checkoutReference,
+            'free_order' => true,
+            'amount' => 0,
+            'display_amount' => 0.0,
+            'currency' => $currency,
+        ];
+    }
+
+    /**
+     * Finalize a free (100%-discount) order prepared via prepareFreeOrder(). The amount is
+     * re-verified server-side against the cached session (captured from a trusted quote at
+     * prepare() time) rather than trusted from the client, so this cannot be used to skip
+     * payment on an order that isn't actually free.
+     */
+    public function finalizeFreeOrder(string $checkoutReference): Order
+    {
+        $this->assertPayBeforeOrderEnabled();
+
+        $session = Cache::get($this->cacheKey($checkoutReference));
+
+        if (! is_array($session)) {
+            throw new PaymentException(PaymentException::CODE_SESSION_EXPIRED);
+        }
+
+        if (($session['gateway'] ?? null) !== 'free' || (float) ($session['amount'] ?? -1) !== 0.0) {
+            throw PaymentVerificationException::orderNotPayable();
+        }
+
+        $product = Product::query()->findOrFail((int) $session['product_id']);
+        /** @var array<string, mixed> $validated */
+        $validated = $session['validated'];
+
+        $this->ensureCustomerLoggedIn($session);
+
+        $order = DB::transaction(function () use ($product, $validated, $checkoutReference) {
+            $order = $this->orderService->createOrder($product, $validated);
+            $order->payment_status = Order::PAYMENT_STATUS_VERIFIED;
+            $order->save();
+
+            Cache::forget($this->cacheKey($checkoutReference));
+
+            return $order;
+        });
+
+        if ($this->customerContext->isImpersonating()) {
+            $impersonator = $this->customerContext->impersonator();
+            $customer = $this->customerContext->effectiveCustomer();
+            if ($impersonator && $customer) {
+                $this->customerContext->logOrderPlaced($impersonator, $customer, $order->id);
+            }
+        }
+
+        $this->orderNotificationService->notifyOrderPlaced($order);
+        $this->orderNotificationService->notifyPaymentVerified($order);
+
+        return $order;
     }
 
     public function finalize(
@@ -145,7 +229,7 @@ class CheckoutPaymentService
 
         $this->ensureCustomerLoggedIn($session);
 
-        $order = DB::transaction(function () use ($product, $validated, $result, $session, $checkoutReference) {
+        $order = DB::transaction(function () use ($product, $validated, $result, $checkoutReference) {
             $order = $this->orderService->createOrderWithVerifiedPayment($product, $validated, $result);
             $order->refresh();
 

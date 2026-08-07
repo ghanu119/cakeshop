@@ -210,7 +210,10 @@ class WhatsAppOtpTest extends TestCase
             'channel' => 'whatsapp',
             'phone' => '9558517748',
             'code' => $fake->lastOtpCode(),
-        ])->assertOk()->assertJson(['verified' => true]);
+            'guest_name' => 'Buyer',
+        ])->assertOk()->assertJson(['verified' => true, 'authenticated' => true]);
+
+        $this->assertAuthenticated(AuthGuards::CUSTOMER);
     }
 
     public function test_checkout_whatsapp_send_failure_returns_email_fallback(): void
@@ -252,6 +255,7 @@ class WhatsAppOtpTest extends TestCase
             'channel' => 'whatsapp',
             'phone' => '9558517750',
             'code' => $fake->lastOtpCode(),
+            'guest_name' => 'Buyer',
         ])->assertOk();
 
         $payload = $this->orderPayload([
@@ -285,6 +289,8 @@ class WhatsAppOtpTest extends TestCase
             'channel' => 'whatsapp',
             'phone' => '9558517748',
             'code' => $fake->lastOtpCode(),
+            'guest_name' => 'Buyer',
+            'email' => 'wacheckout@example.com',
         ])->assertOk();
 
         $this->post(route('order.store', $product), $this->orderPayload([

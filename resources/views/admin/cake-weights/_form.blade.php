@@ -50,6 +50,23 @@
         @error('grams')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
     </div>
 
+    <div>
+        <label for="delivery_charge" class="mb-1.5 block text-sm font-medium text-gray-700">{{ __('Delivery charge') }}</label>
+        <input
+            type="number"
+            name="delivery_charge"
+            id="delivery_charge"
+            value="{{ old('delivery_charge', $weight?->delivery_charge) }}"
+            min="0"
+            step="0.01"
+            autocomplete="off"
+            placeholder="0.00"
+            class="block w-full max-w-xs rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 shadow-sm placeholder:text-gray-400 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+        />
+        <p class="mt-1.5 text-sm text-gray-500">{{ __('Charged on delivery orders for products using this weight. Enter 0 for free delivery, or leave empty to use the site-wide default delivery charge from Settings.') }}</p>
+        @error('delivery_charge')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+    </div>
+
     <div class="grid gap-5 sm:grid-cols-2">
         <div>
             <label for="sort_order" class="mb-1.5 block text-sm font-medium text-gray-700">{{ __('Sort order') }}</label>

@@ -25,6 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!form) return;
 
     const autoApply = form.querySelector('[data-auto-apply]');
+    const isSecret = form.querySelector('input[name="is_secret"]');
     const scopeSections = form.querySelector('[data-scope-sections]');
     const discountType = form.querySelector('[data-discount-type]');
     const maxDiscountWrap = form.querySelector('[data-max-discount-wrap]');
@@ -51,6 +52,18 @@ document.addEventListener('DOMContentLoaded', () => {
         scopeSections.classList.toggle('hidden', autoApply.checked);
         if (!autoApply.checked) {
             initVisibleMultiSelects();
+        }
+    };
+
+    // A coupon can't be both auto-applied and secret — enforce the mutual exclusivity
+    // client-side as a UX guardrail; the FormRequest is the real gate.
+    const syncAutoApplySecretExclusivity = (changed) => {
+        if (!autoApply || !isSecret) return;
+        if (changed === autoApply && autoApply.checked) {
+            isSecret.checked = false;
+        } else if (changed === isSecret && isSecret.checked) {
+            autoApply.checked = false;
+            toggleAutoApply();
         }
     };
 
@@ -89,7 +102,11 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    autoApply?.addEventListener('change', toggleAutoApply);
+    autoApply?.addEventListener('change', () => {
+        syncAutoApplySecretExclusivity(autoApply);
+        toggleAutoApply();
+    });
+    isSecret?.addEventListener('change', () => syncAutoApplySecretExclusivity(isSecret));
     discountType?.addEventListener('change', toggleMaxDiscount);
     productScopeRadios.forEach((radio) => radio.addEventListener('change', toggleProductScope));
     userScopeRadios.forEach((radio) => radio.addEventListener('change', toggleUserScope));

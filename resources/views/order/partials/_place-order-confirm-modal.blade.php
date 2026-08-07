@@ -150,6 +150,7 @@
     data-is-impersonating="{{ $isImpersonating ? '1' : '0' }}"
     data-prepare-url="{{ $checkoutPaymentConfig['prepare_url'] ?? '' }}"
     data-finalize-url="{{ $checkoutPaymentConfig['finalize_url'] ?? '' }}"
+    data-finalize-free-url="{{ $checkoutPaymentConfig['finalize_free_url'] ?? '' }}"
     data-currency-symbol="{{ $currencySymbol }}"
     data-pay-label-prefix="{{ __('Pay') }}"
     data-messages='@json($paymentMessages)'

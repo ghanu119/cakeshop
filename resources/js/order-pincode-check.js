@@ -1,9 +1,10 @@
+import $ from 'jquery';
+
 document.addEventListener('DOMContentLoaded', function () {
     const panel =
         document.querySelector('[data-delivery-details-panel]') ||
         document.querySelector('[data-delivery-address-panel]');
     const pincodeInput = document.querySelector('[data-delivery-pincode-input]');
-    const addressInput = document.querySelector('[data-delivery-address-input]');
     const statusWrap = document.querySelector('[data-pincode-status-wrap]');
     const statusBox = document.querySelector('[data-pincode-status-box]');
     const statusIcon = document.querySelector('[data-pincode-status-icon]');
@@ -17,7 +18,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     const checkUrl = panel.dataset.pincodeCheckUrl;
-    let debounceTimer = null;
     let activeController = null;
     let pincodeValid = false;
 
@@ -91,25 +91,26 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function setInputState(state) {
-        pincodeInput.classList.remove(
-            'border-emerald-400',
-            'border-red-400',
-            'ring-emerald-500/20',
-            'ring-red-500/20'
-        );
+        // Select2 hides the native <select> and renders its own box, so the
+        // success/error look is applied to the wrapping .pincode-select element
+        // (styled in _picker-styles.blade.php) rather than the select itself.
+        const wrap = pincodeInput.closest('.pincode-select');
+        wrap?.classList.remove('is-success', 'is-error');
         pincodeInput.removeAttribute('aria-invalid');
 
         if (state === 'success') {
-            pincodeInput.classList.add('border-emerald-400', 'ring-emerald-500/20');
+            wrap?.classList.add('is-success');
         } else if (state === 'error') {
-            pincodeInput.classList.add('border-red-400', 'ring-red-500/20');
+            wrap?.classList.add('is-error');
             pincodeInput.setAttribute('aria-invalid', 'true');
         }
     }
 
+    // Address enable/disable is driven solely by the fulfillment-type toggle
+    // (order-fulfillment-type.js) — pincode serviceability only gates submission
+    // and shows a confirmation/error message, it no longer locks the address field.
     function resetPincodeState() {
         pincodeValid = false;
-        clearTimeout(debounceTimer);
         if (activeController) {
             activeController.abort();
             activeController = null;
@@ -118,9 +119,6 @@ document.addEventListener('DOMContentLoaded', function () {
         showSpinner(false);
         setInputState('idle');
         setStatus('', 'idle');
-        pincodeInput.removeAttribute('required');
-        addressInput?.removeAttribute('required');
-        addressInput?.setAttribute('disabled', 'disabled');
         if (switchToTakeaway) {
             switchToTakeaway.classList.add('hidden');
         }
@@ -130,22 +128,16 @@ document.addEventListener('DOMContentLoaded', function () {
         setSubmitEnabled(!isDelivery);
     }
 
-    function unlockAddress() {
+    function markPincodeValid() {
         pincodeValid = true;
-        pincodeInput.setAttribute('required', 'required');
-        addressInput?.removeAttribute('disabled');
-        addressInput?.setAttribute('required', 'required');
         if (switchToTakeaway) {
             switchToTakeaway.classList.add('hidden');
         }
         setSubmitEnabled(true);
     }
 
-    function lockAddress(message) {
+    function markPincodeInvalid(message) {
         pincodeValid = false;
-        pincodeInput.setAttribute('required', 'required');
-        addressInput?.setAttribute('disabled', 'disabled');
-        addressInput?.removeAttribute('required');
         setStatus(message, 'error');
         setInputState('error');
         if (switchToTakeaway) {
@@ -154,14 +146,9 @@ document.addEventListener('DOMContentLoaded', function () {
         setSubmitEnabled(false);
     }
 
-    async function checkPincode(raw) {
-        const digits = raw.replace(/\D/g, '');
-
+    async function checkPincode(digits) {
         if (digits.length !== 6) {
             resetPincodeState();
-            if (digits.length > 0) {
-                setStatus('Enter a valid 6-digit pincode.', 'muted');
-            }
             return;
         }
 
@@ -198,9 +185,9 @@ document.addEventListener('DOMContentLoaded', function () {
             if (data.serviceable) {
                 setStatus(data.message || 'Delivery available.', 'success');
                 setInputState('success');
-                unlockAddress();
+                markPincodeValid();
             } else {
-                lockAddress(data.message || 'Sorry, we do not deliver to this pincode yet.');
+                markPincodeInvalid(data.message || 'Sorry, we do not deliver to this pincode yet.');
             }
         } catch (error) {
             if (error.name === 'AbortError') {
@@ -208,20 +195,18 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             showSpinner(false);
-            lockAddress('Could not verify pincode. Please try again.');
+            markPincodeInvalid('Could not verify pincode. Please try again.');
         } finally {
             activeController = null;
         }
     }
 
-    pincodeInput.addEventListener('input', function () {
-        const digits = pincodeInput.value.replace(/\D/g, '').slice(0, 6);
-        if (pincodeInput.value !== digits) {
-            pincodeInput.value = digits;
-        }
-
-        clearTimeout(debounceTimer);
-        debounceTimer = setTimeout(() => checkPincode(digits), 300);
+    // Select2 dispatches its "change" event through jQuery, not the native DOM
+    // event system, so a plain addEventListener('change', ...) here never fires
+    // when a pincode is picked from the dropdown — bind via jQuery instead.
+    $(pincodeInput).on('change', function () {
+        const digits = pincodeInput.value.replace(/\D/g, '');
+        checkPincode(digits);
     });
 
     document.addEventListener('fulfillment:delivery-selected', function () {
@@ -244,7 +229,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (hiddenInput?.value === 'delivery' && !pincodeValid) {
                     event.preventDefault();
                     event.stopImmediatePropagation();
-                    lockAddress('Please enter a serviceable delivery pincode.');
+                    markPincodeInvalid('Please select a serviceable delivery pincode.');
                     pincodeInput.focus();
                 }
             },

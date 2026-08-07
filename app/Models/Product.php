@@ -32,6 +32,7 @@ class Product extends Model implements HasMedia
         'min_hours_before_delivery',
         'show_whatsapp_customize_help',
         'price',
+        'delivery_charge',
         'status',
         'meta_title',
         'meta_description',
@@ -46,6 +47,7 @@ class Product extends Model implements HasMedia
     {
         return [
             'price' => 'decimal:2',
+            'delivery_charge' => 'decimal:2',
             'show_on_homepage' => 'boolean',
             'is_highlight' => 'boolean',
             'is_trending' => 'boolean',

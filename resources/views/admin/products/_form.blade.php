@@ -107,6 +107,15 @@
     @enderror
 </div>
 
+<div id="custom-weight-wrap">
+    <label for="delivery_charge" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Delivery charge') }}</label>
+    <x-input type="number" name="delivery_charge" id="delivery_charge" value="{{ old('delivery_charge', $product?->delivery_charge) }}" step="0.01" min="0" class="block w-full max-w-xs" />
+    <p class="mt-1 text-xs text-gray-500">{{ __('Charged on delivery orders for this product. Leave empty to use the site-wide default. Only applies when there are no per-weight prices below (those use their own weight\'s delivery charge instead).') }}</p>
+    @error('delivery_charge')
+        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+    @enderror
+</div>
+
 @include('admin.products._variants', ['product' => $product, 'weightValues' => $weightValues])
 
 <div>

@@ -183,6 +183,44 @@ class OrderFulfillmentTest extends TestCase
         ]);
     }
 
+    public function test_delivery_address_field_not_disabled_by_pincode_state(): void
+    {
+        Setting::set('theme', 'better-buns');
+        Setting::flushCache();
+
+        $product = $this->simpleProduct();
+
+        $response = $this->get(route('order.place', $product));
+
+        $response->assertOk();
+        $html = preg_replace('/\s+/', ' ', $response->getContent());
+        $this->assertMatchesRegularExpression(
+            '/<textarea[^>]*id="delivery_address"[^>]*>/',
+            $html,
+        );
+        $this->assertDoesNotMatchRegularExpression(
+            '/<textarea[^>]*id="delivery_address"[^>]*disabled[^>]*>/',
+            $html,
+        );
+    }
+
+    public function test_takeaway_disables_address_field(): void
+    {
+        Setting::set('theme', 'better-buns');
+        Setting::flushCache();
+
+        $product = $this->simpleProduct();
+
+        $response = $this->get(route('order.place', $product));
+
+        $response->assertOk();
+        $html = preg_replace('/\s+/', ' ', $response->getContent());
+        $this->assertMatchesRegularExpression(
+            '/class="\s*hidden\s+space-y-4"\s*data-delivery-details-panel/',
+            $html,
+        );
+    }
+
     public function test_admin_order_show_displays_fulfillment_for_admin(): void
     {
         $admin = $this->adminUser();

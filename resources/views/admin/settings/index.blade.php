@@ -240,6 +240,15 @@
                     <textarea name="checkout_takeaway_address" id="checkout_takeaway_address" rows="3" class="block w-full rounded-lg border border-gray-300 px-3 py-2 shadow-sm focus:border-gray-500 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">{{ old('checkout_takeaway_address', $settings['checkout_takeaway_address'] ?? $settings['address'] ?? '') }}</textarea>
                     <p class="mt-1 text-sm text-gray-500">{{ __('Full pickup location shown on checkout for take away orders. Leave empty to use the main site address above.') }}</p>
                 </div>
+                <div>
+                    <label for="default_delivery_charge" class="mb-1 block text-sm font-medium text-gray-700">{{ __('Default delivery charge') }}</label>
+                    <x-input type="number" name="default_delivery_charge" id="default_delivery_charge" value="{{ old('default_delivery_charge', $settings['default_delivery_charge'] ?? '0') }}" step="0.01" min="0" class="block w-full" />
+                    <p class="mt-1 text-sm text-gray-500">
+                        {{ __('Used when a delivery order\'s weight has no charge set on its Cake weight or product.') }}
+                        <a href="{{ route('admin.cake-weights.index') }}" class="text-indigo-600 hover:text-indigo-800">{{ __('Manage cake weights →') }}</a>
+                    </p>
+                    @error('default_delivery_charge')<p class="mt-1 text-sm text-red-600">{{ $message }}</p>@enderror
+                </div>
             </div>
         </x-card>
 

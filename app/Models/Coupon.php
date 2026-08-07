@@ -40,6 +40,7 @@ class Coupon extends Model
             'max_discount_amount' => 'decimal:2',
             'min_order_amount' => 'decimal:2',
             'auto_apply' => 'boolean',
+            'is_secret' => 'boolean',
         ];
     }
 

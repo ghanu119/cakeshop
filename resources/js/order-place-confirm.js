@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const isImpersonating = modal.dataset.isImpersonating === '1';
     const prepareUrl = modal.dataset.prepareUrl ?? '';
     const finalizeUrl = modal.dataset.finalizeUrl ?? '';
+    const finalizeFreeUrl = modal.dataset.finalizeFreeUrl ?? '';
     const payLabelPrefix = modal.dataset.payLabelPrefix ?? 'Pay';
     const currencySymbol = modal.dataset.currencySymbol ?? '₹';
 
@@ -667,29 +668,27 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function verifyCheckoutOtp(form, code) {
-        if (otpChannel === 'whatsapp') {
-            await postJsonLocal(verifyOtpUrl, {
-                channel: 'whatsapp',
-                phone: getGuestPhone(form),
-                code,
-            });
-
-            return;
-        }
-
         const contact = getGuestContact(form);
 
         if (! contact.guest_name || ! contact.guest_phone) {
             throw new Error(messageFor(messages, 'contact_required', 'Please fill in your name and phone before verifying.'));
         }
 
-        const data = await postJsonLocal(verifyOtpUrl, {
-            channel: 'email',
-            email: getGuestEmail(form),
-            code,
-            guest_name: contact.guest_name,
-            guest_phone: contact.guest_phone,
-        });
+        const data = otpChannel === 'whatsapp'
+            ? await postJsonLocal(verifyOtpUrl, {
+                channel: 'whatsapp',
+                phone: contact.guest_phone,
+                code,
+                guest_name: contact.guest_name,
+                ...(contact.guest_email ? { email: contact.guest_email } : {}),
+            })
+            : await postJsonLocal(verifyOtpUrl, {
+                channel: 'email',
+                email: getGuestEmail(form),
+                code,
+                guest_name: contact.guest_name,
+                guest_phone: contact.guest_phone,
+            });
 
         if (data.csrf_token) {
             applyCsrfToken(data.csrf_token);
@@ -768,6 +767,19 @@ document.addEventListener('DOMContentLoaded', function () {
         return payload;
     }
 
+    async function finalizeFreeCheckout() {
+        const { response, payload } = await postJson(finalizeFreeUrl, {
+            checkout_reference: checkoutPayload.checkout_reference,
+        }, getCsrfToken());
+
+        if (response.ok && payload.success && payload.redirect_url) {
+            window.location.href = payload.redirect_url;
+            return;
+        }
+
+        throw new Error(payload.message || messageFor(messages, 'network_error', 'Something went wrong.'));
+    }
+
     async function finalizeCheckout(razorpayResponse) {
         const { response, payload } = await postJson(finalizeUrl, {
             checkout_reference: checkoutPayload.checkout_reference,
@@ -794,6 +806,25 @@ document.addEventListener('DOMContentLoaded', function () {
 
         try {
             checkoutPayload = await prepareCheckout(activeForm);
+
+            if (checkoutPayload.free_order) {
+                // A 100%-discount coupon zeroed the order out — there's nothing to pay,
+                // so skip Razorpay entirely and finalize the order directly.
+                setModalProcessing(
+                    true,
+                    messageFor(messages, 'order_processing', 'Placing your order…'),
+                );
+
+                try {
+                    await finalizeFreeCheckout();
+                } catch (error) {
+                    setModalProcessing(false);
+                    setSubmitLoading(false);
+                    showReviewError(error.message, true);
+                }
+
+                return;
+            }
 
             if (checkoutPayload.display_amount != null) {
                 const formatted = `${currencySymbol}${Number(checkoutPayload.display_amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;

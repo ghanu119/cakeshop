@@ -25,6 +25,7 @@ class CouponFactory extends Factory
             'max_discount_amount' => 500,
             'status' => Coupon::STATUS_ACTIVE,
             'auto_apply' => false,
+            'is_secret' => false,
             'min_order_amount' => null,
             'product_scope' => Coupon::PRODUCT_SCOPE_ALL,
             'user_scope' => Coupon::USER_SCOPE_ALL,
@@ -61,5 +62,10 @@ class CouponFactory extends Factory
     public function inactive(): static
     {
         return $this->state(fn () => ['status' => Coupon::STATUS_INACTIVE]);
+    }
+
+    public function secret(): static
+    {
+        return $this->state(fn () => ['is_secret' => true]);
     }
 }

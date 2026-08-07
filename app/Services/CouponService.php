@@ -56,6 +56,10 @@ class CouponService
                 : null;
             $coupon->status = $data['status'] ?? Coupon::STATUS_ACTIVE;
             $coupon->auto_apply = $autoApply;
+            // An auto-apply coupon can never be secret: it's meant to apply automatically to every
+            // qualifying order, so hiding it from the picker would be contradictory. Enforce this
+            // here too (not just in the FormRequest) since this is the single write path for coupons.
+            $coupon->is_secret = $autoApply ? false : ! empty($data['is_secret']);
             $coupon->min_order_amount = isset($data['min_order_amount']) && $data['min_order_amount'] !== ''
                 ? $data['min_order_amount']
                 : null;
@@ -118,13 +122,13 @@ class CouponService
         }
 
         if ($coupon->discount_type === Coupon::DISCOUNT_FIXED) {
-            return min((float) $coupon->discount_amount, $subtotal);
+            return round(min((float) $coupon->discount_amount, $subtotal), 2);
         }
 
         $raw = $subtotal * ((float) $coupon->discount_amount / 100);
         $cap = $coupon->max_discount_amount !== null ? (float) $coupon->max_discount_amount : $raw;
 
-        return min($raw, $cap, $subtotal);
+        return round(min($raw, $cap, $subtotal), 2);
     }
 
     public function isEligible(Coupon $coupon, Product $product, ?User $user, float $subtotal, ?Carbon $at = null): bool
@@ -367,14 +371,35 @@ class CouponService
     }
 
     /**
+     * Coupons eligible to appear in the public checkout picker: universal coupons, plus
+     * product/category-scoped coupons that actually match the current product. Secret
+     * coupons and user-scoped coupons are excluded from this list — both remain redeemable
+     * via manual code entry (see resolveManualCode()/matchesProductScope()), which is
+     * unaffected by this listing query.
+     *
      * @return Collection<int, Coupon>
      */
     private function eligibleUniversalCoupons(Product $product, ?User $user, float $subtotal, Carbon $at): Collection
     {
         return Coupon::query()
             ->active()
-            ->where('product_scope', Coupon::PRODUCT_SCOPE_ALL)
+            ->where('is_secret', false)
             ->where('user_scope', Coupon::USER_SCOPE_ALL)
+            ->where(function ($query) use ($product) {
+                $query->where('product_scope', Coupon::PRODUCT_SCOPE_ALL)
+                    ->orWhere(function ($query) use ($product) {
+                        $query->where('product_scope', Coupon::PRODUCT_SCOPE_PRODUCTS)
+                            ->whereHas('products', fn ($q) => $q->whereKey($product->id));
+                    })
+                    ->orWhere(function ($query) use ($product) {
+                        $query->where('product_scope', Coupon::PRODUCT_SCOPE_CATEGORIES)
+                            ->when(
+                                $product->category_id,
+                                fn ($q) => $q->whereHas('categories', fn ($q) => $q->whereKey($product->category_id)),
+                                fn ($q) => $q->whereRaw('1 = 0'),
+                            );
+                    });
+            })
             ->get()
             ->filter(fn (Coupon $coupon) => $coupon->isWithinDateRange($at))
             ->filter(fn (Coupon $coupon) => $this->isEligible($coupon, $product, $user, $subtotal, $at))

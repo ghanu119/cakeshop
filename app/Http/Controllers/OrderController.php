@@ -16,6 +16,7 @@ use App\Services\OrderService;
 use App\Services\Payments\CheckoutPaymentService;
 use App\Services\Payments\PaymentSettingsResolver;
 use App\Services\ProductVariantService;
+use App\Services\ServiceablePincodeService;
 use App\Support\PhoneNormalizer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -35,6 +36,7 @@ class OrderController extends Controller
         private CouponService $couponService,
         private PaymentSettingsResolver $paymentSettingsResolver,
         private CheckoutPaymentService $checkoutPaymentService,
+        private ServiceablePincodeService $serviceablePincodeService,
     ) {}
 
     public function placeForm(Product $product): View
@@ -95,11 +97,13 @@ class OrderController extends Controller
             'pay_before_order' => $this->checkoutPaymentService->shouldUsePayBeforeOrder(),
             'prepare_url' => route('order.checkout.prepare', $product),
             'finalize_url' => route('order.checkout.finalize'),
+            'finalize_free_url' => route('order.checkout.finalize-free'),
             'enabled' => (bool) ($paymentCheckoutConfig['enabled'] ?? false),
             'key_id' => $paymentCheckoutConfig['key_id'] ?? null,
         ];
 
         $isImpersonating = $this->customerContext->isImpersonating();
+        $servicablePincodeOptions = $this->serviceablePincodeService->activePincodeMap();
 
         return view('order.place', compact(
             'product',
@@ -118,6 +122,7 @@ class OrderController extends Controller
             'defaultCouponCode',
             'checkoutPaymentConfig',
             'isImpersonating',
+            'servicablePincodeOptions',
         ));
     }
 
@@ -190,10 +195,17 @@ class OrderController extends Controller
             $validated = $request->validate([
                 'phone' => ['required', 'string', 'max:20'],
                 'code' => ['required', 'string', 'size:6'],
+                'guest_name' => ['required', 'string', 'max:255'],
+                'email' => ['nullable', 'email', 'max:255'],
             ]);
 
             try {
                 $this->customerAuthService->verifyWhatsAppOtp($validated['phone'], $validated['code']);
+                $this->customerAuthService->authenticateCustomerForVerifiedPhone(
+                    $validated['phone'],
+                    $validated['guest_name'],
+                    $validated['email'] ?? null,
+                );
             } catch (ValidationException $exception) {
                 return response()->json([
                     'message' => collect($exception->errors())->flatten()->first()
@@ -201,7 +213,11 @@ class OrderController extends Controller
                 ], 422);
             }
 
-            return response()->json(['verified' => true]);
+            return response()->json([
+                'verified' => true,
+                'authenticated' => true,
+                'csrf_token' => csrf_token(),
+            ]);
         }
 
         $validated = $request->validate([
@@ -251,12 +267,14 @@ class OrderController extends Controller
             'product_variant_id' => ['nullable', 'integer'],
             'quantity' => ['nullable', 'integer', 'min:1', 'max:10'],
             'guest_email' => ['nullable', 'email', 'max:255'],
+            'fulfillment_type' => ['nullable', 'string', 'in:takeaway,delivery'],
         ]);
 
         $customer = $this->customerContext->customerForCheckout($validated['guest_email'] ?? null);
         $quantity = max(1, (int) ($validated['quantity'] ?? 1));
 
         $unitPrice = (float) $product->price;
+        $variant = null;
         if (! empty($validated['product_variant_id']) && $this->productVariantService->hasVariants($product)) {
             try {
                 $variant = $this->productVariantService->findVariantForProduct($product, (int) $validated['product_variant_id']);
@@ -264,6 +282,14 @@ class OrderController extends Controller
             } catch (\Throwable) {
                 //
             }
+        }
+
+        $deliveryCharge = 0.0;
+        if (($validated['fulfillment_type'] ?? 'takeaway') === 'delivery') {
+            $weightCharge = $variant !== null
+                ? $this->productVariantService->weightValueForVariant($variant)?->delivery_charge
+                : $product->delivery_charge;
+            $deliveryCharge = $weightCharge !== null ? (float) $weightCharge : (float) (settings('default_delivery_charge') ?? 0);
         }
 
         $subtotal = $unitPrice * $quantity;
@@ -297,7 +323,8 @@ class OrderController extends Controller
                 'coupon_code' => null,
                 'reason' => null,
                 'subtotal' => $subtotal,
-                'total' => $subtotal,
+                'delivery_charge' => $deliveryCharge,
+                'total' => $subtotal + $deliveryCharge,
                 'best_coupon_id' => $bestCouponId,
                 'best_coupon_code' => $bestCouponCode,
                 'universal_coupons' => $universalCoupons->values()->all(),
@@ -318,7 +345,8 @@ class OrderController extends Controller
 
         return response()->json(array_merge($result, [
             'subtotal' => $subtotal,
-            'total' => max(0, $subtotal - ($result['discount_amount'] ?? 0)),
+            'delivery_charge' => $deliveryCharge,
+            'total' => max(0, $subtotal - ($result['discount_amount'] ?? 0)) + $deliveryCharge,
             'best_coupon_id' => $bestCouponId,
             'best_coupon_code' => $bestCouponCode,
             'universal_coupons' => $universalCoupons->values()->all(),

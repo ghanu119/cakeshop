@@ -58,6 +58,9 @@ class VariantOptionService
         $value->label = $data['label'];
         $value->person_capacity_label = $data['person_capacity_label'] ?? null;
         $value->grams = isset($data['grams']) && $data['grams'] !== '' ? (int) $data['grams'] : null;
+        $value->delivery_charge = isset($data['delivery_charge']) && $data['delivery_charge'] !== ''
+            ? (float) $data['delivery_charge']
+            : null;
         $value->sort_order = (int) ($data['sort_order'] ?? 0);
         $value->status = $data['status'] ?? 'active';
         $value->save();

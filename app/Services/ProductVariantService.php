@@ -10,6 +10,7 @@ use App\Models\ProductVariantSelection;
 use App\Models\VariantOptionType;
 use App\Models\VariantOptionValue;
 use Illuminate\Support\Collection;
+
 class ProductVariantService
 {
     public function hasVariants(Product $product): bool
@@ -264,10 +265,17 @@ class ProductVariantService
             ->values();
     }
 
-    private function weightGramsForVariant(ProductVariant $variant): ?int
+    public function weightGramsForVariant(ProductVariant $variant): ?int
     {
         $weightSelection = $variant->selections->first(fn ($s) => $s->type?->slug === 'weight');
 
         return $weightSelection?->value?->grams;
+    }
+
+    public function weightValueForVariant(ProductVariant $variant): ?VariantOptionValue
+    {
+        $weightSelection = $variant->selections->first(fn ($s) => $s->type?->slug === 'weight');
+
+        return $weightSelection?->value;
     }
 }

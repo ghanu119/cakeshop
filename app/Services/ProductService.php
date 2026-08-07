@@ -243,8 +243,12 @@ class ProductService
         $product->show_whatsapp_customize_help = ! empty($data['show_whatsapp_customize_help']);
         if (! empty($data['variants'])) {
             $product->price = $data['price'] ?? 0;
+            $product->delivery_charge = null;
         } else {
             $product->price = $data['price'];
+            $product->delivery_charge = isset($data['delivery_charge']) && $data['delivery_charge'] !== ''
+                ? (float) $data['delivery_charge']
+                : null;
         }
         $product->status = $data['status'] ?? 'active';
         $product->meta_title = $data['meta_title'] ?? null;

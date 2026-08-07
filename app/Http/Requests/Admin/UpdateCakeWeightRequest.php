@@ -17,6 +17,7 @@ class UpdateCakeWeightRequest extends FormRequest
             'label' => ['required', 'string', 'max:255'],
             'person_capacity_label' => ['nullable', 'string', 'max:255'],
             'grams' => ['required', 'integer', 'min:1'],
+            'delivery_charge' => ['nullable', 'numeric', 'min:0'],
             'sort_order' => ['nullable', 'integer', 'min:0'],
             'status' => ['required', 'string', 'in:active,inactive'],
         ];

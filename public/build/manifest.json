@@ -55,15 +55,12 @@
     "file": "assets/select2-Cw2tYcCP.css",
     "src": "_select2-Cw2tYcCP.css"
   },
-  "_select2.min-BL6F0sia.js": {
-    "file": "assets/select2.min-BL6F0sia.js",
-    "name": "select2.min",
+  "_select2-DyZXjWrc.js": {
+    "file": "assets/select2-DyZXjWrc.js",
+    "name": "select2",
     "imports": [
       "__commonjsHelpers-CqkleIqs.js",
       "_jquery-BI420F6r.js"
-    ],
-    "css": [
-      "assets/select2-Cw2tYcCP.css"
     ]
   },
   "node_modules/slick-carousel/slick/ajax-loader.gif": {
@@ -87,7 +84,7 @@
     "src": "node_modules/slick-carousel/slick/fonts/slick.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-iZBXIxkE.css",
+    "file": "assets/app-D0pyQS3n.css",
     "src": "resources/css/app.css",
     "isEntry": true,
     "name": "app",
@@ -112,14 +109,17 @@
     "isEntry": true
   },
   "resources/js/admin-coupon-form.js": {
-    "file": "assets/admin-coupon-form-CkvwJjw6.js",
+    "file": "assets/admin-coupon-form-CIebtKyf.js",
     "name": "admin-coupon-form",
     "src": "resources/js/admin-coupon-form.js",
     "isEntry": true,
     "imports": [
       "_jquery-BI420F6r.js",
-      "_select2.min-BL6F0sia.js",
+      "_select2-DyZXjWrc.js",
       "__commonjsHelpers-CqkleIqs.js"
+    ],
+    "css": [
+      "assets/select2-Cw2tYcCP.css"
     ]
   },
   "resources/js/admin-customer-lookup.js": {
@@ -159,14 +159,17 @@
     ]
   },
   "resources/js/admin-select2.js": {
-    "file": "assets/admin-select2-DKfxae9P.js",
+    "file": "assets/admin-select2-D3roOx64.js",
     "name": "admin-select2",
     "src": "resources/js/admin-select2.js",
     "isEntry": true,
     "imports": [
       "_jquery-BI420F6r.js",
-      "_select2.min-BL6F0sia.js",
+      "_select2-DyZXjWrc.js",
       "__commonjsHelpers-CqkleIqs.js"
+    ],
+    "css": [
+      "assets/select2-Cw2tYcCP.css"
     ]
   },
   "resources/js/admin-slider-item-form.js": {
@@ -191,7 +194,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-urRXYh25.js",
+    "file": "assets/app-vN-qZ3nW.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -221,7 +224,7 @@
     "isEntry": true
   },
   "resources/js/order-coupon-summary.js": {
-    "file": "assets/order-coupon-summary-DxYzZq5P.js",
+    "file": "assets/order-coupon-summary-Di5Xh49l.js",
     "name": "order-coupon-summary",
     "src": "resources/js/order-coupon-summary.js",
     "isEntry": true
@@ -233,19 +236,36 @@
     "isEntry": true
   },
   "resources/js/order-fulfillment-type.js": {
-    "file": "assets/order-fulfillment-type-D0i4RB8w.js",
+    "file": "assets/order-fulfillment-type-3Yn4q-Km.js",
     "name": "order-fulfillment-type",
     "src": "resources/js/order-fulfillment-type.js",
     "isEntry": true
   },
   "resources/js/order-pincode-check.js": {
-    "file": "assets/order-pincode-check-IQNTPWV1.js",
+    "file": "assets/order-pincode-check-B05zBKht.js",
     "name": "order-pincode-check",
     "src": "resources/js/order-pincode-check.js",
-    "isEntry": true
+    "isEntry": true,
+    "imports": [
+      "_jquery-BI420F6r.js",
+      "__commonjsHelpers-CqkleIqs.js"
+    ]
+  },
+  "resources/js/order-pincode-select2.js": {
+    "file": "assets/order-pincode-select2-BJvOYkFN.js",
+    "name": "order-pincode-select2",
+    "src": "resources/js/order-pincode-select2.js",
+    "isEntry": true,
+    "imports": [
+      "_jquery-BI420F6r.js",
+      "__commonjsHelpers-CqkleIqs.js"
+    ],
+    "css": [
+      "assets/select2-Cw2tYcCP.css"
+    ]
   },
   "resources/js/order-place-confirm.js": {
-    "file": "assets/order-place-confirm-Bc6RE0Lu.js",
+    "file": "assets/order-place-confirm-puvPqn8y.js",
     "name": "order-place-confirm",
     "src": "resources/js/order-place-confirm.js",
     "isEntry": true,
@@ -273,14 +293,17 @@
     ]
   },
   "resources/js/product-filters-select2.js": {
-    "file": "assets/product-filters-select2-CBnsIB12.js",
+    "file": "assets/product-filters-select2-BI6zMtC8.js",
     "name": "product-filters-select2",
     "src": "resources/js/product-filters-select2.js",
     "isEntry": true,
     "imports": [
       "_jquery-BI420F6r.js",
-      "_select2.min-BL6F0sia.js",
+      "_select2-DyZXjWrc.js",
       "__commonjsHelpers-CqkleIqs.js"
+    ],
+    "css": [
+      "assets/select2-Cw2tYcCP.css"
     ]
   },
   "resources/js/product-gallery.js": {

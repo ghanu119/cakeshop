@@ -49,6 +49,7 @@
                 <x-table.th>{{ __('Discount') }}</x-table.th>
                 <x-table.th>{{ __('Valid') }}</x-table.th>
                 <x-table.th>{{ __('Auto') }}</x-table.th>
+                <x-table.th>{{ __('Secret') }}</x-table.th>
                 <x-table.th>{{ __('Status') }}</x-table.th>
                 <x-table.th class="text-right">{{ __('Actions') }}</x-table.th>
             </x-table.header>
@@ -70,6 +71,13 @@
                         <x-table.cell>
                             @if($coupon->auto_apply)
                                 <x-badge variant="success">{{ __('Yes') }}</x-badge>
+                            @else
+                                <span class="text-gray-400">—</span>
+                            @endif
+                        </x-table.cell>
+                        <x-table.cell>
+                            @if($coupon->is_secret)
+                                <x-badge variant="warning">{{ __('Yes') }}</x-badge>
                             @else
                                 <span class="text-gray-400">—</span>
                             @endif

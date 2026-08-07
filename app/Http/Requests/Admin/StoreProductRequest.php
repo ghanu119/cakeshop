@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\Order;
 use App\Http\Requests\Admin\Concerns\ValidatesProductImages;
 use App\Http\Requests\Admin\Concerns\ValidatesProductWeightVariants;
+use App\Models\Order;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -51,6 +51,12 @@ class StoreProductRequest extends FormRequest
             'homepage_sort_order' => ['nullable', 'integer', 'min:0'],
             'flavor_ids' => ['nullable', 'array'],
             'flavor_ids.*' => ['integer', 'exists:flavors,id'],
+            'delivery_charge' => [
+                'nullable',
+                'numeric',
+                'min:0',
+                Rule::prohibitedIf(fn () => ! empty($this->input('variants'))),
+            ],
         ], $this->productWeightVariantRules(), $this->productImageRules());
     }
 

@@ -119,4 +119,48 @@ class CakeWeightAdminTest extends TestCase
             'person_capacity_label' => '5 - 6 People',
         ]);
     }
+
+    public function test_admin_can_set_delivery_charge_on_weight(): void
+    {
+        $admin = User::factory()->create(['email_verified_at' => now()]);
+        $admin->assignRole('Admin');
+
+        $weight = VariantOptionValue::query()
+            ->forTypeSlug('weight')
+            ->where('grams', 1000)
+            ->firstOrFail();
+
+        $response = $this->actingAs($admin)->put(route('admin.cake-weights.update', $weight), [
+            'label' => $weight->label,
+            'grams' => $weight->grams,
+            'delivery_charge' => 45,
+            'sort_order' => $weight->sort_order,
+            'status' => $weight->status,
+        ]);
+
+        $response->assertRedirect(route('admin.cake-weights.index'));
+        $this->assertDatabaseHas('variant_option_values', [
+            'id' => $weight->id,
+            'delivery_charge' => 45.00,
+        ]);
+    }
+
+    public function test_delivery_charge_is_optional_and_defaults_to_null(): void
+    {
+        $admin = User::factory()->create(['email_verified_at' => now()]);
+        $admin->assignRole('Admin');
+
+        $response = $this->actingAs($admin)->post(route('admin.cake-weights.store'), [
+            'label' => '5 KG',
+            'grams' => 5000,
+            'sort_order' => 7,
+            'status' => 'active',
+        ]);
+
+        $response->assertRedirect(route('admin.cake-weights.index'));
+        $this->assertDatabaseHas('variant_option_values', [
+            'grams' => 5000,
+            'delivery_charge' => null,
+        ]);
+    }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin\Concerns;
 
 use App\Models\Coupon;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 trait ValidatesCoupon
 {
@@ -35,6 +36,7 @@ trait ValidatesCoupon
             ],
             'status' => ['required', 'string', 'in:active,inactive'],
             'auto_apply' => ['nullable', 'boolean'],
+            'is_secret' => ['nullable', 'boolean'],
             'min_order_amount' => ['nullable', 'numeric', 'min:0'],
             'product_scope' => ['nullable', 'string', 'in:all,products,categories'],
             'category_ids' => ['nullable', 'array'],
@@ -45,6 +47,13 @@ trait ValidatesCoupon
             'user_ids' => ['nullable', 'array'],
             'user_ids.*' => ['integer', 'exists:users,id'],
         ];
+    }
+
+    protected function assertNotAutoApplyAndSecret(Validator $validator): void
+    {
+        if ($this->boolean('auto_apply') && $this->boolean('is_secret')) {
+            $validator->errors()->add('is_secret', __('A coupon cannot be both auto-applied and secret.'));
+        }
     }
 
     protected function prepareCouponValidation(): void
@@ -74,6 +83,7 @@ trait ValidatesCoupon
 
     /**
      * @param  callable(\Illuminate\Validation\Validator): void  $after
+     *
      * @deprecated Use inline withValidator instead
      */
     protected function withCouponValidator(callable $after): void
