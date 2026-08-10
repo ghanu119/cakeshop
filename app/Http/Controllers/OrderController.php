@@ -140,6 +140,8 @@ class OrderController extends Controller
 
             $email = isset($validated['email']) ? strtolower(trim((string) $validated['email'])) : '';
 
+            $this->customerAuthService->assertContactsNotConflicting($email !== '' ? $email : null, $validated['phone']);
+
             try {
                 $this->customerAuthService->sendWhatsAppOtp($validated['phone']);
             } catch (ValidationException $exception) {
@@ -166,6 +168,7 @@ class OrderController extends Controller
 
         $validated = $request->validate([
             'email' => ['required', 'email', 'max:255'],
+            'guest_phone' => ['nullable', 'string', 'max:50'],
         ]);
 
         $email = strtolower(trim($validated['email']));
@@ -176,6 +179,8 @@ class OrderController extends Controller
                 'email' => [__('This email cannot be used for customer checkout.')],
             ]);
         }
+
+        $this->customerAuthService->assertContactsNotConflicting($email, $validated['guest_phone'] ?? null);
 
         $this->customerAuthService->sendOtp($email);
 

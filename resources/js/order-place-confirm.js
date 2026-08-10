@@ -650,13 +650,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function sendCheckoutOtp(form) {
         const email = getGuestEmail(form);
+        const phone = getGuestPhone(form);
         const payload = otpChannel === 'whatsapp'
             ? {
                 channel: 'whatsapp',
-                phone: getGuestPhone(form),
+                phone,
                 ...(email ? { email } : {}),
             }
-            : { channel: 'email', email };
+            : {
+                channel: 'email',
+                email,
+                ...(phone ? { guest_phone: phone } : {}),
+            };
 
         const data = await postJsonLocal(sendOtpUrl, payload);
 

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Livewire\Account\AuthModal;
 use App\Messaging\Contracts\MessagingGateway;
 use App\Messaging\Exceptions\MessageDeliveryException;
+use App\Models\LoginOtp;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Setting;
@@ -273,6 +274,48 @@ class WhatsAppOtpTest extends TestCase
         $order = Order::latest('id')->first();
         $this->assertSame($customer->id, $order->user_id);
         $this->assertNull($order->guest_email);
+    }
+
+    public function test_checkout_send_otp_blocks_conflicting_whatsapp_and_email(): void
+    {
+        $fake = $this->fakeWhatsApp();
+
+        User::factory()->customer()->create([
+            'email' => 'ownera@example.com',
+            'phone' => '9333000001',
+        ]);
+        User::factory()->customer()->create([
+            'email' => 'ownerb@example.com',
+            'phone' => '9333000002',
+        ]);
+
+        $this->postJson(route('order.checkout.send-otp'), [
+            'channel' => 'whatsapp',
+            'phone' => '9333000002',
+            'email' => 'ownera@example.com',
+        ])->assertStatus(422);
+
+        $this->assertSame(0, LoginOtp::count());
+        $this->assertNull($fake->lastOtpCode());
+    }
+
+    public function test_checkout_send_otp_blocks_conflicting_email_and_phone(): void
+    {
+        User::factory()->customer()->create([
+            'email' => 'ownera@example.com',
+            'phone' => '9333000003',
+        ]);
+        User::factory()->customer()->create([
+            'email' => 'ownerb@example.com',
+            'phone' => '9333000004',
+        ]);
+
+        $this->postJson(route('order.checkout.send-otp'), [
+            'email' => 'ownera@example.com',
+            'guest_phone' => '9333000004',
+        ])->assertStatus(422);
+
+        $this->assertSame(0, LoginOtp::count());
     }
 
     public function test_guest_can_place_order_with_whatsapp_otp(): void

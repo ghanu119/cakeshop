@@ -297,7 +297,9 @@ class CustomerAuthService
             return $this->claimPhoneOnlyAccount($byPhone, $name);
         }
 
-        return $byPhone;
+        throw ValidationException::withMessages([
+            'phone' => [__('This phone number is already linked to a different account. Please sign in with the matching email, or contact the store.')],
+        ]);
     }
 
     public function authenticateCustomerForVerifiedEmail(string $email, string $phone, string $name): User
@@ -340,14 +342,88 @@ class CustomerAuthService
         $customer = $this->findCustomerByPhone($normalized);
 
         if ($customer === null) {
+            $normalizedEmail = $email !== null && trim($email) !== '' ? strtolower(trim($email)) : null;
+
+            if ($normalizedEmail !== null) {
+                $byEmail = $this->findCustomerByEmail($normalizedEmail);
+
+                if ($byEmail !== null) {
+                    if ($byEmail->phone !== null && $byEmail->phone !== '') {
+                        throw ValidationException::withMessages([
+                            'email' => [__('This email is already linked to a different account. Please sign in with the matching phone number, or contact the store.')],
+                        ]);
+                    }
+
+                    $customer = $this->claimEmailOnlyAccount($byEmail, $normalized, $name);
+                    $this->markWhatsAppVerified($customer);
+
+                    return $customer;
+                }
+            }
+
             // Email (if provided) was entered during a WhatsApp verification,
             // so it is NOT email-verified — only the phone/WhatsApp is.
-            $customer = $this->createCustomer($name, $normalized, $email, emailVerified: false);
+            $customer = $this->createCustomer($name, $normalized, $normalizedEmail, emailVerified: false);
         }
 
         $this->markWhatsAppVerified($customer);
 
         return $customer;
+    }
+
+    public function claimEmailOnlyAccount(User $existing, string $phone, string $name): User
+    {
+        $verified = $this->verifiedPhone();
+
+        if ($verified === null || $verified !== $phone) {
+            throw ValidationException::withMessages([
+                'phone' => [__('Your session has expired. Please start again.')],
+            ]);
+        }
+
+        if ($existing->phone !== null && $existing->phone !== '') {
+            throw ValidationException::withMessages([
+                'email' => [__('This email is already linked to a different account. Please sign in with the matching phone number, or contact the store.')],
+            ]);
+        }
+
+        $existing->phone = $phone;
+        $existing->name = trim($name);
+        $existing->save();
+
+        CustomerAccountEvent::create([
+            'user_id' => $existing->id,
+            'event' => 'phone_claimed',
+            'email' => $existing->email,
+            'ip_address' => $this->request->ip(),
+            'created_at' => now(),
+        ]);
+
+        return $existing;
+    }
+
+    /**
+     * Guard used before an OTP is sent during guest checkout: if the typed
+     * email and phone already resolve to two different existing accounts,
+     * fail fast instead of sending a code that will only fail at verify time.
+     */
+    public function assertContactsNotConflicting(?string $email, ?string $phone): void
+    {
+        $normalizedEmail = $email !== null && trim($email) !== '' ? strtolower(trim($email)) : null;
+        $normalizedPhone = $phone !== null && trim($phone) !== '' ? PhoneNormalizer::normalize($phone) : null;
+
+        if ($normalizedEmail === null || $normalizedPhone === null) {
+            return;
+        }
+
+        $byEmail = $this->findCustomerByEmail($normalizedEmail);
+        $byPhone = $this->findCustomerByPhone($normalizedPhone);
+
+        if ($byEmail !== null && $byPhone !== null && $byEmail->id !== $byPhone->id) {
+            throw ValidationException::withMessages([
+                'email' => [__('This email and phone number are linked to different accounts. Please double-check your details or sign in using just one of them.')],
+            ]);
+        }
     }
 
     public function authenticateCustomerForVerifiedPhone(string $phone, string $name, ?string $email = null): User
